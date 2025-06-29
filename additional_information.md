@@ -64,7 +64,7 @@ This specifies that
 
 Note that each state variable has exactly one argument, e.g., `'alice'` or `'taxi1'`. However, the argument may be any hashable Python object, e.g., `'alice'` or the tuple  `('station','home')`, but not the list `['station','home']`.
 
-Although a `State` is object is used mainly to represent a state of the world, it can also be used for other collections of variables. For example, in [Examples/simple_htn.py](Examples/simple_htn.py) and [Examples/simple_hgn.py](Examples/simple_hgn.py), the `State` object named `rigid` contains some "rigid" properties that are true in every state of the world.
+Although a `State` is object is used mainly to represent a state of the world, it can also be used for other collections of variables. For example, in [examples/simple_htn.py](examples/simple_htn.py) and [examples/simple_hgn.py](examples/simple_hgn.py), the `State` object named `rigid` contains some "rigid" properties that are true in every state of the world.
     
 
 ### Actions
@@ -147,7 +147,7 @@ The above declaration tells GTPyhop that `m_unload_at_loc` is relevant not only 
 
     gtpyhop.declare_unigoal_methods('loc', m_unload_at_loc)
 
-For an example of a situation where such restrictions are important, see the definitions of `m_move1`, `m_get`, and `m_put` in the [Examples/blocks_hgn/methods.py](Examples/blocks_hgn/methods.py) file.
+For an example of a situation where such restrictions are important, see the definitions of `m_move1`, `m_get`, and `m_put` in the [examples/blocks_hgn/methods.py](examples/blocks_hgn/methods.py) file.
     
 
 ### Multigoals
@@ -217,7 +217,7 @@ Depending on feedback from users, I'll consider whether to make `verify_goals = 
 ## <span id="Pyhop">6. Backward Compatibility with Pyhop</span>
 
 
-GTPyhop is mostly backward-compatible with Pyhop, but not completely so. Below is a list of the differences. To illustrate them, the [`pyhop_simple_travel_example`](Examples/pyhop_simple_travel_example) example domain is a near-verbatim adaptation of Pyhop's [simple travel example](https://bitbucket.org/dananau/pyhop/src/master/simple_travel_example.py).
+GTPyhop is mostly backward-compatible with Pyhop, but not completely so. Below is a list of the differences. To illustrate them, the [`pyhop_simple_travel_example`](examples/pyhop_simple_travel_example) example domain is a near-verbatim adaptation of Pyhop's [simple travel example](https://bitbucket.org/dananau/pyhop/src/master/simple_travel_example.py).
 
 - Pyhop worked in both Python 2 and 3. GTPyhop requires Python 3.
 - GTPyhop requires a domain declaration before any actions and methods can be defined.
@@ -347,7 +347,7 @@ To summarize: it can be difficult to tell HGNpyhop that an action *a* is relevan
 
 In GTPyhop, we can overcome this problem by defining, for each effect *e* of *a*, a unigoal_method for *e* that returns the list [*a*]. This is possible because GTPyhop allows actions to appear in the list of items returned by a method -- which is not allowed in HGNpyhop, nor in HGN planners such as GDP and GoDel.
 
-As an example of how to do this, see [Examples/logistics_hgn.py](Examples/logistics_hgn.py)
+As an example of how to do this, see [examples/logistics_hgn.py](examples/logistics_hgn.py)
 
 
 ## <span id="References">8. References</span>

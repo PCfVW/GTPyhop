@@ -23,7 +23,7 @@ For further information, see this [overview of GTPyhop](http://www.cs.umd.edu/~n
 
 ### Things in the GTPyhop distribution
 
-  - The [GTPyhop source file](gtpyhop.py), the [open-source license](LICENSE.txt), and a simple [test harness](test_harness.py) for debugging and demonstrating problem domains.
+  - The [GTPyhop source file](src/gtpyhop.py), the [open-source license](LICENSE.txt), and a simple [test harness](test/test_harness.py) for debugging and demonstrating problem domains.
   
   - Several example problem domains and test problems. Go to the `Examples` directory, launch Python 3, and try one or more of the following:
 
