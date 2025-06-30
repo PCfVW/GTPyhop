@@ -16,7 +16,7 @@ authors = [
 license = { text = "Clear BSD License" }
 classifiers = [    "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
-    "Topic :: Artificial Intelligence :: HTN Planning",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "License :: OSI Approved :: BSD License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
