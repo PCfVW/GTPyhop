@@ -4,18 +4,18 @@ build-backend = "hatchling.build"
 
 [project]
 name = "gtpyhop"
-version = "1.1.0"
+version = "1.1.1b2"
 description= "A Goal-Task-Network planning system written in Python"
 readme = "README.md"
 authors = [
     { name = "Dana Nau", email = "nau@umd.edu" },
 
-    # Packaging author (this toml file, new folder names and structure)
+    # Packaging author (this toml file, new folder names and new package folder structure)
     { name = "Eric Jacopin", email = "eric.jacopin@protonmail.com" },
 ]
 license = { text = "Clear BSD License" }
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "License :: OSI Approved :: BSD License",
@@ -31,6 +31,3 @@ Homepage = "https://github.com/dananau/gtpyhop"
 Documentation = "https://github.com/dananau/GTPyhop/blob/main/additional_information.md"
 Repository = "https://github.com/dananau/gtpyhop.git"
 Issues = "https://github.com/dananau/gtpyhop/issues"
-
-# [tool.hatch.build.targets.wheel]
-# packages = ["gtpyhop"]
