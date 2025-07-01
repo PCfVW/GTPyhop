@@ -11,10 +11,11 @@ authors = [
     { name = "Dana Nau", email = "nau@umd.edu" },
 
     # Packaging author (this toml file, new folder names and structure)
-    { name = "Eric Jacopin", email = "eric.jacopin@protonmail.com" }
+    { name = "Eric Jacopin", email = "eric.jacopin@protonmail.com" },
 ]
 license = { text = "Clear BSD License" }
-classifiers = [    "Development Status :: 3 - Alpha",
+classifiers = [
+    "Development Status :: 3 - Alpha",
     "Intended Audience :: Science/Research",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "License :: OSI Approved :: BSD License",
@@ -31,5 +32,5 @@ Documentation = "https://github.com/dananau/GTPyhop/blob/main/additional_informa
 Repository = "https://github.com/dananau/gtpyhop.git"
 Issues = "https://github.com/dananau/gtpyhop/issues"
 
-[tool.hatch.build.targets.wheel]
-packages = ["gtpyhop"]
+# [tool.hatch.build.targets.wheel]
+# packages = ["gtpyhop"]
