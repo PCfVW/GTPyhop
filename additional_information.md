@@ -5,6 +5,8 @@
 > University of Maryland  
 > July 22, 2021
 
+> [Original version of this this file](https://github.com/dananau/GTPyhop/blob/main/additional_information.md)
+
 ---
 
 ## Contents
@@ -64,7 +66,7 @@ This specifies that
 
 Note that each state variable has exactly one argument, e.g., `'alice'` or `'taxi1'`. However, the argument may be any hashable Python object, e.g., `'alice'` or the tuple  `('station','home')`, but not the list `['station','home']`.
 
-Although a `State` is object is used mainly to represent a state of the world, it can also be used for other collections of variables. For example, in [examples/simple_htn.py](examples/simple_htn.py) and [examples/simple_hgn.py](examples/simple_hgn.py), the `State` object named `rigid` contains some "rigid" properties that are true in every state of the world.
+Although a `State` is object is used mainly to represent a state of the world, it can also be used for other collections of variables. For example, in [examples/simple_htn.py](https://github.com/PCfVW/GTPyhop/blob/pip/examples/simple_htn.py) and [examples/simple_hgn.py](https://github.com/PCfVW/GTPyhop/blob/pip/examples/simple_hgn.py), the `State` object named `rigid` contains some "rigid" properties that are true in every state of the world.
     
 
 ### Actions
@@ -147,7 +149,7 @@ The above declaration tells GTPyhop that `m_unload_at_loc` is relevant not only 
 
     gtpyhop.declare_unigoal_methods('loc', m_unload_at_loc)
 
-For an example of a situation where such restrictions are important, see the definitions of `m_move1`, `m_get`, and `m_put` in the [examples/blocks_hgn/methods.py](examples/blocks_hgn/methods.py) file.
+For an example of a situation where such restrictions are important, see the definitions of `m_move1`, `m_get`, and `m_put` in the [examples/blocks_hgn/methods.py](https://github.com/PCfVW/GTPyhop/blob/pip/examples/blocks_hgn/methods.py) file.
     
 
 ### Multigoals
@@ -347,7 +349,7 @@ To summarize: it can be difficult to tell HGNpyhop that an action *a* is relevan
 
 In GTPyhop, we can overcome this problem by defining, for each effect *e* of *a*, a unigoal_method for *e* that returns the list [*a*]. This is possible because GTPyhop allows actions to appear in the list of items returned by a method -- which is not allowed in HGNpyhop, nor in HGN planners such as GDP and GoDel.
 
-As an example of how to do this, see [examples/logistics_hgn.py](examples/logistics_hgn.py)
+As an example of how to do this, see [examples/logistics_hgn.py](https://github.com/PCfVW/GTPyhop/blob/pip/examples/logistics_hgn.py)
 
 
 ## <span id="References">8. References</span>

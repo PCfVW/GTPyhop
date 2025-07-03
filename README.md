@@ -5,6 +5,9 @@
 > University of Maryland  
 > July 22, 2021
 
+> [Original version of this this file](https://github.com/dananau/GTPyhop/blob/main/README.md)
+
+
 ### About this branch
 
 This is the **pip branch** of the GTPyhop repository. **No modifications have been made to Dana Nau's original code** - this branch solely focuses on restructuring the repository directories to create a proper Python package that can be installed via pip and imported directly into Python, allowing users to:
@@ -45,7 +48,7 @@ GTPyhop is an automated planning system written in Python, that uses hierarchica
 
 - GTPyhop is mostly backward-compatible with Pyhop. However, GTPyhop includes more documentation, more debugging features, and the ability to load multiple planning domains into memory and switch among them without having to restart Python each time.
 
-For further information, see this [overview of GTPyhop](http://www.cs.umd.edu/~nau/papers/nau2021gtpyhop.pdf) and this [additional information](additional_information.md).
+For further information, see this [overview of GTPyhop](http://www.cs.umd.edu/~nau/papers/nau2021gtpyhop.pdf) and this [additional information](https://github.com/PCfVW/GTPyhop/blob/pip/additional_information.md).
 
 ### Package Structure
 
