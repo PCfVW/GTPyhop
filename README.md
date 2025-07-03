@@ -16,7 +16,7 @@ This is the **pip branch** of the GTPyhop repository. **No modifications have be
 - Import the library directly with `import gtpyhop` in Python scripts
 - Access all original functionality through standard Python package conventions
 
-To reflect this pip branch adaptation, Dana's GTPyhop version number has been updated from 1.1.0 to 1.1.1b1, where the "b1" designation represents an observation period to assess the stability of this pip branch.
+To reflect this pip branch adaptation, Dana's GTPyhop version number has been updated from 1.1.0 to 1.1.1b3, where the "b" designation represents an observation period to assess the stability of this pip branch.
 
 
 ### Installation
