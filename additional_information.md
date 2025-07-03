@@ -219,7 +219,7 @@ Depending on feedback from users, I'll consider whether to make `verify_goals = 
 ## <span id="Pyhop">6. Backward Compatibility with Pyhop</span>
 
 
-GTPyhop is mostly backward-compatible with Pyhop, but not completely so. Below is a list of the differences. To illustrate them, the [`pyhop_simple_travel_example`](examples/pyhop_simple_travel_example) example domain is a near-verbatim adaptation of Pyhop's [simple travel example](https://bitbucket.org/dananau/pyhop/src/master/simple_travel_example.py).
+GTPyhop is mostly backward-compatible with Pyhop, but not completely so. Below is a list of the differences. To illustrate them, the [`pyhop_simple_travel_example`](https://github.com/PCfVW/GTPyhop/blob/pip/examples/pyhop_simple_travel_example.py) example domain is a near-verbatim adaptation of Pyhop's [simple travel example](https://bitbucket.org/dananau/pyhop/src/master/simple_travel_example.py).
 
 - Pyhop worked in both Python 2 and 3. GTPyhop requires Python 3.
 - GTPyhop requires a domain declaration before any actions and methods can be defined.
