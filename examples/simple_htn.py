@@ -4,15 +4,10 @@ my lectures.
 -- Dana Nau <nau@umd.edu>, July 20, 2021
 """
 
-# kludge to make gtpyhop available regardless of whether the current directory
-# is the Examples directory or its parent (where gtpyhop.py is located)
-#
-import sys
-sys.path.append('../')
 import gtpyhop
 
 import random
-import test_harness as th   # code for use in paging and debugging
+import gtpyhop.test_harness as th   # code for use in paging and debugging
 
 
 # Rather than hard-coding the domain name, use the name of the current file.
