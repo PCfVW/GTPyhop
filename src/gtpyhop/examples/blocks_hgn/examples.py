@@ -1,5 +1,5 @@
 """
-Examples file for blocks_gtn.
+Examples file for blocks_hgn.
 -- Dana Nau <nau@umd.edu>, July 20, 2021
 """
 
@@ -8,7 +8,7 @@ Examples file for blocks_gtn.
 # from IPython.terminal.debugger import set_trace
 
 import gtpyhop
-import test_harness as th   # code for use in paging and debugging
+import gtpyhop.test_harness as th   # code for use in paging and debugging
 
 
 # We must declare the current domain before importing methods and actions.
@@ -54,7 +54,7 @@ def main(do_pauses=True):
     plan = gtpyhop.find_plan(state1,[('pickup','b')])
     th.check_result(plan,False)
 
-    plan = gtpyhop.find_plan(state1,[('take','b')])
+    plan = gtpyhop.find_plan(state1,[('pos','b','hand')])
     th.check_result(plan,False)
 
     th.pause(do_pauses)
@@ -66,24 +66,28 @@ block a is on block b, block b is on the table, and block c is on the table.
     plan = gtpyhop.find_plan(state1,[('pickup','c')])
     th.check_result(plan, [('pickup','c')])
 
-    plan = gtpyhop.find_plan(state1,[('take','a')])
+    plan = gtpyhop.find_plan(state1,[('unstack','a','b')])
     th.check_result(plan, [('unstack','a', 'b')])
 
-    plan = gtpyhop.find_plan(state1,[('take','c')])
-    th.check_result(plan, [('pickup','c')])
+    plan = gtpyhop.find_plan(state1,[('pos','a','b')])
+    th.check_result(plan, [])
 
-    plan = gtpyhop.find_plan(state1,[('take','a'),('put','a','table')])
-    th.check_result(plan, [('unstack','a', 'b'), ('putdown','a')])
-    th.pause(do_pauses)
+    plan = gtpyhop.find_plan(state1,[('pos','a','hand')])
+    th.check_result(plan, [('unstack','a', 'b')])
+
+    plan = gtpyhop.find_plan(state1,[('pos','c','hand')])
+    th.check_result(plan, [('pickup','c')])
 
 
     print("""
-A Multigoal is a data structure that specifies desired values for some of
-the state variables. Below, goal1a says we want the blocks in the
-configuration "c on b, b on a, a on the table", and goal1b says we want "c
-on b, b on a" without specifying where block a should be. However, goal1a
-and goal1b have the same solution plans, because "c on b, b on a" entails "a
-on the table".
+A Multigoal is a data structure that specifies desired values for some of the
+state variables. In blocks_htn.py there are examples of tasks whose arguments
+are multigoals, but here we give the multigoals directly to find_plan.
+
+Below, goal1a says we want the blocks in the configuration "c on b on a on the
+table", and goal1b says we want "c on b on a" without specifying where block a
+should be. However, goal1a and goal1b have the same solution plans, because
+"a on b on c" entails "a on the table".
 """)
 
     state1.display("Initial state is")
@@ -117,8 +121,8 @@ Run find_plan on the famous Sussman anomaly.
 """)
 
     sus_s0 = gtpyhop.State('Sussman anomaly initial state')
-    sus_s0.pos={'c':'a', 'a':'table', 'b':'table'}
-    sus_s0.clear={'c':True, 'a':False,'b':True}
+    sus_s0.pos={'a':'table', 'b':'table', 'c':'a'}
+    sus_s0.clear={'a':False,'b':True, 'c':True}
     sus_s0.holding={'hand':False}
 
     sus_s0.display()

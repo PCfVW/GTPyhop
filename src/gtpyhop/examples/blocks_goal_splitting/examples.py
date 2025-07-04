@@ -8,7 +8,7 @@ Examples file for blocks_goal_splitting.
 # from IPython.terminal.debugger import set_trace
 
 import gtpyhop
-import test_harness as th   # code for use in paging and debugging
+import gtpyhop.test_harness as th   # code for use in paging and debugging
 
 
 # We must declare the current domain before importing methods and actions.
