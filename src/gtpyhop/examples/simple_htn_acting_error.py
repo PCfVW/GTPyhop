@@ -183,6 +183,8 @@ def do_nothing(state,p,y):
 def travel_by_foot(state,p,y):
     if is_a(p,'person') and is_a(y,'location'):
         x = state.loc[p]
+        if distance(x,y) is None:
+            return []
         if x != y and distance(x,y) <= 2:
             return [('walk',p,x,y)]
 
