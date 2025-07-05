@@ -959,6 +959,6 @@ def _apply_command_and_continue(state, command, args):
 ###############################################################################
 # Print brief information about how to interpret the program's output
 
-print(f"\nImported GTPyhop version 1.1.1b6")
+print(f"\nImported GTPyhop version 1.1.1b7")
 print(f"Messages from find_plan will be prefaced with 'FP>'.")
 print(f"Messages from run_lazy_lookahead will be prefaced with 'RLL>'.")
