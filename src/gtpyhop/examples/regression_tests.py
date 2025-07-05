@@ -16,6 +16,8 @@ def main():
     from gtpyhop.examples import simple_hgn; simple_hgn.main(False)
     from gtpyhop.examples import backtracking_htn; backtracking_htn.main(False)
     from gtpyhop.examples import logistics_hgn; logistics_hgn.main(False)
+    import sys
+    sys.setrecursionlimit(2000)  # Increase recursion limit for the next test
     from gtpyhop.examples import blocks_gtn; blocks_gtn.main(False)
     from gtpyhop.examples import blocks_goal_splitting; blocks_goal_splitting.main(False)
     from gtpyhop.examples import blocks_hgn; blocks_hgn.main(False)
