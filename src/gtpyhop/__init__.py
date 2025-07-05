@@ -1,5 +1,6 @@
 from .main import (
     Domain,
+    current_domain,
     print_domain,
     print_actions,
     print_operators,
@@ -14,6 +15,7 @@ from .main import (
     declare_operators,
     declare_commands,
     declare_task_methods,
+    declare_methods,
     declare_unigoal_methods,
     declare_multigoal_methods,
     m_split_multigoal,
