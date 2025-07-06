@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "gtpyhop"
-version = "1.1.1b7"
+version = "1.1.1b14"
 description= "A Goal-Task-Network planning system written in Python"
 readme = "README.md"
 authors = [
