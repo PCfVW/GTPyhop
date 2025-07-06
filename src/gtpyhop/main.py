@@ -648,10 +648,10 @@ def _m_verify_mg(state, method, multigoal, depth):
 
 
 ################################################################################
-# Applying actions, commands, and methods
+# Applying actions, commands, and methods recursively to seek a plan
 
 
-def _apply_action_and_continue(state, task1, todo_list, plan, depth):
+def _apply_action_and_continue_recursive(state, task1, todo_list, plan, depth):
     """
     _apply_action_and_continue is called only when task1's name matches an
     action name. It applies the action by retrieving the action's function
@@ -666,20 +666,20 @@ def _apply_action_and_continue(state, task1, todo_list, plan, depth):
         if verbose >= 3:
             print('applied')
             newstate.display()
-        return seek_plan(newstate, todo_list, plan+[task1], depth+1)
+        return seek_plan_recursive(newstate, todo_list, plan+[task1], depth+1)
     if verbose >= 3:
         print('not applicable')
     return False
 
 
-def _refine_task_and_continue(state, task1, todo_list, plan, depth):
+def _refine_task_and_continue_recursive(state, task1, todo_list, plan, depth):
     """
     If task1 is in the task-method dictionary, then iterate through the list
     of relevant methods to find one that's applicable, apply it to get
     additional todo_list items, and call seek_plan recursively on
             [the additional items] + todo_list.
 
-    If the call to seek_plan fails, go on to the next method in the list.
+    If the call to seek_plan_recursive fails, go on to the next method in the list.
     """
     relevant = current_domain._task_method_dict[task1[0]]
     if verbose >= 3:
@@ -693,7 +693,7 @@ def _refine_task_and_continue(state, task1, todo_list, plan, depth):
             if verbose >= 3:
                 print('applicable')
                 print(f'depth {depth} subtasks: {subtasks}')
-            result = seek_plan(state, subtasks+todo_list, plan, depth+1)
+            result = seek_plan_recursive(state, subtasks+todo_list, plan, depth+1)
             if result != False and result != None:
                 return result
         else:
@@ -704,7 +704,7 @@ def _refine_task_and_continue(state, task1, todo_list, plan, depth):
     return False
 
 
-def _refine_unigoal_and_continue(state, goal1, todo_list, plan, depth):
+def _refine_unigoal_and_continue_recursive(state, goal1, todo_list, plan, depth):
     """
     If goal1 is in the unigoal-method dictionary, then iterate through the
     list of relevant methods to find one that's applicable, apply it to get
@@ -712,7 +712,7 @@ def _refine_unigoal_and_continue(state, goal1, todo_list, plan, depth):
           [the additional items] + [verify_g] + todo_list,
 
     where [verify_g] verifies whether the method actually achieved goal1.
-    If the call to seek_plan fails, go on to the next method in the list.
+    If the call to seek_plan_recursive fails, go on to the next method in the list.
     """
     if verbose >= 3:
         print(f'depth {depth} goal {goal1}: ', end='')
@@ -720,7 +720,7 @@ def _refine_unigoal_and_continue(state, goal1, todo_list, plan, depth):
     if vars(state).get(state_var_name).get(arg) == val:
         if verbose >= 3:
             print(f'already achieved')
-        return seek_plan(state, todo_list, plan, depth+1)
+        return seek_plan_recursive(state, todo_list, plan, depth+1)
     relevant = current_domain._unigoal_method_dict[state_var_name]
     if verbose >= 3:
         print(f'methods {[m.__name__ for m in relevant]}')
@@ -739,7 +739,7 @@ def _refine_unigoal_and_continue(state, goal1, todo_list, plan, depth):
             else:
                 verification = []
             todo_list = subgoals + verification + todo_list
-            result = seek_plan(state, todo_list, plan, depth+1)
+            result = seek_plan_recursive(state, todo_list, plan, depth+1)
             if result != False and result != None:
                 return result
         else:
@@ -750,7 +750,7 @@ def _refine_unigoal_and_continue(state, goal1, todo_list, plan, depth):
     return False
 
 
-def _refine_multigoal_and_continue(state, goal1, todo_list, plan, depth):
+def _refine_multigoal_and_continue_recursive(state, goal1, todo_list, plan, depth):
     """
     If goal1 is a multigoal, then iterate through the list of multigoal
     methods to find one that's applicable, apply it to get additional
@@ -758,7 +758,7 @@ def _refine_multigoal_and_continue(state, goal1, todo_list, plan, depth):
           [the additional items] + [verify_mg] + todo_list,
 
     where [verify_mg] verifies whether the method actually achieved goal1.
-    If the call to seek_plan fails, go on to the next method in the list.
+    If the call to seek_plan_recursive fails, go on to the next method in the list.
     """
     if verbose >= 3:
         print(f'depth {depth} multigoal {goal1}: ', end='')
@@ -779,7 +779,7 @@ def _refine_multigoal_and_continue(state, goal1, todo_list, plan, depth):
             else:
                 verification = []
             todo_list = subgoals + verification + todo_list
-            result = seek_plan(state, todo_list, plan, depth+1)
+            result = seek_plan_recursive(state, todo_list, plan, depth+1)
             if result != False and result != None:
                 return result
         else:
@@ -789,40 +789,9 @@ def _refine_multigoal_and_continue(state, goal1, todo_list, plan, depth):
         print(f'depth {depth} could not achieve multigoal {goal1}')        
     return False
 
-
-############################################################
-# The planning algorithm
-
-
-def find_plan(state, todo_list):
+def seek_plan_recursive(state, todo_list, plan, depth):
     """
-    find_plan tries to find a plan that accomplishes the items in todo_list,
-    starting from the given state, using whatever methods and actions you
-    declared previously. If successful, it returns the plan. Otherwise it
-    returns False. Arguments:
-     - 'state' is a state;
-     - 'todo_list' is a list of goals, tasks, and actions.
-    """
-    if verbose >= 1: 
-        todo_string = '[' + ', '.join([_item_to_string(x) for x in todo_list]) + ']'
-        print(f'FP> find_plan, verbose={verbose}:')
-        print(f'    state = {state.__name__}\n    todo_list = {todo_string}')
-    result = seek_plan(state, todo_list, [], 0)
-    if verbose >= 1: print('FP> result =',result,'\n')
-    return result
-
-
-def pyhop(state, todo_list):
-    if verbose > 0:
-        print("""
-        >> The function 'pyhop' exists to provide backward compatibility
-        >> with Pyhop. In the future, please use find_plan instead.""")
-    return find_plan(state, todo_list)
-
-
-def seek_plan(state, todo_list, plan, depth):
-    """
-    Workhorse for find_plan. Arguments:
+    Recursive workhorse for find_plan. Arguments:
      - state is the current state
      - todo_list is the current list of goals, tasks, and actions
      - plan is the current partial plan
@@ -838,17 +807,213 @@ def seek_plan(state, todo_list, plan, depth):
     item1 = todo_list[0]
     ttype = get_type(item1)
     if ttype in {'Multigoal'}:
-        return _refine_multigoal_and_continue(state, item1, todo_list[1:], plan, depth)
+        return _refine_multigoal_and_continue_recursive(state, item1, todo_list[1:], plan, depth)
     elif ttype in {'list','tuple'}:
         if item1[0] in current_domain._action_dict:
-            return _apply_action_and_continue(state, item1, todo_list[1:], plan, depth)
+            return _apply_action_and_continue_recursive(state, item1, todo_list[1:], plan, depth)
         elif item1[0] in current_domain._task_method_dict:
-            return _refine_task_and_continue(state, item1, todo_list[1:], plan, depth)
+            return _refine_task_and_continue_recursive(state, item1, todo_list[1:], plan, depth)
         elif item1[0] in current_domain._unigoal_method_dict:
-            return _refine_unigoal_and_continue(state, item1, todo_list[1:], plan, depth)
+            return _refine_unigoal_and_continue_recursive(state, item1, todo_list[1:], plan, depth)
     raise Exception(    \
         f"depth {depth}: {item1} isn't an action, task, unigoal, or multigoal\n")
     return False
+
+
+###############################################################################
+# Applying actions, commands, and methods iteratively to seek a plan
+
+def _apply_action_and_continue_iterative(state, task1, todo_list, plan, depth):
+    if verbose >= 3:
+        print(f'depth {depth} action {task1}: ', end='')
+    action = current_domain._action_dict[task1[0]]
+    newstate = action(state.copy(), *task1[1:])
+    if newstate:
+        if verbose >= 3:
+            print('applied')
+            newstate.display()
+        return (newstate, todo_list, plan + [task1], depth + 1)
+    if verbose >= 3:
+        print('not applicable')
+    return None
+
+def _refine_task_and_continue_iterative(state, task1, todo_list, plan, depth):
+    relevant = current_domain._task_method_dict[task1[0]]
+    if verbose >= 3:
+        print(f'depth {depth} task {task1} methods {[m.__name__ for m in relevant]}')
+    for method in relevant:
+        if verbose >= 3:
+            print(f'depth {depth} trying {method.__name__}: ', end='')
+        subtasks = method(state, *task1[1:])
+        if subtasks is not False and subtasks is not None:
+            if verbose >= 3:
+                print('applicable')
+                print(f'depth {depth} subtasks: {subtasks}')
+            result = (state, subtasks + todo_list, plan, depth + 1)
+            return result  # Return new state to be added to the stack
+        else:
+            if verbose >= 3:
+                print(f'not applicable')
+    if verbose >= 3:
+        print(f'depth {depth} could not accomplish task {task1}')
+    return None
+
+def _refine_unigoal_and_continue_iterative(state, goal1, todo_list, plan, depth):
+    if verbose >= 3:
+        print(f'depth {depth} goal {goal1}: ', end='')
+    (state_var_name, arg, val) = goal1
+    if vars(state).get(state_var_name).get(arg) == val:
+        if verbose >= 3:
+            print(f'already achieved')
+        return (state, todo_list, plan, depth + 1)
+    relevant = current_domain._unigoal_method_dict[state_var_name]
+    if verbose >= 3:
+        print(f'methods {[m.__name__ for m in relevant]}')
+    for method in relevant:
+        if verbose >= 3:
+            print(f'depth {depth} trying method {method.__name__}: ', end='')
+        subgoals = method(state, arg, val)
+        if subgoals is not False and subgoals is not None:
+            if verbose >= 3:
+                print('applicable')
+                print(f'depth {depth} subgoals: {subgoals}')
+            if verify_goals:
+                verification = [('_verify_g', method.__name__, state_var_name, arg, val, depth)]
+            else:
+                verification = []
+            new_todo_list = subgoals + verification + todo_list
+            return (state, new_todo_list, plan, depth + 1)
+        else:
+            if verbose >= 3:
+                print(f'not applicable')
+    if verbose >= 3:
+        print(f'depth {depth} could not achieve goal {goal1}')
+    return None
+
+def _refine_multigoal_and_continue_iterative(state, goal1, todo_list, plan, depth):
+    if verbose >= 3:
+        print(f'depth {depth} multigoal {goal1}: ', end='')
+    relevant = current_domain._multigoal_method_list
+    if verbose >= 3:
+        print(f'methods {[m.__name__ for m in relevant]}')
+    for method in relevant:
+        if verbose >= 3:
+            print(f'depth {depth} trying method {method.__name__}: ', end='')
+        subgoals = method(state, goal1)
+        if subgoals is not False and subgoals is not None:
+            if verbose >= 3:
+                print('applicable')
+                print(f'depth {depth} subgoals: {subgoals}')
+            if verify_goals:
+                verification = [('_verify_mg', method.__name__, goal1, depth)]
+            else:
+                verification = []
+            new_todo_list = subgoals + verification + todo_list
+            return (state, new_todo_list, plan, depth + 1)
+        else:
+            if verbose >= 3:
+                print(f'not applicable')
+    if verbose >= 3:
+        print(f'depth {depth} could not achieve multigoal {goal1}')
+    return None
+
+def seek_plan_iterative(initial_state, initial_todo_list, initial_plan, initial_depth):
+    """
+    Iterative workhorse for find_plan. Arguments:
+     - state is the current state
+     - todo_list is the current list of goals, tasks, and actions
+     - plan is the current partial plan
+     - depth is the recursion depth, for use in debugging
+    """
+    stack = [(initial_state, initial_todo_list, initial_plan, initial_depth)]  # (state, todo_list, plan, depth)
+
+    while stack:
+        state, todo_list, plan, depth = stack.pop()
+
+        if verbose >= 2:
+            todo_string = '[' + ', '.join([_item_to_string(x) for x in todo_list]) + ']'
+            print(f'depth {depth} todo_list ' + todo_string)
+
+        if not todo_list:
+            if verbose >= 3:
+                print(f'depth {depth} no more tasks or goals, return plan')
+            return plan
+
+        item1 = todo_list[0]
+        ttype = get_type(item1)
+
+        if ttype in {'Multigoal'}:
+            result = _refine_multigoal_and_continue_iterative(state, item1, todo_list[1:], plan, depth)
+            if result is not None:
+                stack.append(result)  # Add new state to the stack
+        elif ttype in {'list', 'tuple'}:
+            if item1[0] in current_domain._action_dict:
+                result = _apply_action_and_continue_iterative(state, item1, todo_list[1:], plan, depth)
+                if result is not None:
+                    stack.append(result)  # Add new state to the stack
+            elif item1[0] in current_domain._task_method_dict:
+                result = _refine_task_and_continue_iterative(state, item1, todo_list[1:], plan, depth)
+                if result is not None:
+                    stack.append(result)  # Add new state to the stack
+            elif item1[0] in current_domain._unigoal_method_dict:
+                result = _refine_unigoal_and_continue_iterative(state, item1, todo_list[1:], plan, depth)
+                if result is not None:
+                    stack.append(result)  # Add new state to the stack
+
+    return False
+
+############################################################
+# The planning algorithm
+
+from gtpyhop.globals import current_seek_plan   # == None at the start
+
+
+def set_recursive_planning(use_recursive):
+    global current_seek_plan
+    if use_recursive:
+        current_seek_plan = seek_plan_recursive
+        print("Using recursive seek_plan.")
+    else:
+        current_seek_plan = seek_plan_iterative
+        print("Using iterative seek_plan.")
+
+def get_recursive_planning():
+    """
+    Returns True if the current seek_plan is recursive, False if it is iterative.
+    """
+    return current_seek_plan == seek_plan_recursive
+
+
+def seek_plan(state, todolist, plan, depth):
+    global current_seek_plan
+    return current_seek_plan(state, todolist, plan, depth)
+
+
+def find_plan(state, todo_list):
+    """
+    find_plan tries to find a plan that accomplishes the items in todo_list,
+    starting from the given state, using whatever methods and actions you
+    declared previously. If successful, it returns the plan. Otherwise it
+    returns False. Arguments:
+     - 'state' is a state;
+     - 'todo_list' is a list of goals, tasks, and actions.
+    """
+    global current_seek_plan
+    if verbose >= 1:
+        todo_string = '[' + ', '.join([_item_to_string(x) for x in todo_list]) + ']'
+        print(f'FP> find_plan, verbose={verbose}:')
+        print(f'    state = {state.__name__}\n    todo_list = {todo_string}')
+    result = current_seek_plan(state, todo_list, [], 0)
+    if verbose >= 1: print('FP> result =',result,'\n')
+    return result
+
+
+def pyhop(state, todo_list):
+    if verbose > 0:
+        print("""
+        >> The function 'pyhop' exists to provide backward compatibility
+        >> with Pyhop. In the future, please use find_plan instead.""")
+    return find_plan(state, todo_list)
 
 
 def _item_to_string(item):
@@ -860,7 +1025,6 @@ def _item_to_string(item):
         return str(tuple([str(x) for x in item]))
     else:       # a multigoal
         return str(item)
-
 
 ################################################################################
 # An actor
@@ -919,7 +1083,7 @@ def run_lazy_lookahead(state, todo_list, max_tries=10):
                 
             if verbose >= 1:
                 print('RLL> Command:', [command_name] + list(action[1:]))
-            new_state = _apply_command_and_continue(state, command_func, action[1:])
+            new_state = _apply_command_and_continue_rll(state, command_func, action[1:])
             if new_state == False:
                 if verbose >= 1: 
                     print(f'RLL> WARNING: command {command_name} failed; will call find_plan.')
@@ -937,7 +1101,7 @@ def run_lazy_lookahead(state, todo_list, max_tries=10):
     return state
 
 
-def _apply_command_and_continue(state, command, args):
+def _apply_command_and_continue_rll(state, command, args):
     """
     _apply_command_and_continue applies 'command' by retrieving its
     function definition and calling it on the arguments.
@@ -959,6 +1123,7 @@ def _apply_command_and_continue(state, command, args):
 ###############################################################################
 # Print brief information about how to interpret the program's output
 
-print(f"\nImported GTPyhop version 1.1.1b7")
+print(f"\nImported GTPyhop version 1.1.1b14")
 print(f"Messages from find_plan will be prefaced with 'FP>'.")
 print(f"Messages from run_lazy_lookahead will be prefaced with 'RLL>'.")
+set_recursive_planning(False) # default is to use iterative planning
