@@ -19,6 +19,8 @@ from .main import (
     declare_unigoal_methods,
     declare_multigoal_methods,
     m_split_multigoal,
+    set_recursive_planning,
+    get_recursive_planning,
     find_plan,
     pyhop,
     run_lazy_lookahead
