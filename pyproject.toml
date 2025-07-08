@@ -4,14 +4,15 @@ build-backend = "hatchling.build"
 
 [project]
 name = "gtpyhop"
-version = "1.2.0b1"
-description= "A Goal-Task-Network planning system written in Python"
+version = "1.2.0b2"
+description= "A Goal-Task-Network planning package written in Python"
 readme = "README.md"
 authors = [
-    { name = "Dana Nau", email = "nau@umd.edu" },
-
-    # Packaging author (this toml file, new folder names and new package folder structure)
+    # Packaging author (this toml file, new folder names and new package folder structure, iterative_seek_plan)
     { name = "Eric Jacopin", email = "eric.jacopin@protonmail.com" },
+ 
+    # Original author
+    { name = "Dana Nau", email = "nau@umd.edu" },
 ]
 license = { text = "Clear BSD License" }
 classifiers = [
