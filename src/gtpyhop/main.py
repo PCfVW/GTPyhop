@@ -4,8 +4,8 @@
 # GTPyhop, version 1.1
 # Author: Dana Nau <nau@umd.edu>, July 7, 2021
 #
-# Package: GTPyhop
-# Version: 1.2.0
+# GTPyhop as Python package
+# Version: 1.2.0b2
 # Author: Eric Jacopin, July 2025
 # Main new features:
 #  - Iterative planning mode
@@ -15,7 +15,7 @@
 #  - print_domain_names
 #  - find_domain_by_name, is_domain_created
 #  - set_current_domain, get_current_domain
-#  - set_recursive_planning, get_recursive_planning
+#  - set_recursive_planning, get_recursive_planning, reset_planning_strategy
 #  - set_verbose_level, get_verbose_level
 #  - seek_plan_iterative,
 #  -   - _refine_multigoal_and_continue_iterative
@@ -1043,25 +1043,38 @@ def seek_plan_iterative(initial_state, initial_todo_list, initial_plan, initial_
     return False
 
 ############################################################
-# The planning algorithm
+# The planning system
 
-from gtpyhop.globals import current_seek_plan   # == None at the start
+_current_seek_plan = None
 
 
 def set_recursive_planning(use_recursive):
-    global current_seek_plan
+    global _current_seek_plan
     if use_recursive:
-        current_seek_plan = seek_plan_recursive
+        _current_seek_plan = seek_plan_recursive
         print("Using recursive seek_plan.")
     else:
-        current_seek_plan = seek_plan_iterative
+        _current_seek_plan = seek_plan_iterative
         print("Using iterative seek_plan.")
+
 
 def get_recursive_planning():
     """
     Returns True if the current seek_plan is recursive, False if it is iterative.
     """
-    return current_seek_plan == seek_plan_recursive
+    if None == _current_seek_plan:
+        raise Exception("No planning strategy (iterative or else recursive) has been set. Use set_recursive_planning(True|False) to set it.")
+    return _current_seek_plan == seek_plan_recursive
+
+
+def reset_planning_strategy():
+    """
+    Resets the planning strategy to None, so that the user must set it again
+    using set_recursive_planning(True|False).
+    """
+    global _current_seek_plan
+    _current_seek_plan = None
+
 
 def set_verbose_level(level):
     """
@@ -1078,6 +1091,7 @@ def set_verbose_level(level):
     verbose = level
     print(f"Verbose level set to {verbose}.")
 
+
 def get_verbose_level():
     """
     Returns the current verbosity level.
@@ -1086,7 +1100,7 @@ def get_verbose_level():
 
 
 def seek_plan(state, todolist, plan, depth):
-    return current_seek_plan(state, todolist, plan, depth)
+    return _current_seek_plan(state, todolist, plan, depth)
 
 
 def find_plan(state, todo_list):
@@ -1098,11 +1112,13 @@ def find_plan(state, todo_list):
      - 'state' is a state;
      - 'todo_list' is a list of goals, tasks, and actions.
     """
+    if None == _current_seek_plan:
+        raise Exception("No planning strategy (iterative or else recursive) has been set. Use set_recursive_planning(True|False) to set it.")
     if verbose >= 1:
         todo_string = '[' + ', '.join([_item_to_string(x) for x in todo_list]) + ']'
         print(f'FP> find_plan, verbose={verbose}:')
         print(f'    state = {state.__name__}\n    todo_list = {todo_string}')
-    result = current_seek_plan(state, todo_list, [], 0)
+    result = _current_seek_plan(state, todo_list, [], 0)
     if verbose >= 1: print('FP> result =',result,'\n')
     return result
 
@@ -1221,7 +1237,7 @@ def _apply_command_and_continue_rll(state, command, args):
 ###############################################################################
 # Print brief information about how to interpret the program's output
 
-print(f"\nImported GTPyhop version 1.2.0b1")
+print(f"\nImported GTPyhop version 1.2.0b2")
 print(f"Messages from find_plan will be prefaced with 'FP>'.")
 print(f"Messages from run_lazy_lookahead will be prefaced with 'RLL>'.")
 set_recursive_planning(False) # default is to use iterative planning
