@@ -1,3 +1,5 @@
+__version__ = "1.2.0b2"
+
 from .main import (
     verbose,
     set_verbose_level,
@@ -29,6 +31,7 @@ from .main import (
     m_split_multigoal,
     set_recursive_planning,
     get_recursive_planning,
+    reset_planning_strategy,
     find_plan,
     pyhop,
     run_lazy_lookahead
