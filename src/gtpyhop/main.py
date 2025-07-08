@@ -3,6 +3,32 @@
 
 # GTPyhop, version 1.1
 # Author: Dana Nau <nau@umd.edu>, July 7, 2021
+#
+# Package: GTPyhop
+# Version: 1.2.0
+# Author: Eric Jacopin, July 2025
+# Main new features:
+#  - Iterative planning mode
+#  - Global variables helper functions
+#  - Re-entrant regression tests
+# New functions:
+#  - print_domain_names
+#  - find_domain_by_name, is_domain_created
+#  - set_current_domain, get_current_domain
+#  - set_recursive_planning, get_recursive_planning
+#  - set_verbose_level, get_verbose_level
+#  - seek_plan_iterative,
+#  -   - _refine_multigoal_and_continue_iterative
+#      - _refine_unigoal_and_continue_iterative
+#      - _refine_task_and_continue_iterative
+#      - _apply_action_and_continue_iterative
+# Renaming:
+#  -                      seek_plan >> seek_plan_recursive
+#  -     _apply_action_and_continue >> apply_action_and_continue_recursive
+#  - _refine_multigoal_and_continue >> refine_multigoal_and_continue_recursive
+#  -   _refine_unigoal_and_continue >> refine_unigoal_and_continue_recursive
+#  -      _refine_task_and_continue >> refine_task_and_continue_recursive
+
 
 """
 GTPyhop is an automated planning system that can plan for both tasks and
@@ -31,6 +57,7 @@ much debugging information GTPyhop will print:
  - verbose = 2: also print a message on each recursive call
  - verbose = 3: also print some info about intermediate computations
 """
+
 
 ################################################################################
 # States and goals
@@ -295,10 +322,63 @@ _next_domain_number = 0
 _domains = []
 
 
+def print_domain_names():
+    """
+    Print the names of all domains that have been created.
+    """
+    if _domains:
+        print('-- Domain names:', ', '.join([d.__name__ for d in _domains]))
+    else:
+        print('-- There are no domains --')
+
+
+def find_domain_by_name(domain_name):
+    """
+    Search for a domain by its name in the _domains list.
+
+    :param domain_name: The name of the domain to search for.
+    :return: The domain instance if found, otherwise None.
+    """
+    for domain in _domains:
+        if domain.__name__ == domain_name:
+            return domain
+    return None
+
+def is_domain_created(domain_name):
+    """
+    Check if a domain with the given name has been created in the _domains list.
+
+    :param domain_name: The name of the domain to check.
+    :return: True if the domain is found, otherwise False.
+    """
+    for domain in _domains:
+        if domain.__name__ == domain_name:
+            return True
+    return False
+
 current_domain = None
 """
 The Domain object that find_plan, run_lazy_lookahead, etc., will use.
 """
+
+def set_current_domain(domain):
+    """
+    Set the current domain to the specified domain object.
+    
+    :param domain: The Domain object to set as the current domain.
+    """
+    global current_domain
+    if not isinstance(domain, Domain):
+        raise TypeError("The provided argument is not a Domain instance.")
+    current_domain = domain
+
+def get_current_domain():
+    """
+    Get the current domain object.
+    
+    :return: The current Domain object.
+    """
+    return current_domain
 
 ################################################################################
 # Functions to print information about a domain
@@ -983,9 +1063,29 @@ def get_recursive_planning():
     """
     return current_seek_plan == seek_plan_recursive
 
+def set_verbose_level(level):
+    """
+    Set the verbosity (initial value is 1) level to determines how much debugging
+    information GTPyhop will print:
+    - level = 0: print nothing
+    - level = 1: print the initial parameters and the answer
+    - level = 2: also print a message on each recursive call
+    - level = 3: also print some info about intermediate computations
+   """
+    global verbose
+    if level < 0 or level > 3:
+        raise ValueError("Verbose level must be between 0 and 3.")
+    verbose = level
+    print(f"Verbose level set to {verbose}.")
+
+def get_verbose_level():
+    """
+    Returns the current verbosity level.
+    """
+    return verbose 
+
 
 def seek_plan(state, todolist, plan, depth):
-    global current_seek_plan
     return current_seek_plan(state, todolist, plan, depth)
 
 
@@ -998,7 +1098,6 @@ def find_plan(state, todo_list):
      - 'state' is a state;
      - 'todo_list' is a list of goals, tasks, and actions.
     """
-    global current_seek_plan
     if verbose >= 1:
         todo_string = '[' + ', '.join([_item_to_string(x) for x in todo_list]) + ']'
         print(f'FP> find_plan, verbose={verbose}:')
@@ -1048,7 +1147,6 @@ def run_lazy_lookahead(state, todo_list, max_tries=10):
     Note: whenever run_lazy_lookahead encounters an action for which there is
     no corresponding command definition, it uses the action definition instead.
     """
-    
     if verbose >= 1: 
         print(f"RLL> run_lazy_lookahead, verbose = {verbose}, max_tries = {max_tries}")
         print(f"RLL> initial state: {state.__name__}")
@@ -1123,7 +1221,7 @@ def _apply_command_and_continue_rll(state, command, args):
 ###############################################################################
 # Print brief information about how to interpret the program's output
 
-print(f"\nImported GTPyhop version 1.1.1b14")
+print(f"\nImported GTPyhop version 1.2.0b1")
 print(f"Messages from find_plan will be prefaced with 'FP>'.")
 print(f"Messages from run_lazy_lookahead will be prefaced with 'RLL>'.")
 set_recursive_planning(False) # default is to use iterative planning
