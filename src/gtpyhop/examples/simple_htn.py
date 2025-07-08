@@ -190,7 +190,7 @@ def main(do_pauses=True):
     """
 
     # If we've changed to some other domain, this will change us back.
-    gtpyhop.current_domain = the_domain
+    gtpyhop.set_current_domain(gtpyhop.find_domain_by_name(__name__))
     gtpyhop.print_domain()
 
     state1 = state0.copy()
@@ -207,25 +207,27 @@ We'll do it several times with different values for 'verbose'.
     expected = [('call_taxi', 'alice', 'home_a'), ('ride_taxi', 'alice', 'park'), ('pay_driver', 'alice', 'park')]
 
     print("-- If verbose=0, the planner will return the solution but print nothing.")
-    gtpyhop.verbose = 0
+    print("Verbose level is now set to 3 for debugging purposes:")
+    gtpyhop.set_verbose_level(3)   
     result = gtpyhop.find_plan(state1,[('travel','alice','park')])
     th.check_result(result,expected)
-
+  
     print("-- If verbose=1, the planner will print the problem and solution,")
     print("-- and then return the solution.\n")
-    gtpyhop.verbose = 1
+    gtpyhop.set_verbose_level(1)
     result = gtpyhop.find_plan(state1,[('travel','alice','park')])
     th.check_result(result,expected)
 
     print("-- If verbose=2, the planner will print the problem, a note at each")
     print("-- recursive call, and the solution. Then it will return the solution.\n")
-    gtpyhop.verbose = 2
+    gtpyhop.set_verbose_level(2)
+    print("verbose = ",gtpyhop.verbose);
     result = gtpyhop.find_plan(state1,[('travel','alice','park')])
     th.check_result(result,expected)
     th.pause(do_pauses)
 
     print("-- If verbose=3, the planner will print even more information.\n")
-    gtpyhop.verbose = 3
+    gtpyhop.set_verbose_level(3)
     result = gtpyhop.find_plan(state1,[('travel','alice','park')])
     th.check_result(result,expected)
 
@@ -233,7 +235,7 @@ We'll do it several times with different values for 'verbose'.
     print("""
 Find a plan that will first get Alice to the park, then get Bob to the park.
 """)
-    gtpyhop.verbose = 2
+    gtpyhop.set_verbose_level(2)
     plan = gtpyhop.find_plan(state1,[('travel','alice','park'),('travel','bob','park')])
 
     th.check_result(plan,[('call_taxi', 'alice', 'home_a'), ('ride_taxi', 'alice', 'park'), ('pay_driver', 'alice', 'park'), ('walk', 'bob', 'home_b', 'park')])
@@ -247,7 +249,7 @@ happen repeatedly until either the taxi arrives or run_lazy_lookahead decides
 it has tried too many times.""")
     th.pause(do_pauses)
 
-    gtpyhop.verbose = 1
+    gtpyhop.set_verbose_level(1)
     new_state = gtpyhop.run_lazy_lookahead(state1,[('travel','alice','park')])
 
     th.pause(do_pauses)

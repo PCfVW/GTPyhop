@@ -212,7 +212,7 @@ def main(do_pauses=True):
     """
     
     # If we've changed to some other domain, this will change us back.
-    gtpyhop.current_domain = the_domain
+    gtpyhop.set_current_domain(gtpyhop.find_domain_by_name(__name__))
     gtpyhop.print_domain()
 
     state0a.display(heading='\nInitial state')

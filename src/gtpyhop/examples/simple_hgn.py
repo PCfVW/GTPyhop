@@ -16,6 +16,7 @@ domain_name = __name__
 the_domain = gtpyhop.Domain(domain_name)
 
 
+
 ################################################################################
 # rigid relations, states, goals
 
@@ -209,7 +210,7 @@ def main(do_pauses=True):
     """
     
     # If we've changed to some other domain, this will change us back.
-    gtpyhop.current_domain = the_domain
+    gtpyhop.set_current_domain(gtpyhop.find_domain_by_name(__name__))
     gtpyhop.print_domain()
 
     state1 = state0.copy()
@@ -230,14 +231,12 @@ We do it several times with different values for 'verbose'.
     expected = [('call_taxi', 'alice', 'home_a'), ('ride_taxi', 'alice', 'park'), ('pay_driver', 'alice', 'park')]
 
     print("If verbose=0, the planner returns the solution but prints nothing:")
-    gtpyhop.verbose = 0
+    gtpyhop.set_verbose_level(0)
     result = gtpyhop.find_plan(state1,[('loc','alice','park')])
     th.check_result(result,expected)
-
-    print("""If verbose=1, then in addition to returning the solution, the planner prints
-both the problem and the solution"
-""")
-    gtpyhop.verbose = 1
+ 
+    print("""If verbose=1, then in addition to returning the solution, the planner prints both the problem and the solution""")
+    gtpyhop.set_verbose_level(1)
     result = gtpyhop.find_plan(state1,[('loc','alice','park')])
     th.check_result(result,expected)
 
@@ -245,7 +244,7 @@ both the problem and the solution"
 _verify_g is a task used by the planner to check whether a method has
 achieved its goal.
 """)
-    gtpyhop.verbose = 2
+    gtpyhop.set_verbose_level(2)
     result = gtpyhop.find_plan(state1,[('loc','alice','park')])
     th.check_result(result,expected)
     th.pause(do_pauses)
@@ -253,7 +252,7 @@ achieved its goal.
     print("""
 If verbose=3, the planner prints even more information. 
 """)
-    gtpyhop.verbose = 3
+    gtpyhop.set_verbose_level(3)
     result = gtpyhop.find_plan(state1,[('loc','alice','park')])
     th.check_result(result,expected)
 
@@ -264,7 +263,7 @@ park, then for Bob to be at the park. Since this is a sequence, it doesn't
 matter whether they're both at the park at the same time.
 """)
 
-    gtpyhop.verbose = 2
+    gtpyhop.set_verbose_level(2)
     plan = gtpyhop.find_plan(state1,[('loc','alice','park'),('loc','bob','park')])
 
     th.check_result(plan,[('call_taxi', 'alice', 'home_a'), ('ride_taxi', 'alice', 'park'), ('pay_driver', 'alice', 'park'), ('walk', 'bob', 'home_b', 'park')])
@@ -293,14 +292,14 @@ method has achieved all of the values specified in the multigoal.
 """)
     th.pause(do_pauses)
     
-    gtpyhop.verbose = 2
+    gtpyhop.set_verbose_level(2)
     plan = gtpyhop.find_plan(state1,[goal3])
     th.check_result(plan,[('call_taxi', 'alice', 'home_a'), ('ride_taxi', 'alice', 'park'), ('pay_driver', 'alice', 'park'), ('walk', 'bob', 'home_b', 'park')])
 
     th.pause(do_pauses)
     print('\nCall run_lazy_lookahead with verbose=1:\n')
 
-    gtpyhop.verbose = 1
+    gtpyhop.set_verbose_level(1)
     new_state = gtpyhop.run_lazy_lookahead(state1,[('loc','alice','park')])
     print('')
     
@@ -308,7 +307,7 @@ method has achieved all of the values specified in the multigoal.
     
     print('\nAlice is now at the park, so the planner will return an empty plan:\n')
 
-    gtpyhop.verbose = 1
+    gtpyhop.set_verbose_level(1)
     plan = gtpyhop.find_plan(new_state,[('loc','alice','park')])
     th.check_result(plan,[])
 
