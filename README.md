@@ -1,10 +1,10 @@
 # GTPyhop
 
-GTPyhop is a task-planning system based on Pyhop, but generalized to plan for both goals and tasks.
+GTPyhop is a task-planning system based on [Pyhop](https://bitbucket.org/dananau/pyhop/src/master/), but generalized to plan for both goals and tasks.
 
-## pip Branch
+## The pip Branch
 
-This `pip` branch refactors Dana Nau's GTPyhop code to be able to pip install GTPyhop from the PyPI index.
+[This pip branch](https://github.com/PCfVW/GTPyhop/tree/pip) is forked from [Dana Nau's GTPyhop main branch](https://github.com/dananau/GTPyhop), refactored for PyPI distribution.
 
 ## Installation
 
@@ -29,10 +29,12 @@ regression_tests.main()
 
 ### Iterative Planning Strategy
 
-This branch also introduces a new iterative planning strategy that enhances the planner's capabilities for complex planning scenarios. Iterative is the default strategy. When gtpyhop is imported, the recursive strategy can be set calling `set_recursive_strategy(True)`.
+[This pip branch](https://github.com/PCfVW/GTPyhop/tree/pip) introduces a new iterative planning strategy that enhances the planner's capabilities for large planning scenarios; it is the default strategy.
+
+Once gtpyhop is imported, the recursive strategy can be set calling:
 
 ```python
-set_recursive_strategy(True)
+set_recursive_strategy(True)  # Planning strategy now is recursive
 ```
 
 ### New Functions
@@ -48,10 +50,14 @@ set_recursive_strategy(True)
   - `refine_task_and_continue_iterative`
   - `apply_action_and_continue_iterative`
 
-## Original GTPyhop
+### Renaming
+- seek_plan &rarr; `seek_plan_recursive`
+- _apply_action_and_continue &rarr; `apply_action_and_continue_recursive`
+- _refine_multigoal_and_continue &rarr; `refine_multigoal_and_continue_recursive`
+- _refine_unigoal_and_continue &rarr; `refine_unigoal_and_continue_recursive`
+- _refine_task_and_continue &rarr; `refine_task_and_continue_recursive`
 
-This is based on Dana Nau's original GTPyhop implementation, refactored for PyPI distribution. See [Dana Nau's GitHub repository](https://github.com/dananau/GTPyhop).
 
 ## Version History
 
-Current refactored version: 1.2.0
+Current refactored version: 1.2.0b2 -- This version will soon be ready to be indexed on PyPI.
