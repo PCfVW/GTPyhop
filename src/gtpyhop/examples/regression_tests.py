@@ -33,10 +33,14 @@ def main():
         if current_recursion_limit < blocks_gtn_recursion_limit:
             sys.setrecursionlimit(blocks_gtn_recursion_limit)  # Increase recursion limit for the next test
             print(f"Recursion limit set to {blocks_gtn_recursion_limit} for blocks_gtn test.")
-        # With an appropriate recursion limit, next 2 tests should run without error
-        from gtpyhop.examples import blocks_gtn; blocks_gtn.main(False)
-        from gtpyhop.examples import blocks_hgn; blocks_hgn.main(False)
-        # Restore the original recursion limit after the test if needed
+       
+    # With an appropriate recursion limit, next 2 tests should run without error
+    # Of course, if we're running with iterative planning, we don't need to increase the recursion limit.
+    from gtpyhop.examples import blocks_gtn; blocks_gtn.main(False)
+    from gtpyhop.examples import blocks_hgn; blocks_hgn.main(False)
+
+    # Restore the original recursion limit after the test if needed
+    if get_recursive_planning():
         if current_recursion_limit < blocks_gtn_recursion_limit:
             sys.setrecursionlimit(current_recursion_limit)
             print(f"Recursion limit restored to {current_recursion_limit} after blocks_gtn test.")
