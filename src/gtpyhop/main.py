@@ -5,7 +5,7 @@
 # Author: Dana Nau <nau@umd.edu>, July 7, 2021
 #
 # GTPyhop as Python package
-# Version: 1.2.0b2
+# Version: 1.2.0rc1
 # Author: Eric Jacopin, July 2025
 # Main new features:
 #  - Iterative planning mode
@@ -1237,7 +1237,7 @@ def _apply_command_and_continue_rll(state, command, args):
 ###############################################################################
 # Print brief information about how to interpret the program's output
 
-print(f"\nImported GTPyhop version 1.2.0b2")
+print(f"\nImported GTPyhop version 1.2.0rc1")
 print(f"Messages from find_plan will be prefaced with 'FP>'.")
 print(f"Messages from run_lazy_lookahead will be prefaced with 'RLL>'.")
 set_recursive_planning(False) # default is to use iterative planning
