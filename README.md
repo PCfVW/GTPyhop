@@ -115,6 +115,6 @@ set_recursive_strategy(True)  # Planning strategy now is recursive
 
 ## Version History
 
-- 1.2.0rc1 -- Uploaded to Test PyPI
+- 1.2.0rc1 -- Uploaded to Test PyPI: https://test.pypi.org/project/gtpyhop/1.2.0rc1/
 
 - 1.2.0b2 -- This tested refactored version will soon be ready to be indexed on TestPyPI as 1.2.0rc1
