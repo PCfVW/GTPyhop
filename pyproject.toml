@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "gtpyhop"
-version = "1.2.0rc1"
+version = "1.2.0"
 description= "A Goal-Task-Network planning package written in Python"
 readme = "README.md"
 authors = [
@@ -16,7 +16,7 @@ authors = [
 ]
 license = { text = "Clear BSD License" }
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Science/Research",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
     "License :: OSI Approved :: BSD License",
@@ -28,7 +28,7 @@ requires-python = ">=3"
 dependencies = []
 
 [project.urls]
-Homepage = "https://github.com/dananau/gtpyhop"
+Homepage = "https://github.com/PCfVW/GTPyhop/tree/pip"
 Documentation = "https://github.com/dananau/GTPyhop/blob/main/additional_information.md"
-Repository = "https://github.com/dananau/gtpyhop.git"
-Issues = "https://github.com/dananau/gtpyhop/issues"
+Repository = "https://github.com/PCfVW/GTPyhop.git"
+Issues = "https://github.com/PCfVW/GTPyhop/issues"
