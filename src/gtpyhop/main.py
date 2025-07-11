@@ -5,7 +5,7 @@
 # Author: Dana Nau <nau@umd.edu>, July 7, 2021
 #
 # GTPyhop as Python package
-# Version: 1.2.0rc1
+# Version: 1.2.0
 # Author: Eric Jacopin, July 2025
 # Main new features:
 #  - Iterative planning mode
@@ -49,15 +49,29 @@ import copy, sys, pprint, re
 # How much information to print while the program is running
 
 verbose = 1
-"""
-verbose is a global value whose initial value is 1. Its value determines how
-much debugging information GTPyhop will print:
- - verbose = 0: print nothing
- - verbose = 1: print the initial parameters and the answer
- - verbose = 2: also print a message on each recursive call
- - verbose = 3: also print some info about intermediate computations
-"""
 
+
+def set_verbose_level(level):
+    """
+    Set the verbosity (initial value is 1) level to determines how much debugging
+    information GTPyhop will print:
+    - level = 0: print nothing
+    - level = 1: print the initial parameters and the answer
+    - level = 2: also print a message on each recursive call
+    - level = 3: also print some info about intermediate computations
+   """
+    global verbose
+    if level < 0 or level > 3:
+        raise ValueError("Verbose level must be between 0 and 3.")
+    verbose = level
+    print(f"Verbose level set to {verbose}.")
+
+
+def get_verbose_level():
+    """
+    Returns the current verbosity level.
+    """
+    return verbose 
 
 ################################################################################
 # States and goals
@@ -1076,29 +1090,6 @@ def reset_planning_strategy():
     _current_seek_plan = None
 
 
-def set_verbose_level(level):
-    """
-    Set the verbosity (initial value is 1) level to determines how much debugging
-    information GTPyhop will print:
-    - level = 0: print nothing
-    - level = 1: print the initial parameters and the answer
-    - level = 2: also print a message on each recursive call
-    - level = 3: also print some info about intermediate computations
-   """
-    global verbose
-    if level < 0 or level > 3:
-        raise ValueError("Verbose level must be between 0 and 3.")
-    verbose = level
-    print(f"Verbose level set to {verbose}.")
-
-
-def get_verbose_level():
-    """
-    Returns the current verbosity level.
-    """
-    return verbose 
-
-
 def seek_plan(state, todolist, plan, depth):
     return _current_seek_plan(state, todolist, plan, depth)
 
@@ -1237,7 +1228,7 @@ def _apply_command_and_continue_rll(state, command, args):
 ###############################################################################
 # Print brief information about how to interpret the program's output
 
-print(f"\nImported GTPyhop version 1.2.0rc1")
+print(f"\nImported GTPyhop version 1.2.0")
 print(f"Messages from find_plan will be prefaced with 'FP>'.")
 print(f"Messages from run_lazy_lookahead will be prefaced with 'RLL>'.")
 set_recursive_planning(False) # default is to use iterative planning
