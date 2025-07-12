@@ -176,7 +176,7 @@ The following functions have been added to Dana's original code:
 
 ## Version History
 
-> **1.2.0** -- Not yet uploaded to PyPI
+> **1.2.0** -- Uploaded to PyPI: https://pypi.org/project/gtpyhop/
 
 > 1.2.0rc1 -- Uploaded to Test PyPI: https://test.pypi.org/project/gtpyhop/1.2.0rc1/
 
