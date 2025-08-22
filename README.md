@@ -171,7 +171,7 @@ with gtpyhop.PlannerSession(domain=my_domain, verbose=1) as session:
             print(result.plan)
 ```
 
-📖 **For detailed examples, concurrent planning patterns, and complete API reference, see [GTPyhop-1.3.0-Thread-Safe-Sessions.md](GTPyhop-1.3.0-Thread-Safe-Sessions.md)**
+📖 **For detailed examples, concurrent planning patterns, and complete API reference, see [GTPyhop-1.3.0-Thread-Safe-Sessions.md](https://github.com/PCfVW/GTPyhop/blob/pip/GTPyhop-1.3.0-Thread-Safe-Sessions.md)**
 
 ## Usage
 
@@ -852,7 +852,7 @@ set_recursive_planning(False)  # Planning strategy now is iterative
 
 **When to use:** New projects, concurrent planning, production systems, web APIs
 
-📖 **[Complete 1.3.0  Thread‑Safe Sessions documentation →](https://github.com/PCfVW/GTPyhop/tree/pipGTPyhop-1.3.0-Thread-Safe-Sessions.md)**
+📖 **[Complete 1.3.0  Thread‑Safe Sessions documentation →](https://github.com/PCfVW/GTPyhop/blob/pip/GTPyhop-1.3.0-Thread-Safe-Sessions.md)**
 
 ---
 
