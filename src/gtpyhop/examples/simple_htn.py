@@ -2,9 +2,12 @@
 An expanded version of the "travel from home to the park" example in
 my lectures.
 -- Dana Nau <nau@umd.edu>, July 20, 2021
+
+Updated for GTPyhop 1.3.0 thread-safe sessions - 2025-08-22
 """
 
 import gtpyhop
+import argparse
 
 import random
 import gtpyhop.test_harness as th   # code for use in paging and debugging
@@ -188,7 +191,14 @@ def main(do_pauses=True):
     main() will pause occasionally to let you examine the output.
     main(False) will run straight through to the end, without stopping.
     """
+    # Legacy mode - preserved for backward compatibility
+    main_legacy(do_pauses)
 
+
+def main_legacy(do_pauses=True):
+    """
+    Legacy implementation using global state (preserved for backward compatibility).
+    """
     # If we've changed to some other domain, this will change us back.
     gtpyhop.set_current_domain(gtpyhop.find_domain_by_name(__name__))
     gtpyhop.print_domain()
@@ -203,15 +213,14 @@ Use find_plan to plan how to get Alice from home to the park.
 We'll do it several times with different values for 'verbose'.
 """)
 
-
     expected = [('call_taxi', 'alice', 'home_a'), ('ride_taxi', 'alice', 'park'), ('pay_driver', 'alice', 'park')]
 
     print("-- If verbose=0, the planner will return the solution but print nothing.")
     print("Verbose level is now set to 3 for debugging purposes:")
-    gtpyhop.set_verbose_level(3)   
+    gtpyhop.set_verbose_level(3)
     result = gtpyhop.find_plan(state1,[('travel','alice','park')])
     th.check_result(result,expected)
-  
+
     print("-- If verbose=1, the planner will print the problem and solution,")
     print("-- and then return the solution.\n")
     gtpyhop.set_verbose_level(1)
@@ -240,7 +249,6 @@ Find a plan that will first get Alice to the park, then get Bob to the park.
 
     th.check_result(plan,[('call_taxi', 'alice', 'home_a'), ('ride_taxi', 'alice', 'park'), ('pay_driver', 'alice', 'park'), ('walk', 'bob', 'home_b', 'park')])
 
-
     print("""
 Next, we'll use run_lazy_lookahead to try to get Alice to the park. With
 Pr = 1/2, the taxi won't arrive. In this case, run_lazy_lookahead will call
@@ -264,6 +272,120 @@ it has tried too many times.""")
     print("No more examples")
 
 
+def main_session(do_pauses=True, verbose=1):
+    """
+    Thread-safe implementation using PlannerSession (GTPyhop 1.3.0+).
+    """
+    print(f"\n=== Running simple_htn examples with PlannerSession (verbose={verbose}) ===")
+
+    state1 = state0.copy()
+    state1.display(heading='\nInitial state is')
+
+    th.pause(do_pauses)
+    print("""
+Use session.find_plan to plan how to get Alice from home to the park.
+We'll demonstrate different verbosity levels using separate sessions.
+""")
+
+    expected = [('call_taxi', 'alice', 'home_a'), ('ride_taxi', 'alice', 'park'), ('pay_driver', 'alice', 'park')]
+
+    # Test with verbose=0 (no output)
+    print("-- Session with verbose=0: the planner will return the solution but print nothing.")
+    with gtpyhop.PlannerSession(domain=the_domain, verbose=0) as session:
+        with session.isolated_execution():
+            result = session.find_plan(state1, [('travel','alice','park')])
+            plan = result.plan if (result and result.success) else None
+            th.check_result(plan, expected)
+
+    # Test with verbose=1 (problem and solution)
+    print("\n-- Session with verbose=1: the planner will print the problem and solution.")
+    with gtpyhop.PlannerSession(domain=the_domain, verbose=1) as session:
+        with session.isolated_execution():
+            result = session.find_plan(state1, [('travel','alice','park')])
+            plan = result.plan if (result and result.success) else None
+            th.check_result(plan, expected)
+
+    # Test with verbose=2 (recursive calls)
+    print("\n-- Session with verbose=2: the planner will print problem, recursive calls, and solution.")
+    with gtpyhop.PlannerSession(domain=the_domain, verbose=2) as session:
+        with session.isolated_execution():
+            result = session.find_plan(state1, [('travel','alice','park')])
+            plan = result.plan if (result and result.success) else None
+            th.check_result(plan, expected)
+
+    th.pause(do_pauses)
+
+    # Test with verbose=3 (maximum detail)
+    print("\n-- Session with verbose=3: the planner will print even more information.")
+    with gtpyhop.PlannerSession(domain=the_domain, verbose=3) as session:
+        with session.isolated_execution():
+            result = session.find_plan(state1, [('travel','alice','park')])
+            plan = result.plan if (result and result.success) else None
+            th.check_result(plan, expected)
+
+    th.pause(do_pauses)
+    print("""
+Find a plan that will first get Alice to the park, then get Bob to the park.
+""")
+
+    with gtpyhop.PlannerSession(domain=the_domain, verbose=2) as session:
+        with session.isolated_execution():
+            result = session.find_plan(state1, [('travel','alice','park'),('travel','bob','park')])
+            plan = result.plan if (result and result.success) else None
+            th.check_result(plan, [('call_taxi', 'alice', 'home_a'), ('ride_taxi', 'alice', 'park'),
+                                 ('pay_driver', 'alice', 'park'), ('walk', 'bob', 'home_b', 'park')])
+
+    print("""
+Next, we'll use run_lazy_lookahead to try to get Alice to the park. With
+Pr = 1/2, the taxi won't arrive. In this case, run_lazy_lookahead will call
+find_plan again, and find_plan will return the same plan as before. This will
+happen repeatedly until either the taxi arrives or run_lazy_lookahead decides
+it has tried too many times.""")
+    th.pause(do_pauses)
+
+    with gtpyhop.PlannerSession(domain=the_domain, verbose=1) as session:
+        with session.isolated_execution():
+            new_state = gtpyhop.run_lazy_lookahead(state1, [('travel','alice','park')])
+
+    th.pause(do_pauses)
+
+    print('')
+    print('If run_lazy_lookahead succeeded, then Alice is now at the park,')
+    print('so the planner will return an empty plan:\n')
+
+    with gtpyhop.PlannerSession(domain=the_domain, verbose=1) as session:
+        with session.isolated_execution():
+            result = session.find_plan(new_state, [('travel','alice','park')])
+            plan = result.plan if (result and result.success) else None
+            th.check_result(plan, [])
+
+    print("No more examples")
+
+
+def main_with_args(argv=None):
+    """
+    Main function with command-line argument support for choosing execution mode.
+    """
+    parser = argparse.ArgumentParser(description="Run simple_htn examples")
+    parser.add_argument("--session", action="store_true",
+                       help="Run using PlannerSession (thread-safe)")
+    parser.add_argument("--verbose", type=int, default=1,
+                       help="Verbosity level for session runs (0-3)")
+    parser.add_argument("--no-pauses", action="store_true",
+                       help="Run without pauses")
+
+    args = parser.parse_args(argv)
+    do_pauses = not args.no_pauses
+
+    if args.session:
+        main_session(do_pauses, args.verbose)
+    else:
+        main_legacy(do_pauses)
+
+
 ###############################################################################
 # At this point, I used to call main() so the examples would run automatically,
 # but I've removed that to maintain uniformity with the other example domains.
+
+if __name__ == "__main__":
+    main_with_args()

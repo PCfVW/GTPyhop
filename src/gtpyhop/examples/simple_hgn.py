@@ -2,9 +2,12 @@
 An expanded version of the "travel from home to the park" example in
 my lectures, modified to use goals instead of tasks.
 -- Dana Nau <nau@umd.edu>, July 20, 2021
+
+Updated for GTPyhop 1.3.0 thread-safe sessions - 2025-08-22
 """
 
 import gtpyhop
+import argparse
 
 import random
 import gtpyhop.test_harness as th   # code for use in paging and debugging
@@ -208,7 +211,14 @@ def main(do_pauses=True):
     main() will pause occasionally to let you examine the output.
     main(False) will run straight through to the end, without stopping.
     """
-    
+    # Legacy mode - preserved for backward compatibility
+    main_legacy(do_pauses)
+
+
+def main_legacy(do_pauses=True):
+    """
+    Legacy implementation using global state (preserved for backward compatibility).
+    """
     # If we've changed to some other domain, this will change us back.
     gtpyhop.set_current_domain(gtpyhop.find_domain_by_name(__name__))
     gtpyhop.print_domain()
@@ -221,12 +231,11 @@ def main(do_pauses=True):
 Next, several planning problems using the above domain and initial state.
 """)
     th.pause(do_pauses)
-    
+
     print("""
 Below, we give find_plan the goal of having alice be at the park.
 We do it several times with different values for 'verbose'.
 """)
-
 
     expected = [('call_taxi', 'alice', 'home_a'), ('ride_taxi', 'alice', 'park'), ('pay_driver', 'alice', 'park')]
 
@@ -234,7 +243,7 @@ We do it several times with different values for 'verbose'.
     gtpyhop.set_verbose_level(0)
     result = gtpyhop.find_plan(state1,[('loc','alice','park')])
     th.check_result(result,expected)
- 
+
     print("""If verbose=1, then in addition to returning the solution, the planner prints both the problem and the solution""")
     gtpyhop.set_verbose_level(1)
     result = gtpyhop.find_plan(state1,[('loc','alice','park')])
@@ -250,7 +259,7 @@ achieved its goal.
     th.pause(do_pauses)
 
     print("""
-If verbose=3, the planner prints even more information. 
+If verbose=3, the planner prints even more information.
 """)
     gtpyhop.set_verbose_level(3)
     result = gtpyhop.find_plan(state1,[('loc','alice','park')])
@@ -270,6 +279,117 @@ matter whether they're both at the park at the same time.
 
     th.pause(do_pauses)
 
+    state1.display(heading='\nInitial state')
+
+    print("""
+A multigoal g looks similar to a state, but usually it includes just a few of
+the state variables rather than all of them. It specifies *desired* values
+for those state variables, rather than current values. The goal is to produce
+a state that satisfies all of the desired values.
+
+Below, goal3 is the goal of having Alice and Bob at the park at the same time.
+""")
+
+    goal3.display()
+
+    print("""
+Next, we'll call find_plan on goal3, with verbose=2. In the printout,
+_verify_mg is a task used by the planner to check whether a multigoal
+method has achieved all of the values specified in the multigoal.
+""")
+    th.pause(do_pauses)
+
+    gtpyhop.set_verbose_level(2)
+    plan = gtpyhop.find_plan(state1,[goal3])
+    th.check_result(plan,[('call_taxi', 'alice', 'home_a'), ('ride_taxi', 'alice', 'park'), ('pay_driver', 'alice', 'park'), ('walk', 'bob', 'home_b', 'park')])
+
+    th.pause(do_pauses)
+    print('\nCall run_lazy_lookahead with verbose=1:\n')
+
+    gtpyhop.set_verbose_level(1)
+    new_state = gtpyhop.run_lazy_lookahead(state1,[('loc','alice','park')])
+    print('')
+
+    th.pause(do_pauses)
+
+    print('\nAlice is now at the park, so the planner will return an empty plan:\n')
+
+    gtpyhop.set_verbose_level(1)
+    plan = gtpyhop.find_plan(new_state,[('loc','alice','park')])
+    th.check_result(plan,[])
+
+    print("No more examples")
+
+
+def main_session(do_pauses=True, verbose=1):
+    """
+    Thread-safe implementation using PlannerSession (GTPyhop 1.3.0+).
+    """
+    print(f"\n=== Running simple_hgn examples with PlannerSession (verbose={verbose}) ===")
+
+    state1 = state0.copy()
+
+    print("""
+Next, several planning problems using the above domain and initial state.
+""")
+    th.pause(do_pauses)
+
+    print("""
+Below, we give session.find_plan the goal of having alice be at the park.
+We'll demonstrate different verbosity levels using separate sessions.
+""")
+
+    expected = [('call_taxi', 'alice', 'home_a'), ('ride_taxi', 'alice', 'park'), ('pay_driver', 'alice', 'park')]
+
+    print("Session with verbose=0: the planner returns the solution but prints nothing:")
+    with gtpyhop.PlannerSession(domain=the_domain, verbose=0) as session:
+        with session.isolated_execution():
+            result = session.find_plan(state1, [('loc','alice','park')])
+            plan = result.plan if (result and result.success) else None
+            th.check_result(plan, expected)
+
+    print("""Session with verbose=1: the planner prints both the problem and the solution""")
+    with gtpyhop.PlannerSession(domain=the_domain, verbose=1) as session:
+        with session.isolated_execution():
+            result = session.find_plan(state1, [('loc','alice','park')])
+            plan = result.plan if (result and result.success) else None
+            th.check_result(plan, expected)
+
+    print("""Session with verbose=2: the planner also prints a note at each recursive call.
+_verify_g is a task used by the planner to check whether a method has
+achieved its goal.
+""")
+    with gtpyhop.PlannerSession(domain=the_domain, verbose=2) as session:
+        with session.isolated_execution():
+            result = session.find_plan(state1, [('loc','alice','park')])
+            plan = result.plan if (result and result.success) else None
+            th.check_result(plan, expected)
+    th.pause(do_pauses)
+
+    print("""
+Session with verbose=3: the planner prints even more information.
+""")
+    with gtpyhop.PlannerSession(domain=the_domain, verbose=3) as session:
+        with session.isolated_execution():
+            result = session.find_plan(state1, [('loc','alice','park')])
+            plan = result.plan if (result and result.success) else None
+            th.check_result(plan, expected)
+
+    th.pause(do_pauses)
+    print("""
+Next, we give find_plan a sequence of two goals: first for Alice to be at the
+park, then for Bob to be at the park. Since this is a sequence, it doesn't
+matter whether they're both at the park at the same time.
+""")
+
+    with gtpyhop.PlannerSession(domain=the_domain, verbose=2) as session:
+        with session.isolated_execution():
+            result = session.find_plan(state1, [('loc','alice','park'),('loc','bob','park')])
+            plan = result.plan if (result and result.success) else None
+            th.check_result(plan, [('call_taxi', 'alice', 'home_a'), ('ride_taxi', 'alice', 'park'),
+                                 ('pay_driver', 'alice', 'park'), ('walk', 'bob', 'home_b', 'park')])
+
+    th.pause(do_pauses)
 
     state1.display(heading='\nInitial state')
 
@@ -281,39 +401,68 @@ a state that satisfies all of the desired values.
 
 Below, goal3 is the goal of having Alice and Bob at the park at the same time.
 """)
-    
+
     goal3.display()
-    
-    
+
     print("""
 Next, we'll call find_plan on goal3, with verbose=2. In the printout,
 _verify_mg is a task used by the planner to check whether a multigoal
 method has achieved all of the values specified in the multigoal.
 """)
     th.pause(do_pauses)
-    
-    gtpyhop.set_verbose_level(2)
-    plan = gtpyhop.find_plan(state1,[goal3])
-    th.check_result(plan,[('call_taxi', 'alice', 'home_a'), ('ride_taxi', 'alice', 'park'), ('pay_driver', 'alice', 'park'), ('walk', 'bob', 'home_b', 'park')])
+
+    with gtpyhop.PlannerSession(domain=the_domain, verbose=2) as session:
+        with session.isolated_execution():
+            result = session.find_plan(state1, [goal3])
+            plan = result.plan if (result and result.success) else None
+            th.check_result(plan, [('call_taxi', 'alice', 'home_a'), ('ride_taxi', 'alice', 'park'),
+                                 ('pay_driver', 'alice', 'park'), ('walk', 'bob', 'home_b', 'park')])
 
     th.pause(do_pauses)
     print('\nCall run_lazy_lookahead with verbose=1:\n')
 
-    gtpyhop.set_verbose_level(1)
-    new_state = gtpyhop.run_lazy_lookahead(state1,[('loc','alice','park')])
+    with gtpyhop.PlannerSession(domain=the_domain, verbose=1) as session:
+        with session.isolated_execution():
+            new_state = gtpyhop.run_lazy_lookahead(state1, [('loc','alice','park')])
     print('')
-    
+
     th.pause(do_pauses)
-    
+
     print('\nAlice is now at the park, so the planner will return an empty plan:\n')
 
-    gtpyhop.set_verbose_level(1)
-    plan = gtpyhop.find_plan(new_state,[('loc','alice','park')])
-    th.check_result(plan,[])
+    with gtpyhop.PlannerSession(domain=the_domain, verbose=1) as session:
+        with session.isolated_execution():
+            result = session.find_plan(new_state, [('loc','alice','park')])
+            plan = result.plan if (result and result.success) else None
+            th.check_result(plan, [])
 
     print("No more examples")
+
+
+def main_with_args(argv=None):
+    """
+    Main function with command-line argument support for choosing execution mode.
+    """
+    parser = argparse.ArgumentParser(description="Run simple_hgn examples")
+    parser.add_argument("--session", action="store_true",
+                       help="Run using PlannerSession (thread-safe)")
+    parser.add_argument("--verbose", type=int, default=1,
+                       help="Verbosity level for session runs (0-3)")
+    parser.add_argument("--no-pauses", action="store_true",
+                       help="Run without pauses")
+
+    args = parser.parse_args(argv)
+    do_pauses = not args.no_pauses
+
+    if args.session:
+        main_session(do_pauses, args.verbose)
+    else:
+        main_legacy(do_pauses)
 
 
 ###############################################################################
 # At this point, I used to call main() so the examples would run automatically,
 # but I've removed that to maintain uniformity with the other example domains.
+
+if __name__ == "__main__":
+    main_with_args()

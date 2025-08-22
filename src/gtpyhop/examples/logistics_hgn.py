@@ -4,9 +4,12 @@ This file is based on the logistics-domain examples included with HGNpyhop:
 For a discussion of the adaptations that were needed, see the relevant
 section of Some_GTPyhop_Details.md in the top-level directory.
 -- Dana Nau <nau@umd.edu>, July 20, 2021
+
+Updated for GTPyhop 1.3.0 thread-safe sessions - 2025-08-22
 """
 
 import gtpyhop
+import argparse
 
 import gtpyhop.test_harness as th   # code for use in paging and debugging
 
@@ -167,7 +170,14 @@ def main(do_pauses=True):
     main() will pause occasionally to let you examine the output.
     main(False) will run straight through to the end, without stopping.
     """
+    # Legacy mode - preserved for backward compatibility
+    main_legacy(do_pauses)
 
+
+def main_legacy(do_pauses=True):
+    """
+    Legacy implementation using global state (preserved for backward compatibility).
+    """
     # If we've changed to some other domain, this will change us back.
     gtpyhop.set_current_domain(gtpyhop.find_domain_by_name(__name__))
     gtpyhop.print_domain()
@@ -179,7 +189,6 @@ def main(do_pauses=True):
     state1.locations = {'location1', 'location2', 'location3', 'airport1', 'location10', 'airport2'}
     state1.airports = {'airport1', 'airport2'}
     state1.cities = {'city1', 'city2'}
-
 
     state1.at = {'package1': 'location1',
                  'package2': 'location2'}
@@ -226,3 +235,99 @@ def main(do_pauses=True):
     gtpyhop.find_plan(state1, [('at', 'package1', 'location1')])
 
     print("No more examples")
+
+
+def main_session(do_pauses=True, verbose=3):
+    """
+    Thread-safe implementation using PlannerSession (GTPyhop 1.3.0+).
+    """
+    print(f"\n=== Running logistics_hgn examples with PlannerSession (verbose={verbose}) ===")
+
+    state1 = gtpyhop.State('state1')
+    state1.packages = {'package1', 'package2'}
+    state1.trucks = {'truck1', 'truck6'}
+    state1.airplanes = {'plane2'}
+    state1.locations = {'location1', 'location2', 'location3', 'airport1', 'location10', 'airport2'}
+    state1.airports = {'airport1', 'airport2'}
+    state1.cities = {'city1', 'city2'}
+
+    state1.at = {'package1': 'location1',
+                 'package2': 'location2'}
+    state1.truck_at = {
+                 'truck1': 'location3',
+                 'truck6': 'location10'
+    }
+    state1.plane_at = {
+                 'plane2': 'airport2'}
+    state1.in_city = {'location1': 'city1',
+                      'location2': 'city1',
+                      'location3': 'city1',
+                      'airport1': 'city1',
+                      'location10': 'city2',
+                      'airport2': 'city2'}
+
+    th.pause(do_pauses)
+
+    print("""
+    ----------
+    Goal 1: package1 is at location2; package2 is at location3 (transport within the same city)
+    ----------
+    """)
+    with gtpyhop.PlannerSession(domain=the_domain, verbose=verbose) as session:
+        with session.isolated_execution():
+            result = session.find_plan(state1, [('at', 'package1', 'location2'), ('at', 'package2', 'location3')])
+            plan = result.plan if (result and result.success) else None
+            print(f"Plan: {plan}")
+
+    th.pause(do_pauses)
+
+    print("""
+    ----------
+    Goal 2: package1 is at location10 (transport to a different city)
+    ----------
+    """)
+    with gtpyhop.PlannerSession(domain=the_domain, verbose=verbose) as session:
+        with session.isolated_execution():
+            result = session.find_plan(state1, [('at', 'package1', 'location10')])
+            plan = result.plan if (result and result.success) else None
+            print(f"Plan: {plan}")
+
+    th.pause(do_pauses)
+
+    print("""
+    ----------
+    Goal 3: package1 is at location1 (no actions needed)
+    ----------
+    """)
+    with gtpyhop.PlannerSession(domain=the_domain, verbose=verbose) as session:
+        with session.isolated_execution():
+            result = session.find_plan(state1, [('at', 'package1', 'location1')])
+            plan = result.plan if (result and result.success) else None
+            print(f"Plan: {plan}")
+
+    print("No more examples")
+
+
+def main_with_args(argv=None):
+    """
+    Main function with command-line argument support for choosing execution mode.
+    """
+    parser = argparse.ArgumentParser(description="Run logistics_hgn examples")
+    parser.add_argument("--session", action="store_true",
+                       help="Run using PlannerSession (thread-safe)")
+    parser.add_argument("--verbose", type=int, default=3,
+                       help="Verbosity level for session runs (0-3)")
+    parser.add_argument("--no-pauses", action="store_true",
+                       help="Run without pauses")
+
+    args = parser.parse_args(argv)
+    do_pauses = not args.no_pauses
+
+    if args.session:
+        main_session(do_pauses, args.verbose)
+    else:
+        main_legacy(do_pauses)
+
+
+if __name__ == "__main__":
+    main_with_args()
