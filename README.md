@@ -744,7 +744,7 @@ with gtpyhop.PlannerSession(domain=the_domain, verbose=2) as session:
 ### 📚 Documentation Structure
 
 - **README.md** (this file): Installation, basic usage, and overview of all features
-- **[GTPyhop-1.3.0-Thread-Safe-Sessions.md](https://github.com/PCfVW/GTPyhop/tree/pipGTPyhop-1.3.0-Thread-Safe-Sessions.md)**: Comprehensive guide to 1.3.0 session-based architecture
+- **[GTPyhop-1.3.0-Thread-Safe-Sessions.md](https://github.com/PCfVW/GTPyhop/blob/pip/GTPyhop-1.3.0-Thread-Safe-Sessions.md)**: Comprehensive guide to 1.3.0 session-based architecture
   - Detailed concurrent planning examples
   - Complete API reference for session management
   - Migration guide from global API to sessions
