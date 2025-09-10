@@ -23,7 +23,7 @@ The benchmarking system uses **GTPyhop 1.3.0's thread-safe session-based plannin
 - **📊 Better Resource Management**: Per-session configuration and monitoring
 - **🚀 Production Ready**: Reliable for concurrent and production environments
 
-For technical details, see [GTPyhop 1.3.0 Thread-Safe Sessions](../../../../docs/GTPyhop-1.3.0-Thread-Safe-Sessions.md).
+For technical details, see [GTPyhop 1.3.0 Thread-Safe Sessions](https://github.com/PCfVW/GTPyhop/blob/pip/docs/thread_safe_sessions.md).
 
 ## Quick Start
 
@@ -207,7 +207,7 @@ pip install gtpyhop>=1.3.0 psutil
 2. Use `--show-imports` to verify GTPyhop installation and version
 3. Use `--list-domains` to see available domains
 4. Check domain README files for specific domain information
-5. Review [GTPyhop 1.3.0 Thread-Safe Sessions](../../../../docs/GTPyhop-1.3.0-Thread-Safe-Sessions.md) for technical details
+5. Review [GTPyhop 1.3.0 Thread-Safe Sessions](https://github.com/PCfVW/GTPyhop/blob/pip/docs/thread_safe_sessions.md) for technical details
 
 ## Performance Tips
 
@@ -223,9 +223,9 @@ pip install gtpyhop>=1.3.0 psutil
 - Experiment with concurrent benchmarking using thread-safe sessions
 - Compare performance between session and legacy modes
 - Use results to analyze planning algorithm efficiency in isolated contexts
-- Review [GTPyhop 1.3.0 Thread-Safe Sessions](../../../../docs/GTPyhop-1.3.0-Thread-Safe-Sessions.md) for advanced session features
+- Review [GTPyhop 1.3.0 Thread-Safe Sessions](https://github.com/PCfVW/GTPyhop/blob/pip/docs/thread_safe_sessions.md) for advanced session features
 
 ---
 
 *For detailed domain information, see the README files in the Blocksworld-GTOHP/ and Childsnack/ directories.*
-*For technical details on thread-safe sessions, see [GTPyhop 1.3.0 Thread-Safe Sessions](../../../../docs/GTPyhop-1.3.0-Thread-Safe-Sessions.md).*
+*For technical details on thread-safe sessions, see [GTPyhop 1.3.0 Thread-Safe Sessions](https://github.com/PCfVW/GTPyhop/blob/pip/docs/thread_safe_sessions.md).*
