@@ -53,7 +53,7 @@ Two examples from the IPC 2020 Total Order track are included:
 | `Blocksworld-GTOHP/` | Classic blocks world | HTN planning, stacking, multigoals |
 | `Childsnack/` | Resource management in childcare setting | HTN planning, constraint handling, multigoals |
 
-The [IPC 2020 Total Order](https://github.com/panda-planner-dev/ipc2020-domains/tree/master/total-order) examples are located in the `src/gtpyhop/examples/ipc-2020-total-order/` directory and include comprehensive domain definitions, problem instances, and evaluation frameworks. **For detailed instructions on running these advanced examples, including setup requirements, execution procedures, and performance analysis tools, please refer to the comprehensive documentation in [`benchmarking_quickstart_latest.md`](src/gtpyhop/examples/ipc-2020-total-order/benchmarking_quickstart_latest.md)**. This dedicated benchmarking guide provides step-by-step instructions for executing the IPC problems, interpreting results, and conducting comparative performance analysis.
+The [IPC 2020 Total Order](https://github.com/panda-planner-dev/ipc2020-domains/tree/master/total-order) examples are located in the `src/gtpyhop/examples/ipc-2020-total-order/` directory and include comprehensive domain definitions, problem instances, and evaluation frameworks. **For detailed instructions on running these advanced examples, including setup requirements, execution procedures, and performance analysis tools, please refer to the comprehensive documentation in [`benchmarking_quickstart.md`](src/gtpyhop/examples/ipc-2020-total-order/benchmarking_quickstart.md)**. This dedicated benchmarking guide provides step-by-step instructions for executing the IPC problems, interpreting results, and conducting comparative performance analysis.
 
 ## 🧪 Testing Examples
 
@@ -122,5 +122,5 @@ for t in threads:
 ## 📚 Additional Resources
 
 For advanced benchmarking and performance evaluation using the IPC 2020 Total Order problems, see:
-- **`benchmarking_quickstart_latest.md`** - Comprehensive guide to running and analyzing IPC benchmarks
+- **`benchmarking_quickstart.md`** - Comprehensive guide to running and analyzing IPC benchmarks
 - **`src/gtpyhop/examples/ipc-2020-total-order/`** - Complete IPC problem suite with domain definitions and test cases

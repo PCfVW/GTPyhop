@@ -53,7 +53,7 @@ The file tree structure of [this pip branch](https://github.com/PCfVW/GTPyhop/tr
                 └── 📄 methods.py
             ├── 📁 ipc-2020-total-order/
                 ├── 📄 benchmarking.py
-                ├── 📄 benchmarking_quickstart_latest.md
+                ├── 📄 benchmarking_quickstart.md
                 ├── 📁 Blocksworld-GTOHP/
                     ├── 📄 __init__.py
                     ├── 📄 domain.py/
@@ -418,7 +418,7 @@ GTPyhop 1.4.0 includes comprehensive documentation organized in the `docs/` fold
 - **[Version History](docs/changelog.md)** - Complete changelog and version information
 
 ### Specialized Documentation
-- **[Benchmarking Quickstart](src/gtpyhop/examples/ipc-2020-total-order/benchmarking_quickstart_latest.md)** - Performance benchmarking guide
+- **[Benchmarking Quickstart](src/gtpyhop/examples/ipc-2020-total-order/benchmarking_quickstart.md)** - Performance benchmarking guide
 - **[Blocksworld-GTOHP Domain](src/gtpyhop/examples/ipc-2020-total-order/Blocksworld-GTOHP/ipc-2020-to-bw-gtohp-readme.md)** - IPC 2020 Blocksworld domain
 - **[Childsnack Domain](src/gtpyhop/examples/ipc-2020-total-order/Childsnack/ipc-2020-to-cs-gtohp-readme.md)** - IPC 2020 Childsnack domain
 

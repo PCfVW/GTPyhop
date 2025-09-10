@@ -10,7 +10,7 @@
 - **📖 Documentation** - Reorganized, updated and expanded documentation for many features
 - **📈 Resource monitoring for Benchmarking** - Memory (Total and Peak Kb) and CPU usage (%) tracking
 
-    - **[Bencharmarking documentation →](src/gtpyhop/examples/ipc-2020-total-order/benchmarking_quickstart_latest.md)**
+    - **[Bencharmarking documentation →](src/gtpyhop/examples/ipc-2020-total-order/benchmarking_quickstart.md)**
     - **[Blocksworld-GTOHP documentation →](src/gtpyhop/examples/ipc-2020-total-order/Blocksworld-GTOHP/ipc-2020-to-bw-gtohp.md)**
     - **[Childsnack documentation →](src/gtpyhop/examples/ipc-2020-total-order/Childsnack/ipc-2020-to-cs-gtohp.md)**
 
