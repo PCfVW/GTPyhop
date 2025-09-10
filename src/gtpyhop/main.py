@@ -3,7 +3,7 @@
 
 ################################################################################
 #                                                                              #
-#                              GTPyhop 1.3.0                                   #
+#                              GTPyhop 1.3.0+                                  #
 #                                                                              #
 #                    Goal-Task-Network Planning System                         #
 #                                                                              #
@@ -239,6 +239,24 @@ class State():
         
     def __repr__(self):
         return _make_repr(self, 'State')
+
+    def __eq__(self, other):
+        if not isinstance(other, State):
+            return False
+        for v in vars(self):
+            if v != '__name__':     # don't compare state names
+                if v not in vars(other):
+                    return False
+                if vars(self)[v] != vars(other)[v]:
+                    return False
+        for v in vars(other):
+            if v != '__name__':     # don't compare state names
+                if v not in vars(self):
+                    return False
+        return True
+    
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     def copy(self,new_name=None):
         """
@@ -866,6 +884,51 @@ def _m_verify_mg(state, method, multigoal, depth):
 
 
 ################################################################################
+# Function to validate a plan by executing it from an initial state and
+# checking the goal
+
+def validate_plan_from_goal(initial_state, plan, key_string, goal_dict):
+    """
+    Validate a given plan by applying each action in sequence to the initial state.
+    After executing the plan, check if the resulting state satisfies the goal state.
+    Args:
+        initial_state (State): The initial state before the plan is executed.
+        plan (list): A list of actions to be executed in sequence.
+        key_string: a string representing one attribute of the state to check.
+        goal_dict (State): A dictionary representing one attribute of the final state and its desired values.
+    Returns:
+        bool: True if the plan leads to the goal_dict is a subset of the initial_state_dict, False otherwise.
+    """
+    state = initial_state.copy()
+    if verbose >= 1:
+        print(f'Validating plan: {plan}')
+        state.display('Initial state:')
+    for action in plan:
+        if action[0] in current_domain._action_dict:
+            action_func = current_domain._action_dict[action[0]]
+            state = action_func(state, *action[1:])
+            if state is False:
+                if verbose >= 1:
+                    print(f'Action {action} failed. Plan is invalid.')
+                return False
+            if verbose >= 2:
+                print(f'After action {action}:')
+                state.display()
+        else:
+            if verbose >= 1:
+                print(f'Action {action} not found in domain. Plan is invalid.')
+            return False
+    # Check if the goal_dict is satisfied in the final state
+    for arg, val in goal_dict.get(key_string, {}).items():
+        if vars(state).get(key_string, {}).get(arg) != val:
+            if verbose >= 1:
+                print(f'Goal {key_string}[{arg}] = {val} not achieved. Plan is invalid.')
+            return False
+    if verbose >= 0:
+        print('>>> Plan is valid and achieves the goal.')
+    return True
+
+################################################################################
 #                                                                              #
 #                         CORE PLANNING ALGORITHMS                            #
 #                                                                              #
@@ -909,12 +972,26 @@ def _apply_action_and_continue_recursive(state, task1, todo_list, plan, depth):
     if verbose >= 3:
         print(f'depth {depth} action {task1}: ', end='')
     action = current_domain._action_dict[task1[0]]
-    newstate = action(state.copy(),*task1[1:])
-    if newstate:
-        if verbose >= 3:
-            print('applied')
-            newstate.display()
-        return seek_plan_recursive(newstate, todo_list, plan+[task1], depth+1)
+    
+    # Create a copy of the state to avoid modifying the original
+    state_copy = state.copy()
+    # Apply the action to the copied state
+    newstate = action(state_copy,*task1[1:])
+
+    if isinstance(newstate, State):
+        if (newstate != state): # == and != are overloaded for State; only attributes matter; state name doesn't
+            # action changed the state: record it in the plan
+            if verbose >= 3:
+                print('applied')
+                newstate.display()
+            return seek_plan_recursive(newstate, todo_list, plan+[task1], depth+1)
+        else:
+            # action didn't change the state: don't record it in the plan
+            if verbose >= 3:
+                print('idempotent')
+                newstate.display()
+            return seek_plan_recursive(newstate, todo_list, plan, depth+1)
+
     if verbose >= 3:
         print('not applicable')
     return False
@@ -1084,14 +1161,28 @@ def _apply_action_and_continue_iterative(state, task1, todo_list, plan, depth):
                      action_name=task1[0], depth=depth, args=task1[1:])
 
     action = current_domain._action_dict[task1[0]]
-    newstate = action(state.copy(), *task1[1:])
-    if newstate:
-        if verbose >= 3:
-            print('applied')
-            newstate.display()
-        _log_if_available("debug", "apply_action", "Action applied successfully",
-                         action_name=task1[0], depth=depth)
-        return (newstate, todo_list, plan + [task1], depth + 1)
+
+    # Create a copy of the state to avoid modifying the original
+    state_copy = state.copy()
+    # Apply the action to the copied state
+    newstate = action(state_copy, *task1[1:])
+
+    if isinstance(newstate, State):
+        if (newstate != state): # == and != are overloaded for State; only attributes matter; state name doesn't
+            # action changed the state: record it in the plan
+            if verbose >= 3:
+                print('applied')
+                newstate.display()
+            _log_if_available("debug", "apply_action", "Action applied successfully",
+                             action_name=task1[0], depth=depth)
+            return (newstate, todo_list, plan + [task1], depth + 1)
+        else:
+            # action didn't change the state: don't record it in the plan
+            if verbose >= 3:
+                print('idempotent')
+                newstate.display()
+            return (newstate, todo_list, plan, depth + 1)
+
     if verbose >= 3:
         print('not applicable')
     _log_if_available("debug", "apply_action", "Action not applicable",
@@ -1471,8 +1562,12 @@ def _apply_command_and_continue_rll(state, command, args):
     """
     if verbose >= 3:
         print(f"_apply_command_and_continue {command.__name__}, args = {args}")
-    next_state = command(state.copy(),*args)
-    if next_state:
+    # Create a copy of the state to avoid modifying the original
+    newstate = state.copy()
+    # Apply the command to the copied state
+    next_state = command(newstate,*args)
+    if isinstance(next_state, State):
+        # we ignore idempotent commands here
         if verbose >= 3:
             print('applied')
             next_state.display()
@@ -2671,7 +2766,7 @@ def list_sessions() -> List[str]:
 
 ################################################################################
 #                                                                              #
-#                            END OF GTPYHOP 1.3.0                              #
+#                            END OF GTPYHOP 1.3.0+                             #
 #                                                                              #
 ################################################################################
 

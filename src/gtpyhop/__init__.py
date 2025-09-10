@@ -1,17 +1,24 @@
 """
 GTPyhop: A Goal-Task-Network planning system
-Version 1.3.0 with session-based architecture and structured logging
+Version 1.4.0 with
+- session-based architecture (1.3),
+- structured logging (1.3),
+- plan validation (New in 1.4)
 
 This module provides hierarchical task network (HTN) planning capabilities
-with support for both goals and tasks. Version 1.3 introduces session-based
-planning for better isolation and structured logging for improved debugging.
+with support for both goals and tasks.
+
+Version 1.3 introduces session-based planning for better isolation and
+structured logging for improved debugging.
+
+Version 1.4 introduces basic plan valisation.
 """
 
 import os
 import warnings
 
 # Version information
-__version__ = "1.3.0"
+__version__ = "1.4.0"
 __author__ = "Dana Nau, Eric Jacopin"
 __license__ = "Clear BSD License"
 __description__ = "A Goal-Task-Network planning package written in Python"
@@ -23,6 +30,9 @@ _GTPYHOP_WARN_GLOBALS = os.getenv("GTPYHOP_WARN_GLOBALS", "false").lower() == "t
 
 # Import core functionality
 from .main import (
+    # === VALIDATION API (New in 1.4) ===
+    validate_plan_from_goal,
+
     # === SESSION-BASED API (New in 1.3) ===
     PlannerSession,
     PlanResult,
@@ -160,6 +170,9 @@ if not _GTPYHOP_NO_DEFAULTS:
 __all__ = [
     # Version and metadata
     "__version__", "__author__", "__license__", "__description__",
+
+    # Validation API (New in 1.4)
+    "validate_plan_from_goal",
 
     # Session-based API (New in 1.3)
     "PlannerSession", "PlanResult", "ExecutionResult", "PlanningTimeoutError",
