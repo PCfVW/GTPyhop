@@ -190,7 +190,7 @@ with gtpyhop.PlannerSession(domain=my_domain, verbose=1) as session:
             print(result.plan)
 ```
 
-**For detailed examples, concurrent planning patterns, and complete API reference, see [Thread-Safe Sessions Guide](docs/thread_safe_sessions.md)**
+**For detailed examples, concurrent planning patterns, and complete API reference, see [Thread-Safe Sessions Guide](https://github.com/PCfVW/GTPyhop/blob/pip/docs/thread_safe_sessions.md)**
 
 ## Let's HTN Start!
 
@@ -404,23 +404,23 @@ python -m gtpyhop.examples.simple_htn
 python -m gtpyhop.examples.simple_htn --session
 ```
 
-📖 **For comprehensive example documentation, see [All Examples Guide](docs/all_examples.md)**
+📖 **For comprehensive example documentation, see [All Examples Guide](https://github.com/PCfVW/GTPyhop/blob/pip/docs/all_examples.md)**
 
 ## 📚 Documentation
 
 GTPyhop 1.4.0 includes comprehensive documentation organized in the `docs/` folder:
 
 ### Core Documentation
-- **[All Examples Guide](docs/all_examples.md)** - Pedagogical details about all HTN Planning examples
-- **[Running Examples](docs/running_examples.md)** - Detailed instructions for executing examples
-- **[Structured Logging](docs/logging.md)** - Comprehensive logging system documentation
-- **[Thread-Safe Sessions](docs/thread_safe_sessions.md)** - Complete guide to 1.3.0 session-based architecture
-- **[Version History](docs/changelog.md)** - Complete changelog and version information
+- **[All Examples Guide](https://github.com/PCfVW/GTPyhop/blob/pip/docs/all_examples.md)** - Pedagogical details about all HTN Planning examples
+- **[Running Examples](https://github.com/PCfVW/GTPyhop/blob/pip/docs/running_examples.md)** - Detailed instructions for executing examples
+- **[Structured Logging](https://github.com/PCfVW/GTPyhop/blob/pip/docs/logging.md)** - Comprehensive logging system documentation
+- **[Thread-Safe Sessions](https://github.com/PCfVW/GTPyhop/blob/pip/docs/thread_safe_sessions.md)** - Complete guide to 1.3.0 session-based architecture
+- **[Version History](https://github.com/PCfVW/GTPyhop/blob/pip/docs/changelog.md)** - Complete changelog and version information
 
 ### Specialized Documentation
-- **[Benchmarking Quickstart](src/gtpyhop/examples/ipc-2020-total-order/benchmarking_quickstart.md)** - Performance benchmarking guide
-- **[Blocksworld-GTOHP Domain](src/gtpyhop/examples/ipc-2020-total-order/Blocksworld-GTOHP/ipc-2020-to-bw-gtohp-readme.md)** - IPC 2020 Blocksworld domain
-- **[Childsnack Domain](src/gtpyhop/examples/ipc-2020-total-order/Childsnack/ipc-2020-to-cs-gtohp-readme.md)** - IPC 2020 Childsnack domain
+- **[Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/ipc-2020-total-order/benchmarking_quickstart.md)** - Performance benchmarking guide
+- **[Blocksworld-GTOHP Domain](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/ipc-2020-total-order/Blocksworld-GTOHP/ipc-2020-to-bw-gtohp-readme.md)** - IPC 2020 Blocksworld domain
+- **[Childsnack Domain](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/ipc-2020-total-order/Childsnack/ipc-2020-to-cs-gtohp-readme.md)** - IPC 2020 Childsnack domain
 
 ### External Resources
 - **[Dana's Additional Information](https://github.com/dananau/GTPyhop/blob/main/additional_information.md)** - Core GTPyhop concepts (states, actions, goals, methods)

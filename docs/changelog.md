@@ -10,9 +10,9 @@
 - **📖 Documentation** - Reorganized, updated and expanded documentation for many features
 - **📈 Resource monitoring for Benchmarking** - Memory (Total and Peak Kb) and CPU usage (%) tracking
 
-    - **[Bencharmarking documentation →](src/gtpyhop/examples/ipc-2020-total-order/benchmarking_quickstart.md)**
-    - **[Blocksworld-GTOHP documentation →](src/gtpyhop/examples/ipc-2020-total-order/Blocksworld-GTOHP/ipc-2020-to-bw-gtohp.md)**
-    - **[Childsnack documentation →](src/gtpyhop/examples/ipc-2020-total-order/Childsnack/ipc-2020-to-cs-gtohp.md)**
+    - **[Bencharmarking documentation →](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/ipc-2020-total-order/benchmarking_quickstart.md)**
+    - **[Blocksworld-GTOHP documentation →](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/ipc-2020-total-order/Blocksworld-GTOHP/ipc-2020-to-bw-gtohp-readme.md)**
+    - **[Childsnack documentation →](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/ipc-2020-total-order/Childsnack/ipc-2020-to-cs-gtohp-readme.md)**
 
 ## 1.3.0 — Thread-Safe Sessions
 **Uploaded to PyPI: https://pypi.org/project/gtpyhop/1.3.0/**
