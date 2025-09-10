@@ -411,7 +411,7 @@ python -m gtpyhop.examples.simple_htn --session
 GTPyhop 1.4.0 includes comprehensive documentation organized in the `docs/` folder:
 
 ### Core Documentation
-- **[All Examples Guide]([docs](https://github.com/PCfVW/GTPyhop/blob/pip/docs/all_examples.md)** - Pedagogical details about all HTN Planning examples
+- **[All Examples Guide](https://github.com/PCfVW/GTPyhop/blob/pip/docs/all_examples.md)** - Pedagogical details about all HTN Planning examples
 - **[Running Examples](https://github.com/PCfVW/GTPyhop/blob/pip/docs/running_examples.md)** - Detailed instructions for executing examples
 - **[Structured Logging](https://github.com/PCfVW/GTPyhop/blob/pip/docs/logging.md)** - Comprehensive logging system documentation
 - **[Thread-Safe Sessions](https://github.com/PCfVW/GTPyhop/blob/pip/docs/thread_safe_sessions.md)** - Complete guide to 1.3.0 session-based architecture
