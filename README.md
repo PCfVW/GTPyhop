@@ -1,9 +1,9 @@
-# GTPyhop version 1.3.0
+# GTPyhop version 1.4.0
 
 [![Python Version](https://img.shields.io/badge/python-3%2B-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-Clear%20BSD-green.svg)](https://github.com/PCfVW/GTPyhop/blob/pip/LICENSE.txt)
 
-GTPyhop is a task-planning system based on [Pyhop](https://bitbucket.org/dananau/pyhop/src/master/), but generalized to plan for both goals and tasks.
+GTPyhop is an HTN planning system based on [Pyhop](https://bitbucket.org/dananau/pyhop/src/master/), but generalized to plan for both goals and tasks.
 
 [Dana Nau](https://www.cs.umd.edu/~nau/) is the original author of GTPyhop.
 
@@ -18,6 +18,12 @@ The file tree structure of [this pip branch](https://github.com/PCfVW/GTPyhop/tr
 📄 pyproject.toml
 📄 README.md
 📁 src/
+    └── 📁 docs/
+        ├── 📄 all_examples.md
+        ├── 📄 changelog.md
+        ├── 📄 logging.md
+        ├── 📄 running_examples.md
+        └── 📄 thread_safe_sessions.md    
     └── 📁 gtpyhop/
         ├── 📄 __init__.py
         ├── 📁 examples/
@@ -45,6 +51,19 @@ The file tree structure of [this pip branch](https://github.com/PCfVW/GTPyhop/tr
                 ├── 📄 actions.py
                 ├── 📄 examples.py
                 └── 📄 methods.py
+            ├── 📁 ipc-2020-total-order/
+                ├── 📄 benchmarking.py
+                ├── 📄 benchmarking_quickstart_latest.md
+                ├── 📁 Blocksworld-GTOHP/
+                    ├── 📄 __init__.py
+                    ├── 📄 domain.py/
+                    ├── 📄 ipc-2020-to-bw-gtohp-readme.md
+                    └── 📄 problems.py/
+                └── 📁 Childsnack/
+                    ├── 📄 __init__.py
+                    ├── 📄 domain.py/
+                    ├── 📄 ipc-2020-to-childsnack-readme.md
+                    └── 📄 problems.py/
             ├── 📄 logistics_hgn.py
             ├── 📄 pyhop_simple_travel_example.py
             ├── 📄 regression_tests.py
@@ -132,7 +151,7 @@ The last line printed in your terminal should be:
 Finished without error.
 ```
 
-**🆕 New in 1.3.0:** You can also run regression tests from the command line:
+**For GTPyhop 1.3.0+:** You can also run regression tests from the command line:
 
 ```bash
 # Legacy mode
@@ -144,7 +163,7 @@ python -m gtpyhop.examples.regression_tests --session
 
 Happy Planning!
 
-## 🆕 New in 1.3.0: Thread-Safe Sessions
+## Thread-Safe Sessions (1.3.0+)
 
 **GTPyhop 1.3.0 introduces session-based, thread-safe planning** that enables reliable concurrent execution and isolated planning contexts. This is a major architectural enhancement while maintaining 100% backward compatibility.
 
@@ -171,9 +190,9 @@ with gtpyhop.PlannerSession(domain=my_domain, verbose=1) as session:
             print(result.plan)
 ```
 
-📖 **For detailed examples, concurrent planning patterns, and complete API reference, see [GTPyhop-1.3.0-Thread-Safe-Sessions.md](https://github.com/PCfVW/GTPyhop/blob/pip/GTPyhop-1.3.0-Thread-Safe-Sessions.md)**
+**For detailed examples, concurrent planning patterns, and complete API reference, see [Thread-Safe Sessions Guide](docs/thread_safe_sessions.md)**
 
-## Usage
+## Let's HTN Start!
 
 You have successfully installed and tested gtpyhop; it's time to declare your own planning problems in gtpyhop.
 
@@ -276,7 +295,7 @@ python my_very_first_htn_example.py
 
 Does it run correctly? Increase the verbosity level to 2 or 3 and run it again to see more information about the planning process.
 
-### 🆕 Session-Based Version (Recommended for 1.3.0+)
+### Session-Based Version (Recommended for 1.3.0+)
 
 For better isolation and thread safety, use the session-based approach:
 
@@ -353,10 +372,10 @@ with gtpyhop.PlannerSession(domain=my_domain) as session:
 
 | Use Case | Recommended Version | Why |
 |----------|-------------------|-----|
-| **New projects** | **1.3.0** | Latest features, thread safety, better error handling |
-| **Concurrent/parallel planning** | **1.3.0** | Thread-safe sessions prevent race conditions |
-| **Production systems** | **1.3.0** | Timeout management, structured logging, persistence |
-| **Web APIs/servers** | **1.3.0** | Isolated sessions per request, timeout handling |
+| **New projects** | **1.3.0=** | Latest features, thread safety, better error handling |
+| **Concurrent/parallel planning** | **1.3.0+** | Thread-safe sessions prevent race conditions |
+| **Production systems** | **1.3.0+** | Timeout management, structured logging, persistence |
+| **Web APIs/servers** | **1.3.0+** | Isolated sessions per request, timeout handling |
 | **Educational/simple scripts** | Any version | All versions support basic planning |
 | **Legacy code maintenance** | Keep current | All versions are backward compatible |
 
@@ -373,9 +392,9 @@ Please read [Dana's additional information](https://github.com/dananau/GTPyhop/b
 
 GTPyhop includes comprehensive examples demonstrating various planning techniques. **All examples support both legacy and session modes** for maximum flexibility and thread safety.
 
-### 🚀 Running Examples
+### 🚀 Quick Example Run
 
-**All examples support dual-mode execution:**
+**Try GTPyhop immediately:**
 
 ```bash
 # Legacy mode (backward compatible)
@@ -383,373 +402,29 @@ python -m gtpyhop.examples.simple_htn
 
 # Session mode (thread-safe, recommended for 1.3.0+)
 python -m gtpyhop.examples.simple_htn --session
-
-# Session mode with custom verbosity and no pauses
-python -m gtpyhop.examples.simple_htn --session --verbose 2 --no-pauses
 ```
 
-**Command-line arguments (available in all migrated examples):**
-- `--session`: Enable thread-safe session mode
-- `--verbose N`: Set verbosity level (0-3, default: 1 in session mode)
-- `--no-pauses`: Skip interactive pauses for automated testing
+📖 **For comprehensive example documentation, see [All Examples Guide](docs/all_examples.md)**
 
-### 📋 Available Examples
+## 📚 Documentation
 
-#### **Simple Examples** (Basic concepts and techniques)
+GTPyhop 1.4.0 includes comprehensive documentation organized in the `docs/` folder:
 
-| Example | Description | Key Features |
-|---------|-------------|--------------|
-| `simple_htn.py` | Basic hierarchical task networks | HTN planning, verbosity levels, execution |
-| `simple_hgn.py` | Basic hierarchical goal networks | HGN planning, goal-oriented tasks |
-| `backtracking_htn.py` | Backtracking demonstration | Method failure handling, alternative paths |
-| `simple_htn_acting_error.py` | Error handling patterns | Execution failures, replanning |
-| `logistics_hgn.py` | Logistics domain planning | Multi-goal planning, transportation |
-| `pyhop_simple_travel_example.py` | Travel planning | Basic domain modeling |
+### Core Documentation
+- **[All Examples Guide](docs/all_examples.md)** - Pedagogical details about all HTN Planning examples
+- **[Running Examples](docs/running_examples.md)** - Detailed instructions for executing examples
+- **[Structured Logging](docs/logging.md)** - Comprehensive logging system documentation
+- **[Thread-Safe Sessions](docs/thread_safe_sessions.md)** - Complete guide to 1.3.0 session-based architecture
+- **[Version History](docs/changelog.md)** - Complete changelog and version information
 
-#### **Complex Block World Examples** (Advanced planning scenarios)
+### Specialized Documentation
+- **[Benchmarking Quickstart](src/gtpyhop/examples/ipc-2020-total-order/benchmarking_quickstart_latest.md)** - Performance benchmarking guide
+- **[Blocksworld-GTOHP Domain](src/gtpyhop/examples/ipc-2020-total-order/Blocksworld-GTOHP/ipc-2020-to-bw-gtohp-readme.md)** - IPC 2020 Blocksworld domain
+- **[Childsnack Domain](src/gtpyhop/examples/ipc-2020-total-order/Childsnack/ipc-2020-to-cs-gtohp-readme.md)** - IPC 2020 Childsnack domain
 
-| Example | Description | Key Features |
-|---------|-------------|--------------|
-| `blocks_htn/` | Hierarchical task networks | Complex HTN methods, block manipulation |
-| `blocks_hgn/` | Hierarchical goal networks | Goal decomposition, multigoals |
-| `blocks_gtn/` | Goal task networks | Mixed task/goal planning |
-| `blocks_goal_splitting/` | Goal splitting methodology | Built-in goal decomposition methods |
+### External Resources
+- **[Dana's Additional Information](https://github.com/dananau/GTPyhop/blob/main/additional_information.md)** - Core GTPyhop concepts (states, actions, goals, methods)
 
-### 🧪 Testing Examples
-
-**Run all examples automatically:**
-
-```bash
-# Test all examples in both modes
-python test_migration.py
-
-# Test only session mode
-python test_migration.py --mode session
-
-# Test only legacy mode
-python test_migration.py --mode legacy
-```
-
-**Run regression tests:**
-
-```bash
-# Legacy regression tests
-python -m gtpyhop.examples.regression_tests
-
-# Session-based regression tests
-python -m gtpyhop.examples.regression_tests --session
-```
-
-### 💡 Example Usage Patterns
-
-**Interactive exploration:**
-```bash
-# Run with pauses to examine output step by step
-python -m gtpyhop.examples.blocks_htn.examples --session --verbose 3
-```
-
-**Automated testing:**
-```bash
-# Run without pauses for scripts/CI
-python -m gtpyhop.examples.blocks_htn.examples --session --no-pauses
-```
-
-**Concurrent planning (session mode only):**
-```python
-import threading
-import gtpyhop
-
-# Load example Domain
-from gtpyhop.examples.blocks_htn import actions, methods
-
-def plan_worker(session_id, state, goals):
-    with gtpyhop.PlannerSession(domain=the_domain, verbose=1) as session:
-        with session.isolated_execution():
-            result = session.find_plan(state, goals)
-            print(f"Session {session_id}: {result.plan}")
-
-# Run multiple planners concurrently
-threads = []
-for i in range(3):
-    t = threading.Thread(target=plan_worker, args=(i, initial_state, goals))
-    threads.append(t)
-    t.start()
-
-for t in threads:
-    t.join()
-```
-
-## Structured Logging System
-
-GTPyhop 1.3.0 introduces a comprehensive structured logging system that replaces traditional print statements with configurable, thread-safe logging. This system provides programmatic access to planning logs, statistics, and debugging information.
-
-### 🎯 Why Structured Logging?
-
-**Traditional challenges:**
-- Print statements mixed with actual output
-- No programmatic access to planning information
-- Difficult to filter or analyze planning traces
-- Thread safety issues in concurrent scenarios
-
-**Structured logging benefits:**
-- **Programmatic access**: Query and analyze logs programmatically
-- **Thread isolation**: Each session maintains separate logs
-- **Configurable output**: Control verbosity and formatting
-- **Performance monitoring**: Built-in statistics and performance metrics
-- **Backward compatibility**: Existing print-based output still works
-
-### 🔧 How It Works
-
-The logging system operates in both legacy and session modes:
-
-**Legacy Mode:** Uses global logging with backward-compatible print output
-**Session Mode:** Each `PlannerSession` has isolated logging with structured data collection
-
-### 📊 Log Levels and Components
-
-**Available log levels:**
-- `DEBUG` (0): Detailed debugging information
-- `INFO` (1): General planning information
-- `WARNING` (2): Warning messages
-- `ERROR` (3): Error conditions
-
-**Common components:**
-- `FP`: Messages from `find_plan()`
-- `RLL`: Messages from `run_lazy_lookahead()`
-- `domain`: Domain-related operations
-- `session`: Session management
-- `stdout_capture`: Captured print statements
-
-### 💻 Basic Usage Examples
-
-**Import note:** All logging classes and functions are available directly from the main `gtpyhop` module:
-
-```python
-import gtpyhop
-
-# Logging classes are available as gtpyhop.LogLevel, gtpyhop.StructuredLogger, etc.
-# Or import specific components:
-from gtpyhop import LogLevel, StructuredLogger, get_logging_stats
-```
-
-#### **Session Mode Logging (Recommended)**
-
-```python
-import gtpyhop
-
-# Create session with logging
-with gtpyhop.PlannerSession(domain=my_domain, verbose=2) as session:
-    with session.isolated_execution():
-        result = session.find_plan(state, goals)
-
-        # Access structured logs
-        logs = session.logger.get_logs()  # Get all INFO+ logs
-        debug_logs = session.logger.get_logs(min_level=gtpyhop.LogLevel.DEBUG)
-
-        # Print log summary
-        print(f"Generated {len(logs)} log entries")
-        for log in logs:
-            print(f"[{log['level']}] {log['component']}: {log['message']}")
-```
-
-#### **Custom Log Handlers**
-
-```python
-import gtpyhop
-
-# Create custom logger
-logger = gtpyhop.StructuredLogger("my_session")
-
-# Add custom stdout handler with formatting
-custom_handler = gtpyhop.StdoutLogHandler("[{level}] {component}: {message}")
-logger.add_handler(custom_handler)
-
-# Log custom messages
-logger.info("planning", "Starting plan search", state_size=len(state.pos))
-logger.debug("search", "Exploring method", method_name="transport_by_truck")
-```
-
-#### **Programmatic Log Analysis**
-
-```python
-# Run planning with logging
-with gtpyhop.PlannerSession(domain=logistics_domain, verbose=3) as session:
-    with session.isolated_execution():
-        result = session.find_plan(initial_state, goals)
-
-        # Analyze logs
-        logs = session.logger.get_logs()
-
-        # Count log entries by component
-        component_counts = {}
-        for log in logs:
-            component = log['component']
-            component_counts[component] = component_counts.get(component, 0) + 1
-
-        print("Log summary by component:")
-        for component, count in component_counts.items():
-            print(f"  {component}: {count} entries")
-
-        # Find error logs
-        error_logs = [log for log in logs if log['level'] == 'ERROR']
-        if error_logs:
-            print(f"Found {len(error_logs)} errors:")
-            for error in error_logs:
-                print(f"  {error['message']}")
-```
-
-### 🧵 Thread-Safe Concurrent Logging
-
-Each session maintains isolated logs, making concurrent planning safe:
-
-```python
-import threading
-import gtpyhop
-
-def concurrent_planner(session_id, domain, state, goals):
-    """Each thread gets isolated logging."""
-    with gtpyhop.PlannerSession(domain=domain, verbose=2) as session:
-        with session.isolated_execution():
-            result = session.find_plan(state, goals)
-
-            # Each session has separate logs
-            logs = session.logger.get_logs()
-            print(f"Session {session_id}: {len(logs)} log entries")
-
-            return result, logs
-
-# Run multiple planners concurrently
-threads = []
-results = {}
-
-for i in range(3):
-    def worker(session_id=i):
-        result, logs = concurrent_planner(session_id, domain, state, goals)
-        results[session_id] = {"result": result, "logs": logs}
-
-    t = threading.Thread(target=worker)
-    threads.append(t)
-    t.start()
-
-for t in threads:
-    t.join()
-
-# Analyze results from each session
-for session_id, data in results.items():
-    print(f"Session {session_id}: {len(data['logs'])} logs, "
-          f"plan length: {len(data['result'].plan) if data['result'].success else 'failed'}")
-```
-
-### 📈 Performance Monitoring
-
-The logging system includes built-in performance monitoring:
-
-```python
-import gtpyhop
-
-with gtpyhop.PlannerSession(domain=my_domain, verbose=2) as session:
-    with session.isolated_execution():
-        result = session.find_plan(state, goals)
-
-        # Get logging statistics
-        stats = gtpyhop.get_logging_stats(session.logger)
-
-        print(f"Logging Performance:")
-        print(f"  Total entries: {stats.total_entries}")
-        print(f"  Memory usage: {stats.memory_usage_mb:.2f} MB")
-        print(f"  Entries by level: {stats.entries_by_level}")
-```
-
-### 🔄 Legacy Mode Compatibility
-
-The logging system maintains backward compatibility with existing code:
-
-```python
-# Legacy code continues to work
-gtpyhop.verbose = 2
-plan = gtpyhop.find_plan(state, goals)  # Prints to stdout as before
-
-# But you can also access logs programmatically
-logger = gtpyhop.get_logger("default")  # Get default session logger
-logs = logger.get_logs()
-print(f"Legacy planning generated {len(logs)} log entries")
-```
-
-### 🛠️ Advanced Features
-
-#### **Stdout Capture**
-
-Capture and log print statements from legacy code:
-
-```python
-logger = gtpyhop.StructuredLogger("capture_session")
-
-with logger.capture_stdout() as captured:
-    # Any print statements here are captured and logged
-    print("This will be captured")
-    gtpyhop.find_plan(state, goals)  # Legacy prints captured
-
-# Captured output is now in structured logs
-logs = logger.get_logs()
-stdout_logs = [log for log in logs if log['component'] == 'stdout_capture']
-```
-
-#### **Custom Log Filtering**
-
-```python
-# Filter logs by component and level
-def filter_planning_logs(logs, component_filter=None, min_level='INFO'):
-    filtered = []
-    for log in logs:
-        if component_filter and log['component'] != component_filter:
-            continue
-        if log['level'] not in ['DEBUG', 'INFO', 'WARNING', 'ERROR'][
-            ['DEBUG', 'INFO', 'WARNING', 'ERROR'].index(min_level):]:
-            continue
-        filtered.append(log)
-    return filtered
-
-# Usage
-planning_logs = filter_planning_logs(logs, component_filter='FP', min_level='INFO')
-```
-
-### 🎓 Integration with Examples
-
-All migrated examples support structured logging in session mode:
-
-```bash
-# Run with high verbosity to see detailed logs
-python -m gtpyhop.examples.blocks_htn.examples --session --verbose 3
-
-# The logs are available programmatically when using session mode
-```
-
-**Example integration in your code:**
-
-```python
-# Import any migrated example domain
-from gtpyhop.examples.blocks_htn import the_domain, actions, methods
-
-# Use with structured logging
-with gtpyhop.PlannerSession(domain=the_domain, verbose=2) as session:
-    with session.isolated_execution():
-        result = session.find_plan(initial_state, goals)
-
-        # Access detailed planning logs
-        logs = session.logger.get_logs()
-        method_calls = [log for log in logs if 'method' in log.get('context', {})]
-        print(f"Called {len(method_calls)} methods during planning")
-```
-
-### 📚 Documentation Structure
-
-- **README.md** (this file): Installation, basic usage, and overview of all features
-- **[GTPyhop-1.3.0-Thread-Safe-Sessions.md](https://github.com/PCfVW/GTPyhop/blob/pip/GTPyhop-1.3.0-Thread-Safe-Sessions.md)**: Comprehensive guide to 1.3.0 session-based architecture
-  - Detailed concurrent planning examples
-  - Complete API reference for session management
-  - Migration guide from global API to sessions
-  - Performance considerations and best practices
-- **[Dana's additional information](https://github.com/dananau/GTPyhop/blob/main/additional_information.md)**: Core GTPyhop concepts (states, actions, goals, methods)
 
 ## New Features
 
@@ -790,6 +465,23 @@ set_recursive_planning(False)  # Planning strategy now is iterative
 
 ### New Functions
 
+#### Functions Added in 1.4.0 (Robustness, Validation & Benchmarking)
+
+main.py
+
+- `validate_plan_from_goal` - Preconditions of each action are successively satisfied from the initial state to eventually produce the goal state.
+
+**Benchmarking** (benchmarking.py)
+- `safe_add_to_path`, `setup_gtpyhop_imports`,
+- `load_domain_package`,`validate_domain_package`,`load_domain_package`,`load_domain_package`,
+- `create_argument_parser`, `list_available_domains`, `main`,
+- `ResourceUsage` (data class),`BenchmarkResult` (data classe),
+- `DomainHandler` (abstract class),
+    - `create_multigoal` (staticmethod),
+- `PlannerBenchmark` (class)
+    - `_get_memory_usage`, `_calculate_resource_metrics`, `track_resources` (methods)
+    - `run_single`, `run_multiple`, `_calculate_column_widths`, `print_summary` (methods)
+
 #### Functions Added in 1.3.0 (Thread-Safe Sessions)
 **Session Management:**
 - `PlannerSession` (class) - Isolated, thread-safe planning context
@@ -829,41 +521,4 @@ set_recursive_planning(False)  # Planning strategy now is iterative
 - _refine_task_and_continue &rarr; `refine_task_and_continue_recursive`
 
 
-## Version History
 
-### 🚀 **1.3.0 — Thread-Safe Sessions** (Latest, Recommended)
-**Uploaded to PyPI: https://pypi.org/project/gtpyhop/1.3.0/**
-
-**Major Features:**
-- **🔒 Thread-safe session-based architecture** - Reliable concurrent planning
-- **⏱️ Timeout management** - Built-in timeout enforcement and resource management
-- **💾 Session persistence** - Save and restore planning sessions
-- **📊 Structured logging** - Programmatic access to planning logs and statistics
-- **🔧 Enhanced error handling** - Graceful degradation and comprehensive error reporting
-- **📚 Complete example migration** - All 10 examples support both legacy and session modes
-
-**Examples Migration Status:** ✅ **Complete** - All examples now support dual-mode execution:
-- 6 simple examples: `simple_htn`, `simple_hgn`, `backtracking_htn`, `simple_htn_acting_error`, `logistics_hgn`, `pyhop_simple_travel_example`
-- 4 complex block world examples: `blocks_htn`, `blocks_hgn`, `blocks_gtn`, `blocks_goal_splitting`
-- Unified command-line interface: `--session`, `--verbose N`, `--no-pauses`
-- Comprehensive test coverage: 9/9 examples pass in both legacy and session modes
-
-**Compatibility:** 100% backward compatible with GTPyhop v1.2.1
-
-**When to use:** New projects, concurrent planning, production systems, web APIs
-
-📖 **[Complete 1.3.0  Thread‑Safe Sessions documentation →](https://github.com/PCfVW/GTPyhop/blob/pip/GTPyhop-1.3.0-Thread-Safe-Sessions.md)**
-
----
-
-### 1.2.1 — Cosmetics & Documentation
-**Uploaded to PyPI: https://pypi.org/project/gtpyhop/1.2.1/**
-- Documentation improvements and bug fixes
-- Enhanced README with examples
-- Iterative planning strategy refinements
-
-### 1.2.0 — Initial PyPI Release
-**Uploaded to PyPI: https://pypi.org/project/gtpyhop/**
-- First PyPI distribution
-- Iterative planning strategy introduction
-- Domain management utilities
