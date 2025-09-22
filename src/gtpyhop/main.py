@@ -884,10 +884,10 @@ def _m_verify_mg(state, method, multigoal, depth):
 
 
 ################################################################################
-# Function to validate a plan by executing it from an initial state and
-# checking the goal
+# Function to validate a plan by executing its actions from the initial state
+# and checking the goal is achieved when given
 
-def validate_plan_from_goal(initial_state, plan, key_string, goal_dict):
+def validate_plan_from_goal(initial_state: State, plan, key_string: str = "", goal_dict: dict = []):
     """
     Validate a given plan by applying each action in sequence to the initial state.
     After executing the plan, check if the resulting state satisfies the goal state.
@@ -902,30 +902,46 @@ def validate_plan_from_goal(initial_state, plan, key_string, goal_dict):
     state = initial_state.copy()
     if verbose >= 1:
         print(f'Validating plan: {plan}')
-        state.display('Initial state:')
+        if verbose == 2:
+            print(state.__str__())
+        else:   # verbose >= 3
+            state.display('Initial state:')
+
+    action_counter = 0
     for action in plan:
         if action[0] in current_domain._action_dict:
             action_func = current_domain._action_dict[action[0]]
-            state = action_func(state, *action[1:])
+            newstate = state.copy()
+            state = action_func(newstate, *action[1:])
+            action_counter += 1
             if state is False:
                 if verbose >= 1:
-                    print(f'Action {action} failed. Plan is invalid.')
+                    print(f'Action {action} (#{action_counter}) failed. Plan is invalid.')
                 return False
-            if verbose >= 2:
-                print(f'After action {action}:')
+            if verbose == 2:
+                print(f'New state after action {action[0]} (#{action_counter}): {state.__str__()}')
+            else:   # verbose >= 3
+                print(f'New state after action {action} (#{action_counter}):')
                 state.display()
         else:
             if verbose >= 1:
                 print(f'Action {action} not found in domain. Plan is invalid.')
             return False
+
+    # If no key_string or goal_dict is provided, just validate the plan execution
+    if key_string == "" or goal_dict == []:
+        if verbose >= 1:
+            print(f'>>> {action_counter}-action Plan is valid.')
+        return True
+
     # Check if the goal_dict is satisfied in the final state
     for arg, val in goal_dict.get(key_string, {}).items():
         if vars(state).get(key_string, {}).get(arg) != val:
             if verbose >= 1:
                 print(f'Goal {key_string}[{arg}] = {val} not achieved. Plan is invalid.')
             return False
-    if verbose >= 0:
-        print('>>> Plan is valid and achieves the goal.')
+    if verbose >= 1:
+        print(f'>>> {action_counter}-action Plan is valid and achieves the goal.')
     return True
 
 ################################################################################
