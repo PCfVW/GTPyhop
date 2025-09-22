@@ -1,13 +1,24 @@
 ﻿# ============================================================================
+# IPC 2020 Total Order - Blocksworld Domain
+# ============================================================================
+
+# ============================================================================
 # FILE ORGANIZATION
-#   - Domain
-#   - Actions
-#   - Helpers - State Parameter Inference
-#   - Methods
+# ----------------------------------------------------------------------------
+# This file is organized into the following sections:
+#   - Imports (with secure path handling)
+#   - Domain (1)
+#   - Actions (5)
+#   - Helpers - State Parameter Inference (2)
+#   - Methods (8)
 #   - Goal Methods
 # ============================================================================
 
-# Smart GTPyhop import strategy with secure path handling
+# ============================================================================
+# IMPORTS
+# ============================================================================
+
+# -------------------- Smart GTPyhop import strategy with secure path handling
 import sys
 import os
 from typing import Optional, Union, List, Tuple
@@ -37,7 +48,7 @@ def safe_add_to_path(relative_path: str) -> Optional[str]:
         return target_path
     return None
 
-# Secure GTPyhop import strategy - tries PyPI first, falls back to local
+# ----- Secure GTPyhop import strategy - tries PyPI first, falls back to local
 try:
     import gtpyhop
     from gtpyhop import Domain, State, set_current_domain, declare_actions, declare_task_methods, declare_unigoal_methods, declare_multigoal_methods
@@ -59,7 +70,13 @@ the_domain = Domain("Blocksworld-GTOHP")
 set_current_domain(the_domain)
 
 # ============================================================================
-# ACTIONS
+# ACTIONS (5)
+# ----------------------------------------------------------------------------
+#   - pick_up
+#   - put_down
+#   - stack
+#   - unstack
+#   - nop
 # ============================================================================
 
 # (:action pick-up
@@ -315,7 +332,10 @@ declare_actions(unstack)
 declare_actions(nop)
 
 # ============================================================================
-# HELPERS - STATE PARAMETER INFERENCE
+# HELPERS - STATE PARAMETER INFERENCE (2)
+# ----------------------------------------------------------------------------
+#   - infer_top_block
+#   - infer_bottom_block
 # ============================================================================
 def infer_top_block(state: State, x: str) -> Optional[str]:
     """
@@ -391,7 +411,16 @@ def infer_bottom_block(state: State, x: str) -> Optional[str]:
     return None
 
 # ============================================================================
-# METHODS
+# METHODS (8)
+# ----------------------------------------------------------------------------
+#   - m0_do_put_on
+#   - m1_do_put_on
+#   - m2_do_on_table
+#   - m3_do_on_table
+#   - m4_do_move
+#   - m5_do_move
+#   - m6_do_clear
+#   - m7_do_clear
 # ============================================================================
 
 # (:method m0_do_put_on
@@ -806,4 +835,6 @@ declare_task_methods('do_clear', m6_do_clear, m7_do_clear)
 declare_unigoal_methods("on",m0_do_put_on, m1_do_put_on)
 declare_multigoal_methods(gtpyhop.m_split_multigoal)
 
+# ============================================================================
+# END OF FILE
 # ============================================================================

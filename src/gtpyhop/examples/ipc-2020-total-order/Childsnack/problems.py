@@ -1,10 +1,21 @@
 # ============================================================================
+# IPC 2020 Total Order - Childsnack Domain
+# ============================================================================
+
+# ============================================================================
 # FILE ORGANIZATION
-#   - PROBLEMS
+# ----------------------------------------------------------------------------
+# This file is organized into the following sections:
+#   - Imports (with secure path handling)
+#   - PROBLEMS (30)
 #       - prob-snack from 10 (p01.hddl) to 500 (p30.hddl) children
 # ============================================================================
 
-# Smart GTPyhop import strategy - tries PyPI first, falls back to local
+# ============================================================================
+# IMPORTS
+# ============================================================================
+
+# ------ Smart GTPyhop import strategy - tries PyPI first, falls back to local
 try:
     from gtpyhop import State, Multigoal
 except ImportError:
@@ -15,7 +26,7 @@ except ImportError:
     from gtpyhop import State, Multigoal
 
 # ============================================================================
-# PROBLEMS
+# PROBLEMS (30)
 # ============================================================================
 
 # ===== prob-snack --------------------------------------------------- p01.hddl
@@ -3018,4 +3029,5 @@ htn_ordered_subtask_childsnack_p30 = Multigoal("goal_childsnack_p30",served=stat
 goal_childsnack_p30 = state_childsnack_p30.waiting
 
 # ============================================================================
-
+# END OF FILE
+# ============================================================================

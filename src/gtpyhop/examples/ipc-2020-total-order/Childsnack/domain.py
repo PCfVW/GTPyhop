@@ -1,13 +1,24 @@
 ﻿# ============================================================================
+# IPC 2020 Total Order - Childsnack Domain
+# ============================================================================
+
+# ============================================================================
 # FILE ORGANIZATION
-#   - Domain
-#   - Actions
-#   - Helpers - State Parameter Inference
-#   - Methods
+# ----------------------------------------------------------------------------
+# This file is organized into the following sections:
+#   - Imports (with secure path handling)
+#   - Domain (1)
+#   - Actions (7)
+#   - Helpers - State Parameter Inference (6)
+#   - Methods (2)
 #   - Goal Methods
 # ============================================================================
 
-# Smart GTPyhop import strategy with secure path handling
+# ============================================================================
+# IMPORTS
+# ============================================================================
+
+# -------------------- Smart GTPyhop import strategy with secure path handling
 import sys
 import os
 from typing import Optional, Union, List, Tuple
@@ -37,7 +48,7 @@ def safe_add_to_path(relative_path: str) -> Optional[str]:
         return target_path
     return None
 
-# Secure GTPyhop import strategy - tries PyPI first, falls back to local
+# ----- Secure GTPyhop import strategy - tries PyPI first, falls back to local
 try:
     import gtpyhop
     from gtpyhop import Domain, State, set_current_domain, declare_actions, declare_task_methods, declare_unigoal_methods, declare_multigoal_methods
@@ -59,7 +70,15 @@ the_domain = Domain('Childsnack')
 set_current_domain(the_domain)
 
 # ============================================================================
-# ACTIONS
+# ACTIONS (7)
+# ----------------------------------------------------------------------------
+#   - make_sandwich_no_gluten
+#   - make_sandwich
+#   - put_on_tray
+#   - serve_sandwich_no_gluten
+#   - serve_sandwich
+#   - move_tray
+#   - nop
 # ============================================================================
 
 # (:action make_sandwich_no_gluten
@@ -460,7 +479,14 @@ declare_actions(move_tray)
 declare_actions(nop)
 
 # ============================================================================
-# HELPERS - STATE PARAMETER INFERENCE
+# HELPERS - STATE PARAMETER INFERENCE (6)
+# ----------------------------------------------------------------------------
+#   - infer_available_tray
+#   - infer_no_gluten_bread
+#   - infer_no_gluten_content
+#   - infer_with_gluten_bread
+#   - infer_with_gluten_content
+#   - infer_non_existent_sandwich
 # ============================================================================
 def infer_available_tray(state: State) -> Optional[str]:
     """
@@ -656,7 +682,10 @@ def infer_non_existent_sandwich(state: State) -> Optional[str]:
     return None
 
 # ============================================================================
-# METHODS
+# METHODS (2)
+# ----------------------------------------------------------------------------
+#   - m0_serve
+#   - m1_serve
 # ============================================================================
 
 # (:method m0_serve
@@ -794,4 +823,6 @@ declare_task_methods("served", m0_serve, m1_serve)
 declare_unigoal_methods("served", m0_serve, m1_serve)
 declare_multigoal_methods(gtpyhop.m_split_multigoal)
 
+# ============================================================================
+# END OF FILE
 # ============================================================================
