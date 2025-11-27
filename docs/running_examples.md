@@ -53,7 +53,21 @@ Two examples from the IPC 2020 Total Order track are included:
 | `Blocksworld-GTOHP/` | Classic blocks world | HTN planning, stacking, multigoals |
 | `Childsnack/` | Resource management in childcare setting | HTN planning, constraint handling, multigoals |
 
-The [IPC 2020 Total Order](https://github.com/panda-planner-dev/ipc2020-domains/tree/master/total-order) examples are located in the `src/gtpyhop/examples/ipc-2020-total-order/` directory and include comprehensive domain definitions, problem instances, and evaluation frameworks. **For detailed instructions on running these advanced examples, including setup requirements, execution procedures, and performance analysis tools, please refer to the comprehensive documentation in [`benchmarking_quickstart.md`](src/gtpyhop/examples/ipc-2020-total-order/benchmarking_quickstart.md)**. This dedicated benchmarking guide provides step-by-step instructions for executing the IPC problems, interpreting results, and conducting comparative performance analysis.
+The [IPC 2020 Total Order](https://github.com/panda-planner-dev/ipc2020-domains/tree/master/total-order) examples are located in the `src/gtpyhop/examples/ipc-2020-total-order/` directory and include comprehensive domain definitions, problem instances, and evaluation frameworks. **For detailed instructions on running these advanced examples, including setup requirements, execution procedures, and performance analysis tools, please refer to the comprehensive documentation in [`benchmarking_quickstart.md`](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/ipc-2020-total-order/benchmarking_quickstart.md)**. This dedicated benchmarking guide provides step-by-step instructions for executing the IPC problems, interpreting results, and conducting comparative performance analysis.
+
+### **MCP Orchestration Examples** (Cross-server coordination and scientific workflows)
+
+Two examples demonstrating MCP (Model Context Protocol) orchestration:
+
+| Example | Description | Key Features |
+|---------|-------------|--------------|
+| `cross_server/` | Cross-server HTN plan execution | Multi-server coordination, robot manipulation, 9 actions, 5 methods |
+| `tnf_cancer_modelling/` | Multiscale cancer modeling workflow | Scientific workflow, systems biology, 12 actions, 3 methods |
+
+The MCP Orchestration examples are located in the `src/gtpyhop/examples/mcp-orchestration/` directory and demonstrate how HTN planning can coordinate actions across multiple servers or orchestrate complex scientific workflows. **For detailed instructions, see the individual README files:**
+- **[Cross-Server Orchestration](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/cross_server/README.md)** - Robot pick-and-place with 3-server architecture
+- **[TNF Cancer Modelling](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/tnf_cancer_modelling/README.md)** - Multiscale biological modeling pipeline
+- **[MCP Benchmarking Guide](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/benchmarking_quickstart.md)** - Performance benchmarking for MCP domains
 
 ## 🧪 Testing Examples
 

@@ -3,18 +3,19 @@
 
 ################################################################################
 #                                                                              #
-#                              GTPyhop 1.3.0+                                  #
+#                              GTPyhop 1.5.0                                   #
 #                                                                              #
 #                    Goal-Task-Network Planning System                         #
 #                                                                              #
 ################################################################################
 
 """
-GTPyhop 1.3.0: A Goal-Task-Network planning system with session-based architecture
+GTPyhop 1.5.0: A Goal-Task-Network planning system with session-based architecture
 
 GTPyhop is an automated planning system that can plan for both tasks and goals.
 Version 1.3.0 introduces session-based planning for better isolation, structured
 logging for improved debugging, timeout management, and persistence capabilities.
+Version 1.5.0 introduces MCP orchestration examples.
 
 Original Author: Dana Nau <nau@umd.edu>, July 7, 2021
 pip install project architecture: Eric Jacopin, 2025

@@ -1,18 +1,33 @@
 # GTPyhop Version History
 
-## 1.4.0 — Robustness, Validation & Benchmarking (Latest, Recommended)
-**Soon uploaded to PyPI: https://pypi.org/project/gtpyhop/1.4.0/**
+## 1.5.0 — Two new examples & Robustness (Latest, Recommended)
+**Soon uploaded to PyPI: https://pypi.org/project/gtpyhop/1.5.0/**
+
+🚀 **Major Features:**
+- **🔒 Robustness** - Comprehensive code review and testing
+- **🌐 MCP Orchestration Examples** - Cross-server coordination and scientific workflows
+
+**MCP Orchestration Documentation:**
+- **[Cross-Server Orchestration →](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/cross_server/README.md)** - Multi-server robot coordination (9 actions, 5 methods)
+- **[TNF Cancer Modelling →](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/tnf_cancer_modelling/README.md)** - Multiscale biological modeling (12 actions, 3 methods)
+- **[MCP Benchmarking →](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/benchmarking_quickstart.md)** - Performance benchmarking for MCP domains
+
+**MCP** stands for [Model Context Protocol](https://modelcontextprotocol.io/), [an open-source standard from Anthropic](https://www.anthropic.com/news/model-context-protocol/) for connecting AI applications to external systems.
+
+## 1.4.0 — Robustness, Validation & Benchmarking
+**Uploaded to PyPI: https://pypi.org/project/gtpyhop/1.4.0/**
 
 🚀 **Major Features:**
 - **🔒 Robustness** - Explicit state copying when applying actions
-- **❌ No-op Detection** - When applied, idempotent actions are detected and skipped 
-- **🔧 IPC 2020 Total Oder Domains** - Blocksworld-GTOHP and Childsnack
+- **❌ No-op Detection** - When applied, idempotent actions are detected and skipped
+- **🔧 IPC 2020 Total Order Domains** - Blocksworld-GTOHP and Childsnack
 - **📖 Documentation** - Reorganized, updated and expanded documentation for many features
 - **📈 Resource monitoring for Benchmarking** - Memory (Total and Peak Kb) and CPU usage (%) tracking
 
-    - **[Bencharmarking documentation →](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/ipc-2020-total-order/benchmarking_quickstart.md)**
-    - **[Blocksworld-GTOHP documentation →](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/ipc-2020-total-order/Blocksworld-GTOHP/ipc-2020-to-bw-gtohp-readme.md)**
-    - **[Childsnack documentation →](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/ipc-2020-total-order/Childsnack/ipc-2020-to-cs-gtohp-readme.md)**
+**IPC 2020 Total Order Documentation:**
+- **[Benchmarking documentation →](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/ipc-2020-total-order/benchmarking_quickstart.md)**
+- **[Blocksworld-GTOHP documentation →](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/ipc-2020-total-order/Blocksworld-GTOHP/ipc-2020-to-bw-gtohp-readme.md)**
+- **[Childsnack documentation →](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/ipc-2020-total-order/Childsnack/ipc-2020-to-cs-gtohp-readme.md)**
 
 ## 1.3.0 — Thread-Safe Sessions
 **Uploaded to PyPI: https://pypi.org/project/gtpyhop/1.3.0/**

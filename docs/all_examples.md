@@ -186,6 +186,53 @@ This document provides pedagogical details about all HTN Planning examples inclu
 
 **Educational Value:** Shows how GTPyhop handles competition-grade planning problems.
 
+## 🌐 MCP Orchestration Examples
+
+### Cross-Server HTN Plan Execution
+**Purpose:** Demonstrate cross-server orchestration with HTN planning
+**Location:** `src/gtpyhop/examples/mcp-orchestration/cross_server/`
+**Key Learning Points:**
+- Multi-server coordination using HTN planning
+- Model Context Protocol (MCP) integration patterns
+- Robot manipulation task decomposition
+- Cross-server action orchestration
+
+**Core Concepts Demonstrated:**
+- **Three-Server Architecture:**
+  - Server 1 (mcp-python-ingestion): HTN planning with GTPyhop
+  - Server 2 (robot-server): Robot gripper actions (mock)
+  - Server 3 (motion-server): Arm motion planning (mock)
+- **Actions (9):** Server initialization, gripper control, motion planning, grasp verification
+- **Methods (5):** Pick-and-place orchestration, task decomposition
+- **State Properties (15):** Server status, robot state, object tracking, motion planning
+
+**Educational Value:** Demonstrates how a single HTN planner can coordinate actions across multiple specialized servers to accomplish complex robotic tasks.
+
+**Documentation:** [Cross-Server README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/cross_server/README.md)
+
+### TNF Cancer Modelling Workflow
+**Purpose:** Multiscale cancer modeling with systems biology integration
+**Location:** `src/gtpyhop/examples/mcp-orchestration/tnf_cancer_modelling/`
+**Key Learning Points:**
+- Scientific workflow orchestration
+- Multi-scale biological modeling
+- Complex pipeline management
+- Integration with external tools (Neko, SBML, PhysiCell)
+
+**Core Concepts Demonstrated:**
+- **Workflow Stages:**
+  - Network creation and analysis
+  - Boolean model construction
+  - SBML conversion and simulation
+  - Agent-based modeling integration
+- **Actions (12):** Network creation, analysis, model building, simulation
+- **Methods (3):** Workflow orchestration, pipeline management
+- **State Properties (20+):** Workflow status, file tracking, analysis results
+
+**Educational Value:** Shows how HTN planning can orchestrate complex scientific workflows involving multiple computational tools and data transformations.
+
+**Documentation:** [TNF Cancer Modelling README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/tnf_cancer_modelling/README.md)
+
 ## 🏎️ Running the Examples
 
 ### Command-Line Interface

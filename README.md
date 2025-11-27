@@ -64,6 +64,20 @@ The file tree structure of [this pip branch](https://github.com/PCfVW/GTPyhop/tr
                     ├── 📄 domain.py/
                     ├── 📄 ipc-2020-to-childsnack-readme.md
                     └── 📄 problems.py/
+            ├── 📁 mcp-orchestration/
+                ├── 📄 __init__.py
+                ├── 📄 benchmarking.py
+                ├── 📄 benchmarking_quickstart.md
+                ├── 📁 cross_server/
+                    ├── 📄 __init__.py
+                    ├── 📄 domain.py
+                    ├── 📄 problems.py
+                    └── 📄 README.md
+                └── 📁 tnf_cancer_modelling/
+                    ├── 📄 __init__.py
+                    ├── 📄 domain.py
+                    ├── 📄 problems.py
+                    └── 📄 README.md
             ├── 📄 logistics_hgn.py
             ├── 📄 pyhop_simple_travel_example.py
             ├── 📄 regression_tests.py
@@ -77,12 +91,12 @@ The file tree structure of [this pip branch](https://github.com/PCfVW/GTPyhop/tr
             └── 📄 test_harness.py
 ```
 
-## Installation from PyPI (Recommended: Version 1.3.0)
+## Installation from PyPI (Recommended: Version 1.5.0)
 
-**GTPyhop 1.3.0 is the latest version with thread-safe sessions and enhanced reliability.** For new projects, especially those requiring concurrent planning, use 1.3.0:
+**GTPyhop 1.5.0 is the latest version with MCP orchestration examples and robustness improvements.** For new projects, especially those requiring reliable planning and benchmarking, use 1.5.0:
 
 ```bash
-pip install gtpyhop>=1.3.0
+pip install gtpyhop>=1.5.0
 ```
 
 For basic single-threaded planning, any version works:
@@ -123,7 +137,7 @@ import gtpyhop
 The following should be printed in your terminal:
 
 ```code
-Imported GTPyhop version 1.3.0
+Imported GTPyhop version 1.5.0
 Messages from find_plan will be prefixed with 'FP>'.
 Messages from run_lazy_lookahead will be prefixed with 'RLL>'.
 Using session-based architecture with structured logging.
@@ -372,10 +386,12 @@ with gtpyhop.PlannerSession(domain=my_domain) as session:
 
 | Use Case | Recommended Version | Why |
 |----------|-------------------|-----|
-| **New projects** | **1.3.0=** | Latest features, thread safety, better error handling |
-| **Concurrent/parallel planning** | **1.3.0+** | Thread-safe sessions prevent race conditions |
-| **Production systems** | **1.3.0+** | Timeout management, structured logging, persistence |
-| **Web APIs/servers** | **1.3.0+** | Isolated sessions per request, timeout handling |
+| **New projects** | **1.5.0+** | Latest features, MCP orchestration examples, robustness |
+| **MCP integration** | **1.5.0+** | Cross-server orchestration, scientific workflows |
+| **Concurrent/parallel planning** | **1.5.0+** | Thread-safe sessions prevent race conditions |
+| **Production systems** | **1.5.0+** | Robustness improvements, timeout management, structured logging |
+| **Benchmarking/evaluation** | **1.5.0+** | Resource monitoring, IPC domains, MCP orchestration examples |
+| **Web APIs/servers** | **1.5.0+** | Isolated sessions per request, timeout handling |
 | **Educational/simple scripts** | Any version | All versions support basic planning |
 | **Legacy code maintenance** | Keep current | All versions are backward compatible |
 
@@ -418,9 +434,16 @@ GTPyhop 1.4.0 includes comprehensive documentation organized in the `docs/` fold
 - **[Version History](https://github.com/PCfVW/GTPyhop/blob/pip/docs/changelog.md)** - Complete changelog and version information
 
 ### Specialized Documentation
+
+#### IPC 2020 Total Order Domains
 - **[Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/ipc-2020-total-order/benchmarking_quickstart.md)** - Performance benchmarking guide
 - **[Blocksworld-GTOHP Domain](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/ipc-2020-total-order/Blocksworld-GTOHP/ipc-2020-to-bw-gtohp-readme.md)** - IPC 2020 Blocksworld domain
 - **[Childsnack Domain](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/ipc-2020-total-order/Childsnack/ipc-2020-to-cs-gtohp-readme.md)** - IPC 2020 Childsnack domain
+
+#### MCP Orchestration Examples
+- **[MCP Orchestration Benchmarking](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/benchmarking_quickstart.md)** - MCP orchestration benchmarking guide
+- **[Cross-Server Orchestration](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/cross_server/README.md)** - Cross-server HTN plan execution
+- **[TNF Cancer Modelling](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/tnf_cancer_modelling/README.md)** - Multiscale cancer modeling workflow
 
 ### External Resources
 - **[Dana's Additional Information](https://github.com/dananau/GTPyhop/blob/main/additional_information.md)** - Core GTPyhop concepts (states, actions, goals, methods)
