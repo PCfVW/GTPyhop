@@ -425,7 +425,7 @@ python -m gtpyhop.examples.simple_htn --session
 
 ## 📚 Documentation
 
-GTPyhop 1.4.0 includes comprehensive documentation organized in the `docs/` folder:
+GTPyhop 1.4.0+ includes comprehensive documentation organized in the `docs/` folder:
 
 ### Core Documentation
 - **[All Examples Guide](https://github.com/PCfVW/GTPyhop/blob/pip/docs/all_examples.md)** - Pedagogical details about all HTN Planning examples
@@ -441,7 +441,7 @@ GTPyhop 1.4.0 includes comprehensive documentation organized in the `docs/` fold
 - **[Blocksworld-GTOHP Domain](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/ipc-2020-total-order/Blocksworld-GTOHP/ipc-2020-to-bw-gtohp-readme.md)** - IPC 2020 Blocksworld domain
 - **[Childsnack Domain](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/ipc-2020-total-order/Childsnack/ipc-2020-to-cs-gtohp-readme.md)** - IPC 2020 Childsnack domain
 
-#### MCP Orchestration Examples
+#### MCP Orchestration Examples (1.5.0+)
 - **[MCP Orchestration Benchmarking](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/benchmarking_quickstart.md)** - MCP orchestration benchmarking guide
 - **[Cross-Server Orchestration](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/cross_server/README.md)** - Cross-server HTN plan execution
 - **[TNF Cancer Modelling](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/tnf_cancer_modelling/README.md)** - Multiscale cancer modeling workflow
