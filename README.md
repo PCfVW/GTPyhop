@@ -1,7 +1,8 @@
-# GTPyhop version 1.4.0
+# GTPyhop version 1.5.1
 
 [![Python Version](https://img.shields.io/badge/python-3%2B-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-Clear%20BSD-green.svg)](https://github.com/PCfVW/GTPyhop/blob/pip/LICENSE.txt)
+[![PyPI](https://img.shields.io/pypi/v/gtpyhop)](https://pypi.org/project/gtpyhop/)
 
 GTPyhop is an HTN planning system based on [Pyhop](https://bitbucket.org/dananau/pyhop/src/master/), but generalized to plan for both goals and tasks.
 
@@ -91,12 +92,12 @@ The file tree structure of [this pip branch](https://github.com/PCfVW/GTPyhop/tr
             └── 📄 test_harness.py
 ```
 
-## Installation from PyPI (Recommended: Version 1.5.0)
+## Installation from PyPI (Recommended: Version 1.5.1)
 
-**GTPyhop 1.5.0 is the latest version with MCP orchestration examples and robustness improvements.** For new projects, especially those requiring reliable planning and benchmarking, use 1.5.0:
+**GTPyhop 1.5.1 is the latest version with MCP orchestration examples and robustness improvements.** For new projects, especially those requiring reliable planning and benchmarking, use 1.5.1:
 
 ```bash
-pip install gtpyhop>=1.5.0
+pip install gtpyhop>=1.5.1
 ```
 
 For basic single-threaded planning, any version works:
@@ -137,7 +138,7 @@ import gtpyhop
 The following should be printed in your terminal:
 
 ```code
-Imported GTPyhop version 1.5.0
+Imported GTPyhop version 1.5.1
 Messages from find_plan will be prefixed with 'FP>'.
 Messages from run_lazy_lookahead will be prefixed with 'RLL>'.
 Using session-based architecture with structured logging.
@@ -386,12 +387,12 @@ with gtpyhop.PlannerSession(domain=my_domain) as session:
 
 | Use Case | Recommended Version | Why |
 |----------|-------------------|-----|
-| **New projects** | **1.5.0+** | Latest features, MCP orchestration examples, robustness |
-| **MCP integration** | **1.5.0+** | Cross-server orchestration, scientific workflows |
-| **Concurrent/parallel planning** | **1.5.0+** | Thread-safe sessions prevent race conditions |
-| **Production systems** | **1.5.0+** | Robustness improvements, timeout management, structured logging |
-| **Benchmarking/evaluation** | **1.5.0+** | Resource monitoring, IPC domains, MCP orchestration examples |
-| **Web APIs/servers** | **1.5.0+** | Isolated sessions per request, timeout handling |
+| **New projects** | **1.5.1+** | Latest features, MCP orchestration examples, robustness |
+| **MCP integration** | **1.5.1+** | Cross-server orchestration, scientific workflows |
+| **Concurrent/parallel planning** | **1.5.1+** | Thread-safe sessions prevent race conditions |
+| **Production systems** | **1.5.1+** | Robustness improvements, timeout management, structured logging |
+| **Benchmarking/evaluation** | **1.5.1+** | Resource monitoring, IPC domains, MCP orchestration examples |
+| **Web APIs/servers** | **1.5.1+** | Isolated sessions per request, timeout handling |
 | **Educational/simple scripts** | Any version | All versions support basic planning |
 | **Legacy code maintenance** | Keep current | All versions are backward compatible |
 

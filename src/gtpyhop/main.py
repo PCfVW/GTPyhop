@@ -3,14 +3,14 @@
 
 ################################################################################
 #                                                                              #
-#                              GTPyhop 1.5.0                                   #
+#                              GTPyhop 1.5.1                                   #
 #                                                                              #
 #                    Goal-Task-Network Planning System                         #
 #                                                                              #
 ################################################################################
 
 """
-GTPyhop 1.5.0: A Goal-Task-Network planning system with session-based architecture
+GTPyhop 1.5.1: A Goal-Task-Network planning system with session-based architecture
 
 GTPyhop is an automated planning system that can plan for both tasks and goals.
 Version 1.3.0 introduces session-based planning for better isolation, structured

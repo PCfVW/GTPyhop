@@ -1,6 +1,6 @@
 """
 GTPyhop: A Goal-Task-Network planning system
-Version 1.5.0 with
+Version 1.5.1 with
 - session-based architecture (1.3),
 - structured logging (1.3),
 - plan validation (1.4),
@@ -21,7 +21,7 @@ import os
 import warnings
 
 # Version information
-__version__ = "1.5.0"
+__version__ = "1.5.1"
 __author__ = "Dana Nau, Eric Jacopin"
 __license__ = "Clear BSD License"
 __description__ = "A Goal-Task-Network planning package written in Python"

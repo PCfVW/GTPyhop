@@ -1,6 +1,13 @@
 # GTPyhop Version History
 
-## 1.5.0 — Two new examples & Robustness (Latest, Recommended)
+## 1.5.1 — Documentation Fixes (Latest, Recommended)
+**Soon uploaded to PyPI: https://pypi.org/project/gtpyhop/1.5.1/**
+
+🚀 **Changes:**
+- **📖 Documentation** - Fixed missing version update in README.md
+- **🔧 PyPI Badge** - Added PyPI version badge to README.md (fixed typo: gtpythop → gtpyhop)
+
+## 1.5.0 — Two new examples & Robustness
 **Soon uploaded to PyPI: https://pypi.org/project/gtpyhop/1.5.0/**
 
 🚀 **Major Features:**
