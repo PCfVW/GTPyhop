@@ -1,21 +1,33 @@
 # GTPyhop Version History
 
-## 1.5.1 — Documentation Fixes (Latest, Recommended)
-**Soon uploaded to PyPI: https://pypi.org/project/gtpyhop/1.5.1/**
+## 1.6.0 — Documentation Fixes (Latest, Recommended)
+**Soon uploaded to PyPI: https://pypi.org/project/gtpyhop/1.6.0/**
+
+🚀 **Major Features:**
+- **📖 Documentation** - `domain.py` and `problems.py` style guides
+- **🌐 MCP Orchestration Opentrons Flex Examples** - Omega HDQ 96-channel and PCR Workflow Automation with dynamic sample scaling (4 to 96 samples)
+
+**Opentrons Flex Examples Documentation:**
+- **[PCR Workflow Automation →](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/bio_opentrons/README.md)** - Multi-server robot coordination for Polymerase Chain Reaction (PCR) workflow automation (3 servers, 18 actions, 15 methods)
+- **[Omega HDQ 96-channel →](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/omega_hdq_dna_bacteria_flex_96_channel/README.md)** - Multi-server robot coordination for DNA extraction (3 servers, 17 actions, 14 methods)
+
+[Opentrons Flex](https://en.wikipedia.org/wiki/Opentrons) is a modular liquid handling robot platform.
+
+## 1.5.1 — Documentation Fixes
+**Uploaded to PyPI: https://pypi.org/project/gtpyhop/1.5.1/**
 
 🚀 **Changes:**
 - **📖 Documentation** - Fixed missing version update in README.md
 - **🔧 PyPI Badge** - Added PyPI version badge to README.md (fixed typo: gtpythop → gtpyhop)
 
 ## 1.5.0 — Two new examples & Robustness
-**Soon uploaded to PyPI: https://pypi.org/project/gtpyhop/1.5.0/**
 
 🚀 **Major Features:**
 - **🔒 Robustness** - Comprehensive code review and testing
 - **🌐 MCP Orchestration Examples** - Cross-server coordination and scientific workflows
 
 **MCP Orchestration Documentation:**
-- **[Cross-Server Orchestration →](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/cross_server/README.md)** - Multi-server robot coordination (9 actions, 5 methods)
+- **[Cross-Server Orchestration →](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/cross_server/README.md)** - Multi-server robot coordination (2 servers, 9 actions, 5 methods)
 - **[TNF Cancer Modelling →](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/tnf_cancer_modelling/README.md)** - Multiscale biological modeling (12 actions, 3 methods)
 - **[MCP Benchmarking →](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/benchmarking_quickstart.md)** - Performance benchmarking for MCP domains
 
@@ -68,7 +80,7 @@
 - Iterative planning strategy refinements
 
 ## 1.2.0 — Initial PyPI Release
-**Uploaded to PyPI: https://pypi.org/project/gtpyhop/**
+**Uploaded to PyPI: https://pypi.org/project/gtpyhop/1.2.0/**
 - First PyPI distribution
 - Iterative planning strategy introduction
 - Domain management utilities

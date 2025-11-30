@@ -36,6 +36,11 @@ try:
     # Export problem discovery function
     def get_problems():
         """Return all state/task pairs for this domain."""
+        # Problem descriptions
+        descriptions = {
+            'scenario_1': 'Multiscale TNF Cancer Modeling: Boolean network + agent-based simulation'
+        }
+
         problem_dict = {}
         for attr_name in dir(problems):
             if attr_name.startswith('initial_state_'):
@@ -44,7 +49,9 @@ try:
                 # For TNF cancer modelling, we use task-based planning, not goal-based
                 # The task is always the same: multiscale TNF cancer modeling
                 task = [('m_multiscale_tnf_cancer_modeling',)]
-                problem_dict[problem_id] = (state, task)
+                # Get description or generate a default one
+                description = descriptions.get(problem_id, f'TNF cancer modeling: {problem_id}')
+                problem_dict[problem_id] = (state, task, description)
         return problem_dict
 
     __all__ = ['domain', 'problems', 'the_domain', 'get_problems', 'GTPYHOP_SOURCE']

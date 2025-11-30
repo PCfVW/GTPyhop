@@ -29,10 +29,16 @@ except ImportError:
 # PROBLEM
 # ============================================================================
 
+# BEGIN: Domain: tnf_cancer_modelling
+
+# BEGIN: Initial State: multiscale_cancer_initial
 # ===== [SCENARIO 1] Multiscale TNF Cancer Modeling --------------------------
 initial_state_scenario_1 = State('multiscale_cancer_initial')
 
 # Set required initial conditions
 initial_state_scenario_1.tnf_gene_list = ["TNF", "TNFR1", "TNFR2", "NFKB1", "TP53", "MDM2", "CASP3", "CASP8", "MYC", "CCND1"]
 initial_state_scenario_1.omnipath_available = True
+# END: Initial State
+
+# END: Domain
 

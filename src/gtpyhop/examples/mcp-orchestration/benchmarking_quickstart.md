@@ -23,6 +23,17 @@ pip install -e .
 pip install psutil
 ```
 
+## Available Examples
+
+| Example | Description | Samples/Actions |
+|---------|-------------|-----------------|
+| `tnf_cancer_modelling` | TNF-α cancer pathway modeling | Fixed scenarios |
+| `bio_opentrons` | PCR workflow automation with dynamic sample scaling across 3 MCP servers | 4-96 samples → 55-611 actions |
+| `cross_server` | Cross-server robot orchestration (pick-and-place) with HTN planning, gripper, and motion servers | Fixed scenarios |
+| `omega_hdq_dna_bacteria_flex_96_channel` | Omega HDQ DNA extraction on Opentrons Flex (4 MCP servers) | 89-129 actions |
+
+The `bio_opentrons` example demonstrates dynamic scaling where plan length follows the formula: `31 + 6 × num_samples + 2 × (ceil(n/40) - 1)`.
+
 ## Running the Benchmarking Script
 
 ### Basic Usage
@@ -30,6 +41,9 @@ pip install psutil
 ```bash
 cd C:\Users\Eric JACOPIN\Documents\Code\Source\GTPyhop\src\gtpyhop\examples\mcp-orchestration
 python benchmarking.py tnf_cancer_modelling
+python benchmarking.py bio_opentrons
+python benchmarking.py cross_server
+python benchmarking.py omega_hdq_dna_bacteria_flex_96_channel
 ```
 
 ### Command-Line Options
@@ -274,6 +288,6 @@ def get_problems():
 - Review individual domain README.md files for detailed documentation
 - Examine generated plans to understand task decomposition
 - Modify problems to test different planning scenarios
-- Add new domains following the GTPyhop 1.4.0 new structure pattern
+- Add new examples following the GTPyhop 1.6.0+ new structure patterns for [domains](https://github.com/PCfVW/GTPyhop/blob/pip/docs/gtpyhop_actions_methods_style_guide.md) and [problems](https://github.com/PCfVW/GTPyhop/blob/pip/docs/gtpyhop_problems_style_guide.md)
 - Explore the shared benchmarking infrastructure in `ipc-2020-total-order/benchmarking.py`
 

@@ -1,4 +1,4 @@
-# GTPyhop version 1.5.1
+# GTPyhop version 1.6.0
 
 [![Python Version](https://img.shields.io/badge/python-3%2B-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-Clear%20BSD-green.svg)](https://github.com/PCfVW/GTPyhop/blob/pip/LICENSE.txt)
@@ -18,13 +18,15 @@ The file tree structure of [this pip branch](https://github.com/PCfVW/GTPyhop/tr
 📄 LICENSE.txt
 📄 pyproject.toml
 📄 README.md
+📁 docs/
+    ├── 📄 all_examples.md
+    ├── 📄 changelog.md
+    ├── 📄 gtpyhop_actions_methods_style_guide.md
+    ├── 📄 gtpyhop_problems_style_guide.md
+    ├── 📄 logging.md
+    ├── 📄 running_examples.md
+    └── 📄 thread_safe_sessions.md
 📁 src/
-    └── 📁 docs/
-        ├── 📄 all_examples.md
-        ├── 📄 changelog.md
-        ├── 📄 logging.md
-        ├── 📄 running_examples.md
-        └── 📄 thread_safe_sessions.md    
     └── 📁 gtpyhop/
         ├── 📄 __init__.py
         ├── 📁 examples/
@@ -69,7 +71,17 @@ The file tree structure of [this pip branch](https://github.com/PCfVW/GTPyhop/tr
                 ├── 📄 __init__.py
                 ├── 📄 benchmarking.py
                 ├── 📄 benchmarking_quickstart.md
+                ├── 📁 bio_opentrons/
+                    ├── 📄 __init__.py
+                    ├── 📄 domain.py
+                    ├── 📄 problems.py
+                    └── 📄 README.md
                 ├── 📁 cross_server/
+                    ├── 📄 __init__.py
+                    ├── 📄 domain.py
+                    ├── 📄 problems.py
+                    └── 📄 README.md
+                ├── 📁 omega_hdq_dna_bacteria_flex_96_channel/
                     ├── 📄 __init__.py
                     ├── 📄 domain.py
                     ├── 📄 problems.py
@@ -92,12 +104,12 @@ The file tree structure of [this pip branch](https://github.com/PCfVW/GTPyhop/tr
             └── 📄 test_harness.py
 ```
 
-## Installation from PyPI (Recommended: Version 1.5.1)
+## Installation from PyPI (Recommended: Version 1.6.0)
 
-**GTPyhop 1.5.1 is the latest version with MCP orchestration examples and robustness improvements.** For new projects, especially those requiring reliable planning and benchmarking, use 1.5.1:
+**GTPyhop 1.6.0 is the latest version with MCP orchestration examples, Opentrons Flex domains, and style guides.** For new projects, especially those requiring reliable planning and benchmarking, use 1.6.0:
 
 ```bash
-pip install gtpyhop>=1.5.1
+pip install gtpyhop>=1.6.0
 ```
 
 For basic single-threaded planning, any version works:
@@ -138,7 +150,7 @@ import gtpyhop
 The following should be printed in your terminal:
 
 ```code
-Imported GTPyhop version 1.5.1
+Imported GTPyhop version 1.6.0
 Messages from find_plan will be prefixed with 'FP>'.
 Messages from run_lazy_lookahead will be prefixed with 'RLL>'.
 Using session-based architecture with structured logging.
@@ -213,9 +225,9 @@ You have successfully installed and tested gtpyhop; it's time to declare your ow
 
 ### Very first HTN example
 
-The key pattern is: create a Domain → define actions/methods → declare them → use gtpyhop.find_plan() to solve problems.
+The key pattern is: create a Domain → define actions/methods → declare them → define initial state → use gtpyhop.find_plan() to solve problems.
 
-In the first three steps, we give simple illustrations on Domain creation, action and task method definition, and how to declare them; in step 4 below, you'll find the code for a complete example.
+In the first three steps, we give simple illustrations on Domain creation, action and task method definition, and how to declare them; make sure you declared an initial state before calling for planning; in step 5 below, you'll find the code for a complete example.
 
 **1. First, create a Domain to hold your definitions**
 
@@ -266,17 +278,22 @@ def method_for_task(state, arg1, arg2):
 gtpyhop.declare_task_methods('task_name', method_for_task, alternative_method)
 ```
 
-**4. Here is a complete example:**
+**4. Define Initial State**
+Give a description of the initial state, including the values of all relevant state variables; in the following code, `pos` is a dictionary that maps objects to their locations:
+
+```python
+# Define initial state
+initial_state = gtpyhop.State('initial_state')
+initial_state.pos = {'obj1': 'loc1', 'obj2': 'loc2'}
+```
+
+**5. Here is the complete example:**
 
 ```python
 import gtpyhop
 
 # Domain creation
 gtpyhop.Domain('my_domain')
-
-# Define state
-state = gtpyhop.State('initial_state')
-state.pos = {'obj1': 'loc1', 'obj2': 'loc2'}
 
 # Actions
 def move(state, obj, target):
@@ -296,9 +313,13 @@ def transport(state, obj, destination):
 
 gtpyhop.declare_task_methods('transport', transport)
 
+# Define initial state
+initial_state = gtpyhop.State('initial_state')
+initial_state.pos = {'obj1': 'loc1', 'obj2': 'loc2'}
+
 # Find plan
 gtpyhop.set_verbose_level(1)
-plan = gtpyhop.find_plan(state, [('transport', 'obj1', 'loc2')])
+plan = gtpyhop.find_plan(initial_state, [('transport', 'obj1', 'loc2')])
 print(plan)
 ```
 
@@ -387,12 +408,12 @@ with gtpyhop.PlannerSession(domain=my_domain) as session:
 
 | Use Case | Recommended Version | Why |
 |----------|-------------------|-----|
-| **New projects** | **1.5.1+** | Latest features, MCP orchestration examples, robustness |
-| **MCP integration** | **1.5.1+** | Cross-server orchestration, scientific workflows |
-| **Concurrent/parallel planning** | **1.5.1+** | Thread-safe sessions prevent race conditions |
-| **Production systems** | **1.5.1+** | Robustness improvements, timeout management, structured logging |
-| **Benchmarking/evaluation** | **1.5.1+** | Resource monitoring, IPC domains, MCP orchestration examples |
-| **Web APIs/servers** | **1.5.1+** | Isolated sessions per request, timeout handling |
+| **New projects** | **1.6.0+** | Latest features, MCP orchestration examples, style guides |
+| **MCP integration** | **1.6.0+** | Cross-server orchestration, Opentrons Flex domains |
+| **Concurrent/parallel planning** | **1.6.0+** | Thread-safe sessions prevent race conditions |
+| **Production systems** | **1.6.0+** | Robustness improvements, timeout management, structured logging |
+| **Benchmarking/evaluation** | **1.6.0+** | Resource monitoring, IPC domains, MCP orchestration examples |
+| **Web APIs/servers** | **1.6.0+** | Isolated sessions per request, timeout handling |
 | **Educational/simple scripts** | Any version | All versions support basic planning |
 | **Legacy code maintenance** | Keep current | All versions are backward compatible |
 
@@ -425,7 +446,7 @@ python -m gtpyhop.examples.simple_htn --session
 
 ## 📚 Documentation
 
-GTPyhop 1.4.0+ includes comprehensive documentation organized in the `docs/` folder:
+GTPyhop 1.6.0+ includes comprehensive documentation organized in the `docs/` folder:
 
 ### Core Documentation
 - **[All Examples Guide](https://github.com/PCfVW/GTPyhop/blob/pip/docs/all_examples.md)** - Pedagogical details about all HTN Planning examples
@@ -433,6 +454,10 @@ GTPyhop 1.4.0+ includes comprehensive documentation organized in the `docs/` fol
 - **[Structured Logging](https://github.com/PCfVW/GTPyhop/blob/pip/docs/logging.md)** - Comprehensive logging system documentation
 - **[Thread-Safe Sessions](https://github.com/PCfVW/GTPyhop/blob/pip/docs/thread_safe_sessions.md)** - Complete guide to 1.3.0 session-based architecture
 - **[Version History](https://github.com/PCfVW/GTPyhop/blob/pip/docs/changelog.md)** - Complete changelog and version information
+
+### Style Guides (New in 1.6.0)
+- **[Actions and Methods Style Guide](https://github.com/PCfVW/GTPyhop/blob/pip/docs/gtpyhop_actions_methods_style_guide.md)** - LibCST-compatible conventions for writing actions and methods with proper type hints, docstrings, and comment markers
+- **[Problems Style Guide](https://github.com/PCfVW/GTPyhop/blob/pip/docs/gtpyhop_problems_style_guide.md)** - Conventions for writing problem files with initial states and goal tasks
 
 ### Specialized Documentation
 
@@ -443,7 +468,9 @@ GTPyhop 1.4.0+ includes comprehensive documentation organized in the `docs/` fol
 
 #### MCP Orchestration Examples (1.5.0+)
 - **[MCP Orchestration Benchmarking](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/benchmarking_quickstart.md)** - MCP orchestration benchmarking guide
+- **[Bio-Opentrons PCR Workflow](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/bio_opentrons/README.md)** - PCR workflow automation with Opentrons Flex (dynamic 4-96 sample scaling, three-server architecture)
 - **[Cross-Server Orchestration](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/cross_server/README.md)** - Cross-server HTN plan execution
+- **[Omega HDQ DNA Extraction](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/omega_hdq_dna_bacteria_flex_96_channel/README.md)** - DNA extraction workflow with Opentrons Flex 96-channel (magnetic bead purification, four-server architecture)
 - **[TNF Cancer Modelling](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/tnf_cancer_modelling/README.md)** - Multiscale cancer modeling workflow
 
 ### External Resources

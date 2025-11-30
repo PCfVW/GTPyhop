@@ -31,6 +31,9 @@ except ImportError:
 # PROBLEM
 # ============================================================================
 
+# BEGIN: Domain: cross_server
+
+# BEGIN: Initial State: cross_server_pick_and_place
 # ===== [SCENARIO 1] Pick-and-Place Task: Move block_a from table to shelf ===
 initial_state_scenario_1 = State('cross_server_pick_and_place')
 
@@ -48,7 +51,9 @@ initial_state_scenario_1.holding = None
 
 # Server readiness (will be set by a_initialize_servers)
 # These are not set initially - the plan will initialize them
+# END: Initial State
 
+# BEGIN: Initial State: cross_server_multi_transfer
 # ===== [SCENARIO 2] Multi-Object Transfer: Move multiple blocks ============
 initial_state_scenario_2 = State('cross_server_multi_transfer')
 
@@ -66,4 +71,7 @@ initial_state_scenario_2.holding = None
 
 # Server readiness (will be set by a_initialize_servers)
 # These are not set initially - the plan will initialize them
+# END: Initial State
+
+# END: Domain
 

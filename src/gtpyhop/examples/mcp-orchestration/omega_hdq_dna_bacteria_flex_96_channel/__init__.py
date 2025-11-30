@@ -1,12 +1,16 @@
 """
-Cross-Server Robot Orchestration Example for GTPyhop 1.4.0
+Omega HDQ DNA Bacteria Extraction Domain for GTPyhop 1.6.0
 
-This package demonstrates HTN planning for cross-server orchestration with:
-  - Server 1 (mcp-python-ingestion): HTN planning with GTPyhop
-  - Server 2 (robot-server): Robot gripper actions (mock)
-  - Server 3 (motion-server): Arm motion planning (mock)
+This package demonstrates HTN planning for DNA extraction automation with:
+  - Server 1 (htn-planning-server): HTN planning with GTPyhop
+  - Server 2 (liquid-handling-server): Pipetting operations (96-channel)
+  - Server 3 (module-control-server): Heater-shaker, temp module, magnetic block
+  - Server 4 (gripper-server): Labware transfers
 
--- Generated 2025-11-27
+Based on Opentrons Flex protocol by Zach Galluzzo <zachary.galluzzo@opentrons.com>
+Protocol: Omega_HDQ_DNA_Bacteria-Flex_96_channel.py (included for reference)
+
+-- Generated 2025-11-29
 """
 
 import sys
@@ -62,34 +66,10 @@ def get_problems() -> Dict[str, Tuple[gtpyhop.State, List[Tuple], str]]:
     """
     Return all state/task pairs for this domain.
 
-    Discovers all problems defined in problems.py with the 'initial_state_' prefix.
-
     Returns:
-        Dictionary mapping problem IDs to (state, task, description) tuples
+        Dictionary mapping problem IDs to (state, tasks, description) tuples.
     """
-    # Problem descriptions
-    descriptions = {
-        'scenario_1': 'Pick-and-Place: Move block_a from table to shelf',
-        'scenario_2': 'Multi-Object Transfer: Move multiple blocks'
-    }
-
-    problem_dict = {}
-
-    for attr_name in dir(problems):
-        if attr_name.startswith('initial_state_'):
-            problem_id = attr_name.replace('initial_state_', '')
-            state = getattr(problems, attr_name)
-
-            # Top-level task for cross-server orchestration
-            # Task: move block_a from its current location to shelf_pos
-            task = [('m_initialize_and_orchestrate', 'block_a', 'shelf_pos')]
-
-            # Get description or generate a default one
-            description = descriptions.get(problem_id, f'Cross-server orchestration: {problem_id}')
-
-            problem_dict[problem_id] = (state, task, description)
-
-    return problem_dict
+    return problems.get_problems()
 
 # ============================================================================
 # EXPORTS
