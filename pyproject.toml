@@ -4,11 +4,19 @@ build-backend = "hatchling.build"
 
 [project]
 name = "gtpyhop"
-version = "1.6.0"
+version = "1.7.0"
 description= "A Goal-Task-Network planning package written in Python"
 readme = "README.md"
 authors = [
-    # Packaging author (this toml file, new folder names and new package folder structure, iterative_seek_plan)
+    # Packaging author:
+    #   - this toml file,
+    #   - new folder names and new package folder structure,
+    #   - iterative_seek_plan
+    #   - session-based architecture
+    #   - structured logging
+    #   - plan validation
+    #   - MCP orchestration examples
+    #   - documentation style guides for domains, problems, actions, and methods
     { name = "Eric Jacopin", email = "eric.jacopin@protonmail.com" },
  
     # Original author
