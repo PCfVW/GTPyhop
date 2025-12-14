@@ -60,36 +60,12 @@ the_domain = domain.the_domain
 
 def get_problems() -> Dict[str, Tuple[gtpyhop.State, List[Tuple], str]]:
     """
-    Return all state/task pairs for this domain.
-
-    Discovers all problems defined in problems.py with the 'initial_state_' prefix.
+    Return all problem definitions for benchmarking.
 
     Returns:
         Dictionary mapping problem IDs to (state, task, description) tuples
     """
-    # Problem descriptions
-    descriptions = {
-        'scenario_1': 'Pick-and-Place: Move block_a from table to shelf',
-        'scenario_2': 'Multi-Object Transfer: Move multiple blocks'
-    }
-
-    problem_dict = {}
-
-    for attr_name in dir(problems):
-        if attr_name.startswith('initial_state_'):
-            problem_id = attr_name.replace('initial_state_', '')
-            state = getattr(problems, attr_name)
-
-            # Top-level task for cross-server orchestration
-            # Task: move block_a from its current location to shelf_pos
-            task = [('m_initialize_and_orchestrate', 'block_a', 'shelf_pos')]
-
-            # Get description or generate a default one
-            description = descriptions.get(problem_id, f'Cross-server orchestration: {problem_id}')
-
-            problem_dict[problem_id] = (state, task, description)
-
-    return problem_dict
+    return problems.get_problems()
 
 # ============================================================================
 # EXPORTS

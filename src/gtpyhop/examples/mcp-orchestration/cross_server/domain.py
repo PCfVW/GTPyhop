@@ -739,11 +739,12 @@ def m_pick_object(state: State, object_id: str) -> Union[List[Tuple], bool]:
         object_id: ID of the object to pick up
 
     Method purpose:
-        Decompose pick task into: move to object → open gripper → grasp → close gripper → verify
+        Decompose pick task into: move to object → open gripper (if needed) → grasp → close gripper → verify
 
     Preconditions:
         - Object exists in object_location (state.object_location[object_id])
         - Not currently holding anything (state.holding is None)
+        - Gripper is closed
 
     Returns:
         List of subtasks if successful, False otherwise
@@ -768,9 +769,68 @@ def m_pick_object(state: State, object_id: str) -> Union[List[Tuple], bool]:
 
     # BEGIN: Task Decomposition
     object_location = state.object_location[object_id]
+    tasks = [("a_move_arm_to_position", object_location)]
+
+    # Only open gripper if it's not already open
+    if not (hasattr(state, 'gripper_state') and state.gripper_state == "open"):
+        tasks.append(("a_open_gripper",))
+
+    tasks.extend([
+        ("a_grasp_object", object_id),
+        ("a_close_gripper",),
+        ("a_verify_grasp",)
+    ])
+
+    return tasks
+    # END: Task Decomposition
+
+
+def m_pick_object_gripper_open(state: State, object_id: str) -> Union[List[Tuple], bool]:
+    """
+    Class: Method
+
+    Method signature:
+        m_pick_object_gripper_open(state, object_id)
+
+    Method parameters:
+        object_id: ID of the object to pick up
+
+    Method purpose:
+        Decompose pick task when gripper is already open: move to object → grasp → close gripper → verify
+
+    Preconditions:
+        - Object exists in object_location (state.object_location[object_id])
+        - Not currently holding anything (state.holding is None)
+        - Gripper is already open
+
+    Returns:
+        List of subtasks if successful, False otherwise
+    """
+    # BEGIN: Type Checking
+    if not isinstance(state, State): return False
+    if not isinstance(object_id, str): return False
+    # END: Type Checking
+
+    # BEGIN: State-Type Checks
+    if not object_id.strip(): return False
+    # END: State-Type Checks
+
+    # BEGIN: Preconditions
+    # Object must exist
+    if not (hasattr(state, 'object_location') and object_id in state.object_location):
+        return False
+    # Must not be holding anything
+    if hasattr(state, 'holding') and state.holding is not None:
+        return False
+    # Gripper must be open (this method handles open gripper case)
+    if not (hasattr(state, 'gripper_state') and state.gripper_state == "open"):
+        return False
+    # END: Preconditions
+
+    # BEGIN: Task Decomposition
+    object_location = state.object_location[object_id]
     return [
         ("a_move_arm_to_position", object_location),
-        ("a_open_gripper",),
         ("a_grasp_object", object_id),
         ("a_close_gripper",),
         ("a_verify_grasp",)
