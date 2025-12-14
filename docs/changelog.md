@@ -1,6 +1,74 @@
 # GTPyhop Version History
 
-## 1.6.0 — Documentation Fixes (Latest, Recommended)
+## 1.7.0 — MCP Orchestration Enhancements & Consistency Updates (Latest, Recommended)
+**In Development**
+
+🚀 **Major Features:**
+- **🔧 Bug Fixes** - Fixed critical planning issues in MCP orchestration examples
+- **📖 Documentation Consistency** - Comprehensive consistency pass on all README files and benchmarking documentation
+- **✅ Validation** - All 5 MCP orchestration examples now pass benchmarking tests
+- **🧪 New Example** - Added `drug_target_discovery` domain for OpenTargets platform integration
+
+**MCP Orchestration Fixes:**
+- **cross_server** - Fixed multi-object transfer scenario (scenario_2_multi_transfer)
+  - Fixed `m_pick_object` method to conditionally open gripper only when needed
+  - Removed incorrect gripper state precondition that prevented sequential pick operations
+  - Updated `__init__.py` to properly delegate to `problems.get_problems()`
+  - Corrected action counts: scenario_2 now produces 15 actions (was incorrectly showing 9)
+- **drug_target_discovery** - Fixed method declarations and module structure
+  - Created missing `__init__.py` file with proper exports
+  - Fixed all `declare_task_methods()` calls to use `m_` prefix for task names
+  - Fixed task decomposition to use `m_` prefix for method calls
+  - All 3 scenarios now produce correct 8-action plans
+- **tnf_cancer_modelling** - Fixed `__init__.py` to delegate to `problems.get_problems()`
+- **bio_opentrons** - Fixed problems.py task name prefixes (was missing `m_` prefix)
+
+**Documentation Updates:**
+- **README Consistency Pass** - Updated all 5 MCP orchestration example READMEs:
+  - bio_opentrons: Fixed scenario counts (7→6) and action counts
+  - drug_target_discovery: Fixed action counts (10→8), removed duplicate sections
+  - omega_hdq_dna_bacteria_flex_96_channel: Updated generation date
+  - cross_server: Updated action counts for scenario_2 (18→15)
+  - All READMEs now match actual benchmark results
+- **benchmarking_quickstart.md** - Complete rewrite to match actual implementation:
+  - Fixed command-line flags (`--mode session` → `--legacy-mode`)
+  - Updated planning mode descriptions (session is now default, not legacy)
+  - Replaced example outputs with actual benchmarking script format
+  - Added detailed column descriptions (Status, Plan Len, Time, CPU %, Mem Δ, Peak Mem)
+  - Fixed all scenario and action counts to match reality
+
+**Benchmarking Improvements:**
+- **Thread-Safe Sessions by Default** - All benchmarks now use `PlannerSession` by default
+  - Legacy mode available via `--legacy-mode` flag
+  - Displays "Thread-Safe Sessions" in benchmark output
+  - All 5 examples verified to run with thread-safe sessions
+- **Problem Discovery** - All `__init__.py` files now properly delegate to `problems.get_problems()`
+  - Ensures consistency between problem definitions and benchmarking
+  - Prevents overriding of problem scenarios
+
+**Testing & Validation:**
+- All 5 MCP orchestration examples pass benchmarking:
+  - bio_opentrons: 6 scenarios (55-611 actions) ✅
+  - omega_hdq_dna_bacteria_flex_96_channel: 3 scenarios (89-129 actions) ✅
+  - drug_target_discovery: 3 scenarios (8 actions each) ✅
+  - tnf_cancer_modelling: 1 scenario (12 actions) ✅
+  - cross_server: 2 scenarios (9, 15 actions) ✅
+
+**File Structure Updates:**
+- Added `drug_target_discovery/__init__.py`
+- Updated file tree in README.md to include drug_target_discovery
+- Renamed `docs/gtpyhop_actions_methods_style_guide.md` → `docs/gtpyhop_domain_style_guide.md` (better reflects content)
+
+**Style Guide Updates:**
+- **Domain Style Guide** (formerly "Actions and Methods Style Guide")
+  - Renamed to better reflect that it covers the entire domain file
+  - Updated to version 1.1.0
+  - Updated all references in documentation
+- **Problems Style Guide**
+  - Updated to version 2.1.0
+  - Consistent with GTPyhop 1.7.0
+
+## 1.6.0 — Documentation Fixes
 **Soon uploaded to PyPI: https://pypi.org/project/gtpyhop/1.6.0/**
 
 🚀 **Major Features:**
