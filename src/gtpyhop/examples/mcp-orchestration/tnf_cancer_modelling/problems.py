@@ -1,14 +1,18 @@
 """
 Problem definitions for the TNF Cancer Modeling example.
--- Generated 2025-11-26
+-- Generated 2025-12-14
 
 This file defines initial states for the multiscale TNF cancer modeling workflow.
-The workflow integrates Boolean network modeling (MaBoSS) with agent-based 
+The workflow integrates Boolean network modeling (MaBoSS) with agent-based
 multicellular simulation (PhysiCell) to study TNF-induced cancer cell fate decisions.
+
+Scenarios:
+  - scenario_1_multiscale: Complete multiscale TNF cancer modeling workflow -> 12 actions
 """
 
 import sys
 import os
+from typing import Dict, Tuple, List
 
 # Secure GTPyhop import strategy
 try:
@@ -25,20 +29,41 @@ except ImportError:
         print("Please install gtpyhop using: pip install gtpyhop")
         sys.exit(1)
 
+
 # ============================================================================
-# PROBLEM
+# SCENARIOS
 # ============================================================================
+
+problems = {}
 
 # BEGIN: Domain: tnf_cancer_modelling
 
-# BEGIN: Initial State: multiscale_cancer_initial
-# ===== [SCENARIO 1] Multiscale TNF Cancer Modeling --------------------------
-initial_state_scenario_1 = State('multiscale_cancer_initial')
+# BEGIN: Scenario: scenario_1_multiscale
+# Configuration
+_gene_list = ["TNF", "TNFR1", "TNFR2", "NFKB1", "TP53", "MDM2", "CASP3", "CASP8", "MYC", "CCND1"]
 
-# Set required initial conditions
-initial_state_scenario_1.tnf_gene_list = ["TNF", "TNFR1", "TNFR2", "NFKB1", "TP53", "MDM2", "CASP3", "CASP8", "MYC", "CCND1"]
+# State
+initial_state_scenario_1 = State('scenario_1_multiscale')
+initial_state_scenario_1.tnf_gene_list = _gene_list
 initial_state_scenario_1.omnipath_available = True
-# END: Initial State
+
+# Problem
+problems['scenario_1_multiscale'] = (
+    initial_state_scenario_1,
+    [('m_multiscale_tnf_cancer_modeling',)],
+    'Multiscale TNF cancer modeling workflow -> 12 actions'
+)
+# END: Scenario
 
 # END: Domain
+
+
+def get_problems() -> Dict[str, Tuple[State, List[Tuple], str]]:
+    """
+    Return all problem definitions for benchmarking.
+
+    Returns:
+        Dictionary mapping problem IDs to (state, tasks, description) tuples.
+    """
+    return problems
 
