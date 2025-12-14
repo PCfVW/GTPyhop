@@ -1,11 +1,12 @@
 """
 GTPyhop: A Goal-Task-Network planning system
-Version 1.6.0 with
+Version 1.7.0 with
 - session-based architecture (1.3),
 - structured logging (1.3),
 - plan validation (1.4),
 - MCP orchestration examples (1.5),
-- documentation style guides (1.6)
+- documentation style guides (1.6),
+- enhanced MCP orchestration and consistency updates (1.7)
 
 This module provides hierarchical task network (HTN) planning capabilities
 with support for both goals and tasks.
@@ -18,13 +19,16 @@ Version 1.4 introduces basic plan validation.
 Version 1.5 introduces MCP orchestration examples.
 
 Version 1.6 introduces documentation style guides for actions, methods, and problems.
+
+Version 1.7 introduces enhanced MCP orchestration examples, bug fixes, and comprehensive
+documentation consistency updates.
 """
 
 import os
 import warnings
 
 # Version information
-__version__ = "1.6.0"
+__version__ = "1.7.0"
 __author__ = "Dana Nau, Eric Jacopin"
 __license__ = "Clear BSD License"
 __description__ = "A Goal-Task-Network planning package written in Python"
