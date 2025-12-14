@@ -1,4 +1,4 @@
-# GTPyhop version 1.6.0
+# GTPyhop version 1.7.0
 
 [![Python Version](https://img.shields.io/badge/python-3%2B-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-Clear%20BSD-green.svg)](https://github.com/PCfVW/GTPyhop/blob/pip/LICENSE.txt)
@@ -21,7 +21,7 @@ The file tree structure of [this pip branch](https://github.com/PCfVW/GTPyhop/tr
 📁 docs/
     ├── 📄 all_examples.md
     ├── 📄 changelog.md
-    ├── 📄 gtpyhop_actions_methods_style_guide.md
+    ├── 📄 gtpyhop_domain_style_guide.md
     ├── 📄 gtpyhop_problems_style_guide.md
     ├── 📄 logging.md
     ├── 📄 running_examples.md
@@ -81,6 +81,11 @@ The file tree structure of [this pip branch](https://github.com/PCfVW/GTPyhop/tr
                     ├── 📄 domain.py
                     ├── 📄 problems.py
                     └── 📄 README.md
+                ├── 📁 drug_target_discovery/
+                    ├── 📄 __init__.py
+                    ├── 📄 domain.py
+                    ├── 📄 problems.py
+                    └── 📄 README.md
                 ├── 📁 omega_hdq_dna_bacteria_flex_96_channel/
                     ├── 📄 __init__.py
                     ├── 📄 domain.py
@@ -104,12 +109,12 @@ The file tree structure of [this pip branch](https://github.com/PCfVW/GTPyhop/tr
             └── 📄 test_harness.py
 ```
 
-## Installation from PyPI (Recommended: Version 1.6.0)
+## Installation from PyPI (Recommended: Version 1.7.0)
 
-**GTPyhop 1.6.0 is the latest version with MCP orchestration examples, Opentrons Flex domains, and style guides.** For new projects, especially those requiring reliable planning and benchmarking, use 1.6.0:
+**GTPyhop 1.7.0 is the latest version with enhanced MCP orchestration examples, Opentrons Flex domains, and comprehensive style guides.** For new projects, especially those requiring reliable planning and benchmarking, use 1.7.0:
 
 ```bash
-pip install gtpyhop>=1.6.0
+pip install gtpyhop>=1.7.0
 ```
 
 For basic single-threaded planning, any version works:
@@ -150,7 +155,7 @@ import gtpyhop
 The following should be printed in your terminal:
 
 ```code
-Imported GTPyhop version 1.6.0
+Imported GTPyhop version 1.7.0
 Messages from find_plan will be prefixed with 'FP>'.
 Messages from run_lazy_lookahead will be prefixed with 'RLL>'.
 Using session-based architecture with structured logging.
@@ -408,12 +413,12 @@ with gtpyhop.PlannerSession(domain=my_domain) as session:
 
 | Use Case | Recommended Version | Why |
 |----------|-------------------|-----|
-| **New projects** | **1.6.0+** | Latest features, MCP orchestration examples, style guides |
-| **MCP integration** | **1.6.0+** | Cross-server orchestration, Opentrons Flex domains |
-| **Concurrent/parallel planning** | **1.6.0+** | Thread-safe sessions prevent race conditions |
-| **Production systems** | **1.6.0+** | Robustness improvements, timeout management, structured logging |
-| **Benchmarking/evaluation** | **1.6.0+** | Resource monitoring, IPC domains, MCP orchestration examples |
-| **Web APIs/servers** | **1.6.0+** | Isolated sessions per request, timeout handling |
+| **New projects** | **1.7.0+** | Latest features, enhanced MCP orchestration, comprehensive style guides |
+| **MCP integration** | **1.7.0+** | Cross-server orchestration, Opentrons Flex domains, drug discovery workflows |
+| **Concurrent/parallel planning** | **1.7.0+** | Thread-safe sessions by default, prevent race conditions |
+| **Production systems** | **1.7.0+** | Robustness improvements, timeout management, structured logging |
+| **Benchmarking/evaluation** | **1.7.0+** | Resource monitoring, IPC domains, 5 validated MCP examples |
+| **Web APIs/servers** | **1.7.0+** | Isolated sessions per request, timeout handling |
 | **Educational/simple scripts** | Any version | All versions support basic planning |
 | **Legacy code maintenance** | Keep current | All versions are backward compatible |
 
@@ -446,7 +451,7 @@ python -m gtpyhop.examples.simple_htn --session
 
 ## 📚 Documentation
 
-GTPyhop 1.6.0+ includes comprehensive documentation organized in the `docs/` folder:
+GTPyhop 1.7.0+ includes comprehensive documentation organized in the `docs/` folder:
 
 ### Core Documentation
 - **[All Examples Guide](https://github.com/PCfVW/GTPyhop/blob/pip/docs/all_examples.md)** - Pedagogical details about all HTN Planning examples
@@ -455,9 +460,9 @@ GTPyhop 1.6.0+ includes comprehensive documentation organized in the `docs/` fol
 - **[Thread-Safe Sessions](https://github.com/PCfVW/GTPyhop/blob/pip/docs/thread_safe_sessions.md)** - Complete guide to 1.3.0 session-based architecture
 - **[Version History](https://github.com/PCfVW/GTPyhop/blob/pip/docs/changelog.md)** - Complete changelog and version information
 
-### Style Guides (New in 1.6.0)
-- **[Actions and Methods Style Guide](https://github.com/PCfVW/GTPyhop/blob/pip/docs/gtpyhop_actions_methods_style_guide.md)** - LibCST-compatible conventions for writing actions and methods with proper type hints, docstrings, and comment markers
-- **[Problems Style Guide](https://github.com/PCfVW/GTPyhop/blob/pip/docs/gtpyhop_problems_style_guide.md)** - Conventions for writing problem files with initial states and goal tasks
+### Style Guides (1.6.0+, Enhanced in 1.7.0)
+- **[Domain Style Guide](https://github.com/PCfVW/GTPyhop/blob/pip/docs/gtpyhop_domain_style_guide.md)** - LibCST-compatible conventions for writing domain files (actions and methods) with proper type hints, docstrings, and comment markers (Version 1.1.0)
+- **[Problems Style Guide](https://github.com/PCfVW/GTPyhop/blob/pip/docs/gtpyhop_problems_style_guide.md)** - Conventions for writing problem files with initial states and goal tasks (Version 2.1.0)
 
 ### Specialized Documentation
 
@@ -466,12 +471,13 @@ GTPyhop 1.6.0+ includes comprehensive documentation organized in the `docs/` fol
 - **[Blocksworld-GTOHP Domain](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/ipc-2020-total-order/Blocksworld-GTOHP/ipc-2020-to-bw-gtohp-readme.md)** - IPC 2020 Blocksworld domain
 - **[Childsnack Domain](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/ipc-2020-total-order/Childsnack/ipc-2020-to-cs-gtohp-readme.md)** - IPC 2020 Childsnack domain
 
-#### MCP Orchestration Examples (1.5.0+)
-- **[MCP Orchestration Benchmarking](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/benchmarking_quickstart.md)** - MCP orchestration benchmarking guide
-- **[Bio-Opentrons PCR Workflow](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/bio_opentrons/README.md)** - PCR workflow automation with Opentrons Flex (dynamic 4-96 sample scaling, three-server architecture)
-- **[Cross-Server Orchestration](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/cross_server/README.md)** - Cross-server HTN plan execution
-- **[Omega HDQ DNA Extraction](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/omega_hdq_dna_bacteria_flex_96_channel/README.md)** - DNA extraction workflow with Opentrons Flex 96-channel (magnetic bead purification, four-server architecture)
-- **[TNF Cancer Modelling](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/tnf_cancer_modelling/README.md)** - Multiscale cancer modeling workflow
+#### MCP Orchestration Examples (1.5.0+, Enhanced in 1.7.0)
+- **[MCP Orchestration Benchmarking](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/benchmarking_quickstart.md)** - MCP orchestration benchmarking guide (updated for thread-safe sessions)
+- **[Bio-Opentrons PCR Workflow](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/bio_opentrons/README.md)** - PCR workflow automation with Opentrons Flex (dynamic 4-96 sample scaling, three-server architecture, 6 scenarios)
+- **[Cross-Server Orchestration](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/cross_server/README.md)** - Cross-server HTN plan execution (2 scenarios, fixed gripper logic in 1.7.0)
+- **[Drug Target Discovery](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/drug_target_discovery/README.md)** - Drug target discovery pipeline using OpenTargets platform (3 scenarios, 8 actions each, new in 1.7.0)
+- **[Omega HDQ DNA Extraction](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/omega_hdq_dna_bacteria_flex_96_channel/README.md)** - DNA extraction workflow with Opentrons Flex 96-channel (magnetic bead purification, four-server architecture, 3 scenarios)
+- **[TNF Cancer Modelling](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/tnf_cancer_modelling/README.md)** - Multiscale cancer modeling workflow (1 scenario, 12 actions)
 
 ### External Resources
 - **[Dana's Additional Information](https://github.com/dananau/GTPyhop/blob/main/additional_information.md)** - Core GTPyhop concepts (states, actions, goals, methods)
