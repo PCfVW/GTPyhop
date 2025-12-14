@@ -1,10 +1,10 @@
-# GTPyhop 1.6.0+ Problems Style Guide
+# GTPyhop 1.7.0+ Problems Style Guide
 
-## How to Write Problem Files (Initial States and Goal Tasks) for GTPyhop 1.6.0+ (LibCST-Compatible Format)
+## How to Write Problem Files (Initial States and Goal Tasks) for GTPyhop 1.7.0+ (LibCST-Compatible Format)
 
-**Version**: 1.0.0
-**Target Audience**: Domain developers writing GTPyhop 1.6.0+ problem files
-**Purpose**: Enable automated extraction of state properties and problem metadata using Meta's LibCST tool for database ingestion
+**Version**: 2.1.0
+**Target Audience**: Domain developers writing GTPyhop 1.7.0+ problem files
+**Purpose**: Enable automated extraction of scenarios with configuration variables and problem metadata using Meta's LibCST tool for database ingestion
 
 ---
 
@@ -12,11 +12,11 @@
 
 1. [Introduction and Purpose](#1-introduction-and-purpose)
 2. [File Structure Overview](#2-file-structure-overview)
-3. [Problem Definition Structure](#3-problem-definition-structure)
+3. [Unified Scenario Block Structure](#3-unified-scenario-block-structure)
 4. [Naming Conventions](#4-naming-conventions)
 5. [Documentation Requirements](#5-documentation-requirements)
 6. [Comment Marker Conventions for LibCST](#6-comment-marker-conventions-for-libcst)
-7. [State Property Organization](#7-state-property-organization)
+7. [Configuration Variables](#7-configuration-variables)
 8. [Complete Working Examples](#8-complete-working-examples)
 9. [Common Patterns](#9-common-patterns)
 10. [Anti-patterns](#10-anti-patterns)
@@ -27,26 +27,34 @@
 
 ## 1. Introduction and Purpose
 
-This style guide defines **mandatory conventions** for writing GTPyhop 1.6.0+ problem files (`problems.py`). Following these conventions enables:
+This style guide defines **mandatory conventions** for writing GTPyhop 1.7.0+ problem files (`problems.py`). Following these conventions enables:
 
 1. **Automated parsing** using Meta's LibCST tool
-2. **Database ingestion** of problem definitions and state configurations
-3. **Consistency** across domain implementations
-4. **Validation** of problem file correctness before runtime
+2. **Database ingestion** of scenarios with configuration variables
+3. **AI assistant integration** via MCP (Model Context Protocol) tools
+4. **Consistency** across domain implementations
+5. **Validation** of problem file correctness before runtime
+
+### What's New in Version 2.0.0
+
+This version introduces the **Unified Scenario Block** pattern which:
+- Combines initial state definition and problem registration in one block
+- Supports **configuration variables** for parameterized scenarios
+- Uses `problems['key']` subscript assignment instead of a separate dictionary section
+- Enables direct extraction of self-contained scenario units
 
 ### Scope
 
 This guide covers:
 - **Problem Files**: Files defining initial states and goal tasks for planning
-- **Scenario Definitions**: Individual problem instances with specific configurations
-- **State Initialization**: Setting initial state properties
+- **Unified Scenario Blocks**: Self-contained blocks with configuration, state, and problem definition
+- **Configuration Variables**: Parameterized values that can be varied per scenario
 
 ### Reference Files
 
 This guide is derived from analysis of:
-- `tnf_cancer_modelling/problems.py` (1 scenario)
-- `cross_server/problems.py` (2 scenarios)
-- `bio_opentrons/problems.py` (6 scenarios)
+- `drug_target_discovery/problems.py` (3 scenarios)
+- `mock_servers/problems.py` (6 scenarios)
 - `omega_hdq_dna_bacteria_flex_96_channel/problems.py` (3 scenarios)
 
 ---
@@ -62,8 +70,8 @@ A compliant `problems.py` file MUST contain these sections in order:
 | **Module Docstring** | File description with generation date | ✅ Yes |
 | **Imports** | GTPyhop and standard library imports | ✅ Yes |
 | **Helper Functions** | Factory functions for state creation (if needed) | ⚠️ Optional |
-| **Problem Section** | Contains Domain and Initial State markers | ✅ Yes |
-| **Problems Dictionary** | Mapping of scenario IDs to (state, tasks, description) | ✅ Yes |
+| **Problems Dictionary Init** | `problems = {}` declaration | ✅ Yes |
+| **Unified Scenario Blocks** | Domain and Scenario markers with embedded `problems['key']` | ✅ Yes |
 | **get_problems() Function** | Returns problems dictionary for benchmarking | ✅ Yes |
 
 ### 2.2 File Organization Template
@@ -103,7 +111,7 @@ except ImportError:
 # HELPER FUNCTION (optional)
 # ============================================================================
 
-def create_base_state(name: str) -> State:
+def h_create_base_state(name: str) -> State:
     """Create a base state with common properties."""
     state = State(name)
     # ... initialize common properties ...
@@ -111,43 +119,48 @@ def create_base_state(name: str) -> State:
 
 
 # ============================================================================
-# PROBLEM
+# SCENARIOS
 # ============================================================================
+
+problems = {}
 
 # BEGIN: Domain: domain_name
 
-# BEGIN: Initial State: state_name_1
-# ===== [SCENARIO 1] Description -> N actions ================================
-initial_state_scenario_1 = create_base_state('state_name_1')
-initial_state_scenario_1.property = value
-# END: Initial State
+# BEGIN: Scenario: scenario_1
+# Configuration
+_param1, _param2 = 4, 25
 
-# BEGIN: Initial State: state_name_2
-# ===== [SCENARIO 2] Description -> N actions ================================
-initial_state_scenario_2 = create_base_state('state_name_2')
-initial_state_scenario_2.property = different_value
-# END: Initial State
+# State
+initial_state_scenario_1 = h_create_base_state('scenario_1')
+initial_state_scenario_1.param1 = _param1
+initial_state_scenario_1.param2 = _param2
+
+# Problem
+problems['scenario_1'] = (
+    initial_state_scenario_1,
+    [('m_top_level_method', _param1, _param2)],
+    f'Description: {_param1} units, {_param2} cycles -> N actions'
+)
+# END: Scenario
+
+# BEGIN: Scenario: scenario_2
+# Configuration
+_param1, _param2 = 8, 30
+
+# State
+initial_state_scenario_2 = h_create_base_state('scenario_2')
+initial_state_scenario_2.param1 = _param1
+initial_state_scenario_2.param2 = _param2
+
+# Problem
+problems['scenario_2'] = (
+    initial_state_scenario_2,
+    [('m_top_level_method', _param1, _param2)],
+    f'Description: {_param1} units, {_param2} cycles -> N actions'
+)
+# END: Scenario
 
 # END: Domain
-
-
-# ============================================================================
-# PROBLEM DEFINITIONS FOR BENCHMARKING
-# ============================================================================
-
-# Each problem is a tuple of (initial_state, task_list, description)
-problems = {
-    'scenario_1_name': (
-        initial_state_scenario_1,
-        [('m_top_level_method', arg1, arg2)],
-        'Description -> N actions'
-    ),
-    'scenario_2_name': (
-        initial_state_scenario_2,
-        [('m_top_level_method',)],
-        'Description -> N actions'
-    )
-}
 
 
 def get_problems():
@@ -162,29 +175,45 @@ def get_problems():
 
 ---
 
-## 3. Problem Definition Structure
+## 3. Unified Scenario Block Structure
 
-### 3.1 Scenario Definition Components
+### 3.1 Block Components
 
-Each scenario requires these components:
+Each unified scenario block MUST contain these components in order:
 
 | Component | Description | Example |
 |-----------|-------------|---------|
-| **BEGIN Marker** | LibCST extraction marker | `# BEGIN: Initial State: state_name` |
-| **Scenario Header** | Visual separator with scenario number | `# ===== [SCENARIO N] Description ===` |
-| **State Creation** | State object instantiation | `initial_state_scenario_N = State('name')` |
-| **Property Assignment** | State property initialization | `state.property = value` |
-| **END Marker** | Closes the Initial State block | `# END: Initial State` |
+| **BEGIN Marker** | Scenario extraction marker | `# BEGIN: Scenario: scenario_name` |
+| **Configuration** | Optional config variables section | `_samples, _cycles = 4, 25` |
+| **State Section** | State creation and property assignment | `initial_state = h_create_state('name')` |
+| **Problem Section** | Subscript assignment to problems dict | `problems['key'] = (state, tasks, desc)` |
+| **END Marker** | Closes the scenario block | `# END: Scenario` |
 
-### 3.2 Problem Dictionary Entry
+### 3.2 Configuration Variables
 
-Each entry in the `problems` dictionary is a 3-tuple:
+Configuration variables are prefixed with underscore (`_`) and defined at the top of each scenario block:
 
 ```python
-'scenario_key': (
+# Single value
+_num_samples = 4
+
+# Multiple values via tuple unpacking
+_samples, _cycles = 4, 25
+
+# Complex configuration
+_disease_name = "breast cancer"
+_target_count = 5
+```
+
+### 3.3 Problem Subscript Assignment
+
+Each scenario registers itself in the `problems` dictionary using subscript assignment:
+
+```python
+problems['scenario_key'] = (
     initial_state_object,           # State object
-    [('task_name', arg1, arg2)],    # Goal task list
-    'Human-readable description'     # Description with expected plan length
+    [('m_method_name', _arg1, _arg2)],  # Goal task list (can reference config vars)
+    f'Description: {_arg1} units'    # Description (can use f-string with config vars)
 )
 ```
 
@@ -192,40 +221,52 @@ Each entry in the `problems` dictionary is a 3-tuple:
 
 ## 4. Naming Conventions
 
-### 4.1 Scenario Variable Names
+### 4.1 Configuration Variable Names
 
-**Pattern**: `initial_state_scenario_N_descriptor`
+**Pattern**: `_lowercase_with_underscores`
+
+| Convention | Example |
+|------------|---------|
+| Leading underscore | `_samples`, `_cycles` |
+| Descriptive name | `_num_washes`, `_disease_name` |
+
+**Examples**:
+- `_samples = 4`
+- `_samples, _cycles = 4, 25`
+- `_disease_name = "breast cancer"`
+
+### 4.2 Scenario Variable Names
+
+**Pattern**: `initial_state_scenario_N` or `initial_state_scenario_N_descriptor`
 
 | Component | Convention | Example |
 |-----------|------------|---------|
 | Prefix | `initial_state_` | `initial_state_` |
 | Scenario Number | `scenario_N` | `scenario_1`, `scenario_2` |
-| Descriptor | `_descriptor` (optional) | `_standard`, `_dry_run`, `_4samples` |
+| Descriptor | `_descriptor` (optional) | `_standard`, `_dry_run` |
 
 **Examples**:
 - `initial_state_scenario_1`
 - `initial_state_scenario_1_standard`
 - `initial_state_scenario_2_dry_run`
-- `initial_state_scenario_3_16samples`
 
-### 4.2 State Name Strings
+### 4.3 State Name Strings
 
-**Pattern**: `domain_variant` or `descriptive_name`
-
-**Examples**:
-- `'hdq_standard'`
-- `'hdq_dry_run'`
-- `'pcr_4samples_25cycles'`
-- `'cross_server_pick_and_place'`
-
-### 4.3 Problem Dictionary Keys
-
-**Pattern**: `scenario_N_descriptor`
+**Pattern**: `scenario_N` or `scenario_N_descriptor`
 
 **Examples**:
+- `'scenario_1'`
 - `'scenario_1_standard'`
 - `'scenario_2_dry_run'`
-- `'scenario_1_4samples'`
+
+### 4.4 Problem Dictionary Keys
+
+**Pattern**: `scenario_N` or `scenario_N_descriptor` (matches state name)
+
+**Examples**:
+- `'scenario_1'`
+- `'scenario_1_standard'`
+- `'scenario_2_dry_run'`
 
 ---
 
@@ -245,9 +286,9 @@ Each entry in the `problems` dictionary is a 3-tuple:
 
 Each scenario MUST include:
 
-1. **BEGIN/END Markers** for LibCST extraction
-2. **[SCENARIO N] prefix** in the header comment
-3. **Expected plan length** in the description
+1. **BEGIN/END Scenario Markers** for LibCST extraction
+2. **Configuration variables** section (if parameterized)
+3. **Expected plan length** in the problem description
 
 ---
 
@@ -261,57 +302,75 @@ Each scenario MUST include:
 # END: Domain
 ```
 
-### 6.2 Initial State Markers
+### 6.2 Unified Scenario Markers (Version 2.0)
 
 ```python
-# BEGIN: Initial State: state_name
-# ===== [SCENARIO N] Description -> N actions ================================
-initial_state_scenario_N = State('state_name')
-initial_state_scenario_N.property = value
-# END: Initial State
+# BEGIN: Scenario: scenario_name
+# Configuration
+_param1, _param2 = 4, 25
+
+# State
+initial_state_scenario_N = h_create_state('scenario_name')
+initial_state_scenario_N.property = _param1
+
+# Problem
+problems['scenario_name'] = (
+    initial_state_scenario_N,
+    [('m_method', _param1, _param2)],
+    f'Description: {_param1} units -> N actions'
+)
+# END: Scenario
 ```
 
 ### 6.3 Marker Syntax Rules
 
 | Rule | Description |
 |------|-------------|
-| **Exact format** | `# BEGIN: ` and `# END: ` with space after colon |
+| **Exact format** | `# BEGIN: Scenario: ` and `# END: Scenario` |
+| **Scenario name** | Must match problems dict key and State constructor argument |
 | **Domain name** | Must match directory name exactly |
-| **State name** | Must match State constructor argument |
-| **No nesting** | Initial State blocks cannot be nested |
+| **No nesting** | Scenario blocks cannot be nested within each other |
+| **Order** | Configuration → State → Problem within each block |
 
 ---
 
-## 7. State Property Organization
+## 7. Configuration Variables
 
-### 7.1 Property Categories
+### 7.1 Purpose
 
-Organize state properties by category using comment blocks:
+Configuration variables enable:
+- **Parameterized scenarios** with different values
+- **Variable substitution** in task lists
+- **F-string interpolation** in descriptions
+- **Direct extraction** by LibCST parsers
+
+### 7.2 Syntax Rules
+
+| Rule | Description |
+|------|-------------|
+| **Naming** | Must start with underscore: `_name` |
+| **Scope** | Local to the scenario block |
+| **Types** | int, float, str, tuple (basic Python types) |
+| **Assignment** | Simple assignment or tuple unpacking |
+
+### 7.3 Examples
 
 ```python
-state = State('name')
+# Single variable
+_num_samples = 4
 
-# ========================================
-# Category 1: Description
-# ========================================
-state.property_1a = value
-state.property_1b = value
+# Tuple unpacking
+_samples, _cycles = 4, 25
 
-# ========================================
-# Category 2: Description
-# ========================================
-state.property_2a = value
+# String value
+_disease = "breast cancer"
+
+# Usage in task list (as variable reference)
+[('m_run_pcr', _samples, _cycles)]
+
+# Usage in description (as f-string)
+f'PCR: {_samples} samples, {_cycles} cycles'
 ```
-
-### 7.2 Common Property Categories
-
-| Category | Examples |
-|----------|----------|
-| **Server/Hardware State** | `server_ready`, `gripper_state`, `module_available` |
-| **Object Locations** | `object_location`, `labware_position` |
-| **Volumes/Quantities** | `sample_vol`, `num_cycles`, `num_washes` |
-| **Configuration Flags** | `dry_run`, `tip_mixing`, `protocol_type` |
-| **Tracking State** | `well_contents`, `tips_used`, `current_step` |
 
 ---
 
@@ -322,7 +381,7 @@ state.property_2a = value
 ```python
 """
 Problem definitions for the TNF Cancer Modeling example.
--- Generated 2025-11-26
+-- Generated 2025-12-09
 
 This file defines initial states for the multiscale TNF cancer modeling workflow.
 """
@@ -339,28 +398,113 @@ except ImportError:
     from gtpyhop import State
 
 # ============================================================================
-# PROBLEM
+# SCENARIOS
 # ============================================================================
+
+problems = {}
 
 # BEGIN: Domain: tnf_cancer_modelling
 
-# BEGIN: Initial State: multiscale_cancer_initial
-# ===== [SCENARIO 1] Multiscale TNF Cancer Modeling --------------------------
-initial_state_scenario_1 = State('multiscale_cancer_initial')
-initial_state_scenario_1.tnf_gene_list = ["TNF", "TNFR1", "NFKB1"]
+# BEGIN: Scenario: scenario_1_multiscale
+# Configuration
+_gene_list = ["TNF", "TNFR1", "NFKB1"]
+
+# State
+initial_state_scenario_1 = State('scenario_1_multiscale')
+initial_state_scenario_1.tnf_gene_list = _gene_list
 initial_state_scenario_1.omnipath_available = True
-# END: Initial State
+
+# Problem
+problems['scenario_1_multiscale'] = (
+    initial_state_scenario_1,
+    [('m_run_multiscale_workflow',)],
+    'Multiscale TNF cancer modeling workflow'
+)
+# END: Scenario
 
 # END: Domain
 
 
-problems = {
-    'scenario_1_multiscale': (
-        initial_state_scenario_1,
-        [('m_run_multiscale_workflow',)],
-        'Multiscale TNF cancer modeling workflow'
-    )
-}
+def get_problems():
+    """Return all problem definitions for benchmarking."""
+    return problems
+```
+
+### 8.2 Multi-Scenario Problem File with Configuration Variables
+
+```python
+"""
+Problem definitions for the PCR Workflow example.
+-- Generated 2025-12-09
+
+Scenarios:
+  - scenario_1: 4 samples, 25 cycles -> 55 actions
+  - scenario_2: 8 samples, 30 cycles -> 79 actions
+"""
+
+import sys
+import os
+
+try:
+    import gtpyhop
+    from gtpyhop import State
+except ImportError:
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..', '..'))
+    import gtpyhop
+    from gtpyhop import State
+
+
+def h_create_base_state(name: str) -> State:
+    """Helper: Create base PCR state."""
+    state = State(name)
+    state.deck_slots = {}
+    state.pipette_ready = {'left': False, 'right': False}
+    return state
+
+
+# ============================================================================
+# SCENARIOS
+# ============================================================================
+
+problems = {}
+
+# BEGIN: Domain: pcr_workflow
+
+# BEGIN: Scenario: scenario_1
+# Configuration
+_samples, _cycles = 4, 25
+
+# State
+initial_state_scenario_1 = h_create_base_state('scenario_1')
+initial_state_scenario_1.num_samples = _samples
+initial_state_scenario_1.num_cycles = _cycles
+
+# Problem
+problems['scenario_1'] = (
+    initial_state_scenario_1,
+    [('m_initialize_and_run_pcr', _samples, _cycles)],
+    f'PCR: {_samples} samples, {_cycles} cycles -> 55 actions'
+)
+# END: Scenario
+
+# BEGIN: Scenario: scenario_2
+# Configuration
+_samples, _cycles = 8, 30
+
+# State
+initial_state_scenario_2 = h_create_base_state('scenario_2')
+initial_state_scenario_2.num_samples = _samples
+initial_state_scenario_2.num_cycles = _cycles
+
+# Problem
+problems['scenario_2'] = (
+    initial_state_scenario_2,
+    [('m_initialize_and_run_pcr', _samples, _cycles)],
+    f'PCR: {_samples} samples, {_cycles} cycles -> 79 actions'
+)
+# END: Scenario
+
+# END: Domain
 
 
 def get_problems():
@@ -374,51 +518,63 @@ def get_problems():
 
 ### 9.1 Factory Function Pattern
 
-Use when scenarios share common base properties:
+Use helper functions (prefixed with `h_`) when scenarios share common base properties:
 
 ```python
-def create_base_state(name: str) -> State:
+def h_create_base_state(name: str) -> State:
     state = State(name)
     # Common initialization
     return state
 
-initial_state_scenario_1 = create_base_state('variant_1')
+# BEGIN: Scenario: scenario_1
+initial_state_scenario_1 = h_create_base_state('scenario_1')
 initial_state_scenario_1.variant_property = 'value_1'
-
-initial_state_scenario_2 = create_base_state('variant_2')
-initial_state_scenario_2.variant_property = 'value_2'
+problems['scenario_1'] = (initial_state_scenario_1, [...], 'Description')
+# END: Scenario
 ```
 
-### 9.2 Configuration Override Pattern
+### 9.2 Configuration Variable Pattern
 
-Start with defaults, override specific properties:
+Use configuration variables for parameterized scenarios:
 
 ```python
-# Scenario 1: All defaults
-initial_state_scenario_1 = create_base_state('standard')
+# BEGIN: Scenario: scenario_1_standard
+# Configuration
+_dry_run = False
+_num_washes = 3
 
-# Scenario 2: Override specific settings
-initial_state_scenario_2 = create_base_state('custom')
-initial_state_scenario_2.dry_run = True
-initial_state_scenario_2.num_washes = 1
+# State
+initial_state_scenario_1 = h_create_base_state('scenario_1_standard')
+initial_state_scenario_1.dry_run = _dry_run
+initial_state_scenario_1.num_washes = _num_washes
+
+# Problem
+problems['scenario_1_standard'] = (
+    initial_state_scenario_1,
+    [('m_extraction', _num_washes)],
+    f'Standard extraction: {_num_washes} washes'
+)
+# END: Scenario
 ```
 
 ---
 
 ## 10. Anti-patterns
 
-### 10.1 Missing LibCST Markers
+### 10.1 Missing Scenario Markers
 
 ```python
 # ❌ INCORRECT - No BEGIN/END markers
 initial_state_scenario_1 = State('test')
 initial_state_scenario_1.value = 1
+problems['test'] = (initial_state_scenario_1, [...], 'Desc')
 
-# ✅ CORRECT - Proper markers
-# BEGIN: Initial State: test
+# ✅ CORRECT - Proper scenario markers
+# BEGIN: Scenario: test
 initial_state_scenario_1 = State('test')
 initial_state_scenario_1.value = 1
-# END: Initial State
+problems['test'] = (initial_state_scenario_1, [...], 'Desc')
+# END: Scenario
 ```
 
 ### 10.2 Inconsistent Naming
@@ -429,22 +585,39 @@ state1 = State('first')
 second_state = State('second')
 
 # ✅ CORRECT - Consistent pattern
-initial_state_scenario_1 = State('first')
-initial_state_scenario_2 = State('second')
+initial_state_scenario_1 = State('scenario_1')
+initial_state_scenario_2 = State('scenario_2')
 ```
 
 ### 10.3 Incorrect problems Dictionary Format
 
 ```python
 # ❌ INCORRECT - Missing description
-problems = {
-    'scenario_1': (initial_state_scenario_1, [('task',)])
-}
+problems['scenario_1'] = (initial_state_scenario_1, [('task',)])
 
 # ✅ CORRECT - (state, tasks, description)
+problems['scenario_1'] = (initial_state_scenario_1, [('task',)], 'Description')
+```
+
+### 10.4 Separate problems Dictionary (Old Style)
+
+```python
+# ❌ OLD STYLE - Separate dictionary definition
+# BEGIN: Initial State: test
+initial_state = State('test')
+# END: Initial State
+
 problems = {
-    'scenario_1': (initial_state_scenario_1, [('task',)], 'Description')
+    'test': (initial_state, [...], 'Desc')
 }
+
+# ✅ NEW STYLE - Subscript assignment within scenario block
+problems = {}
+
+# BEGIN: Scenario: test
+initial_state = State('test')
+problems['test'] = (initial_state, [...], 'Desc')
+# END: Scenario
 ```
 
 ---
@@ -454,20 +627,21 @@ problems = {
 ### 11.1 File Structure
 - [ ] Module docstring with generation date present
 - [ ] GTPyhop import with fallback strategy
-- [ ] `problems` dictionary defined
-- [ ] `get_problems()` function defined
+- [ ] `problems = {}` declaration before domain block
+- [ ] `get_problems()` function defined at end
 
 ### 11.2 Domain Markers
 - [ ] `# BEGIN: Domain: domain_name` present
 - [ ] `# END: Domain` present (after all scenarios)
 - [ ] Domain name matches directory name
 
-### 11.3 Each Scenario
-- [ ] `# BEGIN: Initial State: state_name` present
-- [ ] `# ===== [SCENARIO N]` header with description
-- [ ] State variable follows naming pattern
-- [ ] `# END: Initial State` present
-- [ ] Entry in `problems` dictionary with 3-tuple format
+### 11.3 Each Scenario Block
+- [ ] `# BEGIN: Scenario: scenario_name` present
+- [ ] Configuration variables section (if parameterized)
+- [ ] State creation with `h_` helper or direct `State()`
+- [ ] `problems['key'] = (state, tasks, description)` subscript assignment
+- [ ] `# END: Scenario` present
+- [ ] Scenario name matches problems key and State name
 
 ---
 
@@ -476,24 +650,36 @@ problems = {
 ### 12.1 Problem File Grammar (EBNF)
 
 ```ebnf
-problem_file        = docstring imports [helper_functions] problem_section
-                      problems_dict get_problems_func ;
+problem_file        = docstring imports [helper_functions] problems_init
+                      domain_block get_problems_func ;
 
 docstring           = '"""' file_description gen_date workflow_desc '"""' ;
 gen_date            = "-- Generated" DATE NEWLINE ;
 
-domain_block        = domain_begin {initial_state_block} domain_end ;
+problems_init       = "problems" "=" "{" "}" ;
+
+domain_block        = domain_begin {scenario_block} domain_end ;
 domain_begin        = "# BEGIN: Domain:" domain_name NEWLINE ;
 domain_end          = "# END: Domain" NEWLINE ;
 
-initial_state_block = state_begin scenario_header state_creation
-                      {property_assignment} state_end ;
-state_begin         = "# BEGIN: Initial State:" state_name NEWLINE ;
-state_end           = "# END: Initial State" NEWLINE ;
-scenario_header     = "# ===== [SCENARIO" INTEGER "]" description "=" {N} NEWLINE ;
+scenario_block      = scenario_begin [config_section] state_section
+                      problem_section scenario_end ;
+scenario_begin      = "# BEGIN: Scenario:" scenario_name NEWLINE ;
+scenario_end        = "# END: Scenario" NEWLINE ;
 
-problems_dict       = "problems" "=" "{" {problem_entry ","} "}" ;
-problem_entry       = STRING ":" "(" state_var "," task_list "," STRING ")" ;
+config_section      = "# Configuration" NEWLINE {config_assignment} ;
+config_assignment   = config_var "=" expression NEWLINE
+                    | config_vars "=" expressions NEWLINE ;
+config_var          = "_" IDENTIFIER ;
+config_vars         = config_var {"," config_var} ;
+
+state_section       = "# State" NEWLINE state_creation {property_assignment} ;
+state_creation      = state_var "=" helper_call | state_var "=" "State" "(" STRING ")" ;
+property_assignment = state_var "." IDENTIFIER "=" expression NEWLINE ;
+
+problem_section     = "# Problem" NEWLINE subscript_assignment ;
+subscript_assignment = "problems" "[" STRING "]" "=" problem_tuple ;
+problem_tuple       = "(" state_var "," task_list "," description ")" ;
 task_list           = "[" {task_tuple ","} "]" ;
 task_tuple          = "(" STRING {"," expression} ")" ;
 ```
@@ -504,15 +690,12 @@ task_tuple          = "(" STRING {"," expression} ")" ;
 domain_marker       = "# BEGIN: Domain:" SPACE domain_name
                     | "# END: Domain" ;
 
-state_marker        = "# BEGIN: Initial State:" SPACE state_name
-                    | "# END: Initial State" ;
-
-scenario_marker     = "# ===== [SCENARIO" SPACE INTEGER "]"
-                      SPACE description SPACE "=" {N} ;
+scenario_marker     = "# BEGIN: Scenario:" SPACE scenario_name
+                    | "# END: Scenario" ;
 ```
 
 ---
 
-*Document Version: 1.0.0*
-*Generated: 2025-11-30*
-*Based on analysis of: tnf_cancer_modelling/problems.py, cross_server/problems.py, bio_opentrons/problems.py, omega_hdq_dna_bacteria_flex_96_channel/problems.py*
+*Document Version: 2.0.0*
+*Generated: 2025-12-09*
+*Based on: Unified Scenario Block structure (Alternative D)*

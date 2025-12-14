@@ -1,9 +1,9 @@
-# GTPyhop 1.6.0+ Actions and Methods Style Guide
+# GTPyhop 1.7.0+ Domain Style Guide
 
-## How to Write Actions and Methods for GTPyhop 1.6.0+ (LibCST-Compatible Format)
+## How to Write Domain Files (Actions and Methods) for GTPyhop 1.7.0+ (LibCST-Compatible Format)
 
-**Version**: 1.0.0
-**Target Audience**: Domain developers writing GTPyhop 1.6.0+ domains
+**Version**: 1.1.0
+**Target Audience**: Domain developers writing GTPyhop 1.7.0+ domains
 **Purpose**: Enable automated extraction of preconditions, effects, and metadata using Meta's LibCST tool for database ingestion
 
 ---
@@ -27,7 +27,7 @@
 
 ## 1. Introduction and Purpose
 
-This style guide defines **mandatory conventions** for writing GTPyhop 1.6.0+ primitive actions and methods. Following these conventions enables:
+This style guide defines **mandatory conventions** for writing GTPyhop 1.7.0+ domain files containing primitive actions and methods. Following these conventions enables:
 
 1. **Automated parsing** using Meta's LibCST tool
 2. **Database ingestion** of domain knowledge (preconditions, effects, parameters)
@@ -682,6 +682,36 @@ def a_action(state: State) -> Union[State, bool]:
     """
 ```
 
+### 10.7 Missing Prefix in Task Decomposition
+
+**CRITICAL**: Task names in method decompositions MUST include the appropriate prefix (`a_` for actions, `m_` for methods). GTPyhop uses these prefixes to locate the corresponding function definitions.
+
+```python
+# ❌ INCORRECT - Missing prefixes in task decomposition
+def m_drug_discovery(state: State, disease: str) -> Union[List[Tuple], bool]:
+    # BEGIN: Task Decomposition
+    return [
+        ("search_disease", disease),      # WRONG! Should be "a_search_disease"
+        ("get_targets", disease),         # WRONG! Should be "a_get_targets"
+        ("validate_targets",),            # WRONG! Should be "m_validate_targets"
+        ("analyze_pathways",),            # WRONG! Should be "m_analyze_pathways"
+    ]
+    # END: Task Decomposition
+
+# ✅ CORRECT - All task names include proper prefixes
+def m_drug_discovery(state: State, disease: str) -> Union[List[Tuple], bool]:
+    # BEGIN: Task Decomposition
+    return [
+        ("a_search_disease", disease),    # Action prefix: a_
+        ("a_get_targets", disease),       # Action prefix: a_
+        ("m_validate_targets",),          # Method prefix: m_
+        ("m_analyze_pathways",),          # Method prefix: m_
+    ]
+    # END: Task Decomposition
+```
+
+**Why this matters**: Without the correct prefix, GTPyhop cannot find the task function and planning will fail silently or with cryptic errors. The planner iterates through registered actions and methods looking for exact name matches.
+
 ---
 
 ## 11. Validation Checklist
@@ -718,6 +748,7 @@ Use this checklist before committing any action or method:
 - [ ] Returns list of tuples on success, `False` on failure
 - [ ] **Never** modifies state directly
 - [ ] Task tuples use correct format: `("task_name", arg1, arg2)`
+- [ ] **All task names include proper prefix** (`a_` for actions, `m_` for methods)
 
 ---
 
@@ -827,7 +858,8 @@ END_DECOMP          = "# END: Task Decomposition" NEWLINE ;
 
 task_list           = "[" task_tuple {"," task_tuple} "]" ;
 task_tuple          = "(" task_name ["," arg_list] ")" ;
-task_name           = STRING ;
+task_name           = '"' task_prefix identifier '"' ;
+task_prefix         = "a_" | "m_" ;  (* MANDATORY: task names MUST have a_ or m_ prefix *)
 arg_list            = expression {"," expression} ;
 ```
 
