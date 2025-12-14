@@ -6,7 +6,7 @@ The benchmarking script (`benchmarking.py`) is a thin wrapper that delegates to 
 
 ## Prerequisites
 
-- **GTPyhop 1.4.0** (or later) installed
+- **GTPyhop 1.7.0** (or later) installed
 - **psutil** package (for resource tracking)
 - Python 3.8 or later
 
@@ -25,25 +25,27 @@ pip install psutil
 
 ## Available Examples
 
-| Example | Description | Samples/Actions |
-|---------|-------------|-----------------|
-| `tnf_cancer_modelling` | TNF-α cancer pathway modeling | Fixed scenarios |
-| `bio_opentrons` | PCR workflow automation with dynamic sample scaling across 3 MCP servers | 4-96 samples → 55-611 actions |
-| `cross_server` | Cross-server robot orchestration (pick-and-place) with HTN planning, gripper, and motion servers | Fixed scenarios |
-| `omega_hdq_dna_bacteria_flex_96_channel` | Omega HDQ DNA extraction on Opentrons Flex (4 MCP servers) | 89-129 actions |
+| Example | Description | Scenarios | Actions |
+|---------|-------------|-----------|---------|
+| `bio_opentrons` | PCR workflow automation with dynamic sample scaling across 3 MCP servers | 6 scenarios (4-96 samples) | 55-611 actions |
+| `omega_hdq_dna_bacteria_flex_96_channel` | Omega HDQ DNA extraction on Opentrons Flex (4 MCP servers) | 3 scenarios | 89-129 actions |
+| `drug_target_discovery` | Drug target discovery pipeline using OpenTargets platform | 3 scenarios | 8 actions |
+| `tnf_cancer_modelling` | Multiscale TNF cancer modeling (MaBoSS + PhysiCell) | 1 scenario | 12 actions |
+| `cross_server` | Cross-server robot orchestration (pick-and-place) | 2 scenarios | 9-15 actions |
 
-The `bio_opentrons` example demonstrates dynamic scaling where plan length follows the formula: `31 + 6 × num_samples + 2 × (ceil(n/40) - 1)`.
+All examples follow the **GTPyhop 1.7.0+ style guide** with unified scenario block format.
 
 ## Running the Benchmarking Script
 
 ### Basic Usage
 
 ```bash
-cd C:\Users\Eric JACOPIN\Documents\Code\Source\GTPyhop\src\gtpyhop\examples\mcp-orchestration
-python benchmarking.py tnf_cancer_modelling
+cd src/gtpyhop/examples/mcp-orchestration
 python benchmarking.py bio_opentrons
-python benchmarking.py cross_server
 python benchmarking.py omega_hdq_dna_bacteria_flex_96_channel
+python benchmarking.py drug_target_discovery
+python benchmarking.py tnf_cancer_modelling
+python benchmarking.py cross_server
 ```
 
 ### Command-Line Options
@@ -58,14 +60,11 @@ python benchmarking.py tnf_cancer_modelling --verbose 2
 # Run with maximum debugging output (verbosity 3)
 python benchmarking.py tnf_cancer_modelling --verbose 3
 
-# Run using PlannerSession (thread-safe mode, GTPyhop 1.4.0+)
-python benchmarking.py tnf_cancer_modelling --mode session
+# Run using legacy mode (global state, not recommended)
+python benchmarking.py bio_opentrons --legacy-mode
 
 # Combine options
-python benchmarking.py tnf_cancer_modelling --mode session --verbose 2
-
-# Run all problems in the domain
-python benchmarking.py tnf_cancer_modelling --all-problems
+python benchmarking.py bio_opentrons --legacy-mode --verbose 2
 ```
 
 ### Verbosity Levels
@@ -77,104 +76,123 @@ python benchmarking.py tnf_cancer_modelling --all-problems
 
 ### Planning Modes
 
-- **legacy**: Uses global state (default, faster)
-- **session**: Uses PlannerSession (thread-safe, recommended for GTPyhop 1.4.0+)
+- **session** (default): Uses PlannerSession (thread-safe, recommended for GTPyhop 1.7.0+)
+- **legacy**: Uses global state (enabled with `--legacy-mode` flag, not recommended)
 
 ## Interpreting Results
 
 ### Successful Run Example
 
 ```
-================================================================================
-BENCHMARKING: tnf_cancer_modelling
-================================================================================
-Mode: session
-Verbosity: 1
-Domain: tnf_cancer_modelling
-Problems: 1
-================================================================================
+Imported GTPyhop version 1.7.0
+Using GTPyhop from PyPI installation
+GTPyhop loaded successfully from: PyPI
+Loading domain: tnf_cancer_modelling
+Domain tnf_cancer_modelling using GTPyhop from: PyPI
+Loaded 1 problems from tnf_cancer_modelling
+Found 1 problems in tnf_cancer_modelling
 
-Running problem: scenario_1
-  ✓ scenario_1: SUCCESS - 12 actions in 0.023s
+Running benchmarks for tnf_cancer_modelling using Thread-Safe Sessions planning...
+Solving scenario_1_multiscale...
 
-================================================================================
-SUMMARY
-================================================================================
-Total problems: 1
-Successful: 1
-Failed: 0
+=== tnf_cancer_modelling Benchmark Results ===
 
-Successful problems:
-  Total planning time: 0.023s
-  Average planning time: 0.023s
-  Total actions: 12
-  Average actions per plan: 12.0
-================================================================================
+=== Benchmark Summary ===
+Problem               | Status | Plan Len | Time (s) |  CPU % | Mem Δ (KB) | Peak Mem (KB)
+------------------------------------------------------------------------------------------
+scenario_1_multiscale | ✅      |       12 |    0.001s |    0.0% |      112.0 |       25040.0
 ```
 
 ### Failed Run Example
 
 ```
-Running problem: scenario_1
-  ✗ scenario_1: FAILED - No plan found
+Running benchmarks for example_domain using Thread-Safe Sessions planning...
+Solving scenario_1...
 
-================================================================================
-SUMMARY
-================================================================================
-Total problems: 1
-Successful: 0
-Failed: 1
+=== example_domain Benchmark Results ===
 
-Failed problems:
-  - scenario_1: No plan found
-================================================================================
+=== Benchmark Summary ===
+Problem    | Status | Plan Len | Time (s) |  CPU % | Mem Δ (KB) | Peak Mem (KB)
+-------------------------------------------------------------------------------
+scenario_1 | ❌      |        - |        - |      - |          - |             -
+
+Note: Planning failed - no plan found
 ```
 
 ## Understanding the Output
 
+### Output Columns
+
+- **Problem** - Name of the scenario being tested
+- **Status** - ✅ for success, ❌ for failure
+- **Plan Len** - Number of primitive actions in the generated plan
+- **Time (s)** - Time taken to find the plan (in seconds)
+- **CPU %** - CPU usage percentage during planning
+- **Mem Δ (KB)** - Memory change during planning (in kilobytes)
+- **Peak Mem (KB)** - Peak memory usage during planning (in kilobytes)
+
 ### Success Indicators
 
-- **✓** - Problem ran successfully and found a plan
-- **Plan length** - Number of primitive actions in the generated plan
-- **Planning time** - Time taken to find the plan (in seconds)
+- **✅** - Problem ran successfully and found a plan
+- **Plan Len** shows the number of actions
+- **Time (s)** shows planning duration
 
 ### Failure Indicators
 
-- **✗** - Problem failed to find a plan or encountered an error
-- **Error message** - Description of what went wrong
-
-### Summary Statistics
-
-- **Total problems** - Number of problems discovered and run
-- **Successful** - Number of problems that found a plan
-- **Failed** - Number of problems that failed
-- **Total planning time** - Sum of all planning times
-- **Average planning time** - Mean planning time across successful problems
-- **Total actions** - Sum of all plan lengths
-- **Average actions per plan** - Mean plan length across successful problems
+- **❌** - Problem failed to find a plan or encountered an error
+- Columns show `-` for unavailable metrics
+- Error message may appear below the table
 
 ## Adding New Examples to the Benchmarking Suite
 
 To add a new MCP orchestration example:
 
-1. **Create a new subdirectory** under `mcp-orchestration/` following the **GTPyhop 1.4.0 new structure**:
+1. **Create a new subdirectory** under `mcp-orchestration/` following the **GTPyhop 1.7.0+ style guide**:
    ```
    mcp-orchestration/
-   ├── tnf_cancer_modelling/
+   ├── bio_opentrons/
    ├── your_new_example/        # New example directory
    │   ├── domain.py             # Required: domain creation + actions + methods
-   │   ├── problems.py           # Required: defines initial_state_* problems
+   │   ├── problems.py           # Required: defines problems with unified scenario blocks
    │   ├── __init__.py           # Required: exports domain and get_problems()
    │   └── README.md             # Optional but recommended
    └── benchmarking.py
    ```
 
 2. **Required files**:
-   - `domain.py` - Must create domain, define all actions and methods, and declare them
-   - `problems.py` - Must define initial states with `initial_state_` prefix (e.g., `initial_state_scenario_1`)
+   - `domain.py` - Must create domain, define all actions and methods following the [domain style guide](https://github.com/PCfVW/GTPyhop/blob/pip/docs/gtpyhop_domain_style_guide.md)
+   - `problems.py` - Must define problems using unified scenario blocks following the [problems style guide](https://github.com/PCfVW/GTPyhop/blob/pip/docs/gtpyhop_problems_style_guide.md)
    - `__init__.py` - Must export `the_domain` and implement `get_problems()` function
 
-3. **Required structure in `__init__.py`**:
+3. **Required structure in `problems.py`** (Unified Scenario Block format):
+   ```python
+   problems = {}
+
+   # BEGIN: Domain: your_domain_name
+
+   # BEGIN: Scenario: scenario_1
+   # Configuration
+   _param1, _param2 = value1, value2
+
+   # State
+   initial_state_scenario_1 = State('scenario_1')
+   initial_state_scenario_1.property1 = _param1
+
+   # Problem
+   problems['scenario_1'] = (
+       initial_state_scenario_1,
+       [('m_top_level_method', _param1, _param2)],
+       'Description of scenario -> N actions'
+   )
+   # END: Scenario
+
+   # END: Domain
+
+   def get_problems():
+       return problems
+   ```
+
+4. **Required structure in `__init__.py`**:
    ```python
    from . import domain
    from . import problems
@@ -182,18 +200,11 @@ To add a new MCP orchestration example:
    the_domain = domain.the_domain
 
    def get_problems():
-       """Return all state/task pairs for this domain."""
-       problem_dict = {}
-       for attr_name in dir(problems):
-           if attr_name.startswith('initial_state_'):
-               problem_id = attr_name.replace('initial_state_', '')
-               state = getattr(problems, attr_name)
-               task = [('your_top_level_task',)]  # e.g., ('m_multiscale_tnf_cancer_modeling',)
-               problem_dict[problem_id] = (state, task)
-       return problem_dict
+       """Return all problem definitions for benchmarking."""
+       return problems.get_problems()
    ```
 
-4. **Run the benchmarking script** - It will automatically discover and run your new example:
+5. **Run the benchmarking script** - It will automatically discover and run your new example:
    ```bash
    python benchmarking.py your_new_example
    ```
@@ -202,19 +213,24 @@ To add a new MCP orchestration example:
 
 ### Changing the Top-Level Task
 
-The top-level task is defined in each domain's `__init__.py` file in the `get_problems()` function. Edit your domain's `__init__.py`:
+The top-level task is defined in each domain's `problems.py` file within each scenario block. Edit the `# Problem` section:
 
 ```python
-def get_problems():
-    """Return all state/task pairs for this domain."""
-    problem_dict = {}
-    for attr_name in dir(problems):
-        if attr_name.startswith('initial_state_'):
-            problem_id = attr_name.replace('initial_state_', '')
-            state = getattr(problems, attr_name)
-            task = [('your_custom_task_name',)]  # Change this
-            problem_dict[problem_id] = (state, task)
-    return problem_dict
+# BEGIN: Scenario: scenario_1
+# Configuration
+_param = value
+
+# State
+initial_state_scenario_1 = State('scenario_1')
+initial_state_scenario_1.property = _param
+
+# Problem
+problems['scenario_1'] = (
+    initial_state_scenario_1,
+    [('m_your_custom_task_name', _param)],  # Change this
+    'Description -> N actions'
+)
+# END: Scenario
 ```
 
 ### Using the Shared Benchmarking Infrastructure
@@ -245,7 +261,7 @@ pip install gtpyhop
 **Solution**: Ensure your domain directory has:
 - `__init__.py` with proper exports
 - `domain.py` with domain creation
-- `problems.py` with initial states
+- `problems.py` with unified scenario blocks
 
 ### "No plan found"
 
@@ -264,23 +280,31 @@ pip install gtpyhop
 
 **Solution**: Ensure your `__init__.py` implements the `get_problems()` function:
 ```python
+from . import domain
+from . import problems
+
+the_domain = domain.the_domain
+
 def get_problems():
-    """Return all state/task pairs for this domain."""
-    problem_dict = {}
-    for attr_name in dir(problems):
-        if attr_name.startswith('initial_state_'):
-            problem_id = attr_name.replace('initial_state_', '')
-            state = getattr(problems, attr_name)
-            task = [('your_top_level_task',)]
-            problem_dict[problem_id] = (state, task)
-    return problem_dict
+    """Return all problem definitions for benchmarking."""
+    return problems.get_problems()
+```
+
+And ensure your `problems.py` has:
+```python
+problems = {}
+
+# ... scenario blocks ...
+
+def get_problems():
+    return problems
 ```
 
 ## Performance Tips
 
-- Use `--verbose 0` for fastest benchmarking (no output overhead)
-- Use `--mode session` for thread-safe execution (recommended for GTPyhop 1.4.0+)
-- Use `--mode legacy` for slightly faster execution (global state, not thread-safe)
+- Use `--verbose 0` for fastest benchmarking (minimal output overhead)
+- Thread-safe sessions are used by default (recommended for GTPyhop 1.7.0+)
+- Use `--legacy-mode` only if you need global state (slightly faster but not thread-safe)
 - For large examples, consider increasing Python's recursion limit if needed
 
 ## Next Steps
@@ -288,6 +312,6 @@ def get_problems():
 - Review individual domain README.md files for detailed documentation
 - Examine generated plans to understand task decomposition
 - Modify problems to test different planning scenarios
-- Add new examples following the GTPyhop 1.6.0+ new structure patterns for [domains](https://github.com/PCfVW/GTPyhop/blob/pip/docs/gtpyhop_actions_methods_style_guide.md) and [problems](https://github.com/PCfVW/GTPyhop/blob/pip/docs/gtpyhop_problems_style_guide.md)
+- Add new examples following the GTPyhop 1.7.0+ new structure patterns for [domains](https://github.com/PCfVW/GTPyhop/blob/pip/docs/gtpyhop_domain_style_guide.md) and [problems](https://github.com/PCfVW/GTPyhop/blob/pip/docs/gtpyhop_problems_style_guide.md)
 - Explore the shared benchmarking infrastructure in `ipc-2020-total-order/benchmarking.py`
 
