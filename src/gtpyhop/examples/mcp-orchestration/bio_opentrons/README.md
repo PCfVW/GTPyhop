@@ -2,7 +2,7 @@
 
 ## Overview
 
-This example demonstrates **cross-server HTN (Hierarchical Task Network) plan execution orchestration** for PCR (Polymerase Chain Reaction) workflow automation using GTPyhop 1.6.0 and the Opentrons Flex robot platform.
+This example demonstrates **cross-server HTN (Hierarchical Task Network) plan execution orchestration** for PCR (Polymerase Chain Reaction) workflow automation using GTPyhop 1.7.0 and the Opentrons Flex robot platform.
 
 ### Key Features
 
@@ -14,12 +14,12 @@ This example demonstrates **cross-server HTN (Hierarchical Task Network) plan ex
 
 | Scenario | Configuration | Actions | Status |
 |----------|---------------|---------|--------|
-| `scenario_1_4samples` | 4 samples, 25 cycles | 55 | ✅ VALID |
-| `scenario_2_8samples` | 8 samples, 30 cycles | 79 | ✅ VALID |
-| `scenario_3_16samples` | 16 samples, 35 cycles | 127 | ✅ VALID |
-| `scenario_4_32samples` | 32 samples, 25 cycles | 223 | ✅ VALID |
-| `scenario_5_48samples` | 48 samples, 30 cycles | 321 | ✅ VALID |
-| `scenario_6_96samples` | 96 samples (full plate), 35 cycles | 611 | ✅ VALID |
+| `scenario_1` | 4 samples, 25 cycles | 55 | ✅ VALID |
+| `scenario_2` | 8 samples, 30 cycles | 79 | ✅ VALID |
+| `scenario_3` | 16 samples, 35 cycles | 127 | ✅ VALID |
+| `scenario_4` | 32 samples, 25 cycles | 223 | ✅ VALID |
+| `scenario_5` | 48 samples, 30 cycles | 321 | ✅ VALID |
+| `scenario_6` | 96 samples (full plate), 35 cycles | 611 | ✅ VALID |
 
 **Note:** Maximum 96 samples due to 96-well plate hardware constraint (8 rows × 12 columns).
 
@@ -119,20 +119,17 @@ plan_length = 31 + 6 × num_samples + 2 × (ceil(n/40) - 1)
 
 ## Usage Examples
 
-### Session-Based Planning (Recommended)
+### Using PlannerSession (Recommended)
 
 ```python
-import sys
-sys.path.insert(0, r'path/to/mcp-orchestration')
-
-from bio_opentrons import the_domain, problems
 import gtpyhop
+from gtpyhop.examples.mcp_orchestration.bio_opentrons import the_domain, problems
 
 # Create planner session
 session = gtpyhop.PlannerSession(the_domain, verbose=1)
 
 # Get problem instance
-state, tasks, desc = problems.get_problems()['scenario_1_4samples']
+state, tasks, desc = problems.get_problems()['scenario_1']
 
 # Find plan
 result = session.find_plan(state, tasks)
@@ -143,7 +140,7 @@ if result.success:
         print(f"  {i}. {action[0]}")
 ```
 
-### Running Benchmarks
+### Using the benchmarking script
 
 ```bash
 cd src/gtpyhop/examples/mcp-orchestration
@@ -191,6 +188,12 @@ The domain actions map directly to Opentrons API commands:
 4. **Error Recovery**: No retry logic modeled; production systems need recovery methods
 5. **Parallelism**: HTN planning is sequential; real opportunity for concurrent thermocycler + robot operations
 
+## Notes
+
+- **Format Version**: Follows GTPyhop 1.7.0+ style guide (v2.0.0)
+- **Unified Scenario Block**: Problems use Configuration → State → Problem structure
+- **MCP Tools**: Actions reference MCP tools but do NOT execute them (planning only)
+
 ## References
 
 - [Opentrons Python API v2](https://docs.opentrons.com/v2/)
@@ -198,5 +201,5 @@ The domain actions map directly to Opentrons API commands:
 - [MCP Protocol](https://modelcontextprotocol.io/)
 
 ---
-*Generated 2025-11-29*
+*Generated 2025-12-14*
 

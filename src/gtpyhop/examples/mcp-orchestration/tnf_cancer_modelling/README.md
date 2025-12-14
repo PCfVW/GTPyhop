@@ -24,6 +24,12 @@ The planner orchestrates 12 primitive actions across two major phases:
 **Task Decomposition:**
 The top-level method decomposes into 14 hierarchical methods that coordinate 12 primitive actions.
 
+## Benchmarking Scenarios
+
+| Scenario | Configuration | Actions | Status |
+|----------|---------------|---------|--------|
+| `scenario_1_multiscale` | TNF gene list (10 genes) | 12 | ✅ VALID |
+
 ## MCP Tools Used
 
 This workflow uses three Model Context Protocol (MCP) tool servers:
@@ -58,56 +64,32 @@ tnf_cancer_modelling/
 
 ## How to Run
 
-### Option 1: Using the domain directly
+### Using PlannerSession (Recommended)
 
 ```python
 import gtpyhop
-from gtpyhop.examples.mcp_orchestration.tnf_cancer_modelling import domain, problems
-
-# Find the plan
-plan = gtpyhop.find_plan(
-    problems.initial_state_scenario_1,
-    [('m_multiscale_tnf_cancer_modeling',)]
-)
-
-# Display the plan
-if plan:
-    print(f"Plan found with {len(plan)} actions:")
-    for i, action in enumerate(plan, 1):
-        print(f"  {i}. {action[0]}")
-else:
-    print("No plan found")
-```
-
-### Option 2: Using PlannerSession (thread-safe, GTPyhop 1.3.0+)
-
-```python
-import gtpyhop
-from gtpyhop.examples.mcp_orchestration.tnf_cancer_modelling import domain, problems
+from gtpyhop.examples.mcp_orchestration.tnf_cancer_modelling import the_domain, problems
 
 # Create a planner session
-session = gtpyhop.PlannerSession(domain.the_domain, verbose=1)
+session = gtpyhop.PlannerSession(the_domain, verbose=1)
+
+# Get problem instance
+state, tasks, desc = problems.get_problems()['scenario_1_multiscale']
 
 # Find the plan
-plan = session.find_plan(
-    problems.initial_state_scenario_1,
-    [('m_multiscale_tnf_cancer_modeling',)]
-)
+result = session.find_plan(state, tasks)
 
-# Display the plan
-if plan:
-    print(f"Plan found with {len(plan)} actions:")
-    for i, action in enumerate(plan, 1):
+if result.success:
+    print(f"Plan found with {len(result.plan)} actions:")
+    for i, action in enumerate(result.plan, 1):
         print(f"  {i}. {action[0]}")
-else:
-    print("No plan found")
 ```
 
-### Option 3: Using the benchmarking script
+### Using the benchmarking script
 
 ```bash
-cd C:\Users\Eric JACOPIN\Documents\Code\Source\GTPyhop\src\gtpyhop\examples\mcp-orchestration
-python benchmarking.py
+cd src/gtpyhop/examples/mcp-orchestration
+python benchmarking.py tnf_cancer_modelling
 ```
 
 ## Expected Output
@@ -127,17 +109,29 @@ The planner should generate a plan with 12 actions:
 11. `a_integrate_maboss_model` - Couple Boolean model to cells
 12. `a_execute_multiscale_simulation` - Run multiscale simulation
 
+## Domain Statistics
+
+- **Primitive Actions**: 12
+- **Methods**: 14
+- **Servers**: 3 (neko, maboss, physicell)
+- **Scenarios**: 1
+
 ## Notes
 
-- **Structure**: Follows GTPyhop 1.4.0 new structure pattern (single `domain.py` file)
+- **Format Version**: Follows GTPyhop 1.7.0+ style guide (v2.0.0)
 - **MCP Tools**: Actions reference MCP tools but do NOT execute them (planning only)
 - **State Properties**: Actions define preconditions and effects on state properties
 - **Workflow Gates**: Properties marked `[ENABLER]` act as workflow gates between phases
-- **Format Version**: v1.1 (following gtpyhop-action-format-design-v1.md and gtpyhop-methods-format-design-v1.md)
+- **Unified Scenario Block**: Problems use Configuration → State → Problem structure
 
 ## References
 
 - MaBoSS: https://maboss.curie.fr/
 - PhysiCell: http://physicell.org/
 - Omnipath: https://omnipathdb.org/
+- GTPyhop Documentation: https://github.com/dananau/GTPyhop
+- MCP Protocol: https://modelcontextprotocol.io/
+
+---
+*Generated 2025-12-14*
 

@@ -2,12 +2,19 @@
 
 ## Overview
 
-This example demonstrates **cross-server HTN (Hierarchical Task Network) plan execution orchestration** using GTPyhop 1.4.0. It showcases how a single HTN planner can coordinate actions across multiple MCP (Model Context Protocol) servers to accomplish complex robotic tasks.
+This example demonstrates **cross-server HTN (Hierarchical Task Network) plan execution orchestration** using GTPyhop 1.7.0+. It showcases how a single HTN planner can coordinate actions across multiple MCP (Model Context Protocol) servers to accomplish complex robotic tasks.
+
+## Benchmarking Scenarios
+
+| Scenario | Configuration | Actions | Status |
+|----------|---------------|---------|--------|
+| `scenario_1_pick_and_place` | Move block_a from table to shelf | 9 | ✅ VALID |
+| `scenario_2_multi_transfer` | Move block_a and block_b to shelf | 15 | ✅ VALID |
 
 ### Three-Server Architecture
 
 1. **Server 1: mcp-python-ingestion** (HTN Planning)
-   - Runs GTPyhop 1.4.0 HTN planner
+   - Runs GTPyhop 1.7.0 HTN planner
    - Generates hierarchical task decomposition
    - Coordinates execution across servers 2 and 3
 
@@ -50,11 +57,18 @@ m_initialize_and_orchestrate(block_a, shelf_pos)
 
 ```
 cross_server/
-├── domain.py       # Domain definition with 9 actions and 5 methods
+├── domain.py       # Domain definition with 9 actions and 6 methods
 ├── problems.py     # Initial state definitions (2 scenarios)
 ├── __init__.py     # Package initialization with get_problems()
 └── README.md       # This file
 ```
+
+## Domain Statistics
+
+- **Primitive Actions**: 9
+- **Methods**: 6
+- **Servers**: 3 (mcp-python-ingestion, robot-server, motion-server)
+- **Scenarios**: 2
 
 ## State Properties
 
@@ -109,70 +123,36 @@ cross_server/
 3. **m_pick_object**: Decompose pick task (move → open → grasp → close → verify)
 4. **m_place_object**: Decompose place task (move → release → open)
 5. **m_move_with_planning**: Move with motion planning (plan → execute)
+6. **m_move_arm_to_position_task**: Wrapper for arm movement action
 
 ## Usage Examples
 
-### Direct Planning (Legacy Mode)
+### Using PlannerSession (Recommended)
 
 ```python
-import sys
-sys.path.insert(0, r'C:\Users\Eric JACOPIN\Documents\Code\Source\GTPyhop\src\gtpyhop\examples\mcp-orchestration')
-
-from cross_server import domain, problems
 import gtpyhop
-
-# Set verbosity
-gtpyhop.verbose = 1
-
-# Find plan
-plan = gtpyhop.find_plan(
-    problems.initial_state_scenario_1,
-    [('m_initialize_and_orchestrate', 'block_a', 'shelf_pos')]
-)
-
-print(f"Plan found with {len(plan)} actions")
-```
-
-### Session-Based Planning (Recommended for GTPyhop 1.4.0)
-
-```python
-import sys
-sys.path.insert(0, r'C:\Users\Eric JACOPIN\Documents\Code\Source\GTPyhop\src\gtpyhop\examples\mcp-orchestration')
-
-from cross_server import domain, problems
-import gtpyhop
+from gtpyhop.examples.mcp_orchestration.cross_server import the_domain, problems
 
 # Create planner session
-session = gtpyhop.PlannerSession(domain.the_domain, verbose=1)
+session = gtpyhop.PlannerSession(the_domain, verbose=1)
+
+# Get problem instance
+state, tasks, desc = problems.get_problems()['scenario_1_pick_and_place']
 
 # Find plan
-result = session.find_plan(
-    problems.initial_state_scenario_1,
-    [('m_initialize_and_orchestrate', 'block_a', 'shelf_pos')]
-)
+result = session.find_plan(state, tasks)
 
 if result.success:
     print(f"Plan found with {len(result.plan)} actions:")
     for i, action in enumerate(result.plan, 1):
         print(f"  {i}. {action[0]}")
-else:
-    print(f"Planning failed: {result.error}")
 ```
 
-### Using Benchmarking Infrastructure
+### Using the benchmarking script
 
 ```bash
-# Navigate to mcp-orchestration directory
-cd C:\Users\Eric JACOPIN\Documents\Code\Source\GTPyhop\src\gtpyhop\examples\mcp-orchestration
-
-# Run benchmarking with session mode (recommended)
-python benchmarking.py cross_server --verbose 1 --mode session
-
-# Run with legacy mode
-python benchmarking.py cross_server --verbose 1 --mode legacy
-
-# Run all problems
-python benchmarking.py cross_server --verbose 1 --mode session --all-problems
+cd src/gtpyhop/examples/mcp-orchestration
+python benchmarking.py cross_server
 ```
 
 ## Expected Plan Output
@@ -236,21 +216,13 @@ python -c "import sys; sys.path.insert(0, '.'); from cross_server import domain,
 
 ## Key Features
 
-### 1. **GTPyhop 1.4.0 Structure**
+### 1. **GTPyhop 1.7.0+ Structure**
 - Single `domain.py` file with all actions and methods
-- `problems.py` with `initial_state_` prefix convention
+- `problems.py` with Unified Scenario Block format (Configuration → State → Problem)
 - `__init__.py` with `get_problems()` function for automatic discovery
 
-### 2. **8-Tag Docstrings**
-All actions and methods include complete documentation:
-- Class (Action/Method)
-- MCP_Tool (server mapping)
-- Signature
-- Parameters
-- Purpose
-- Preconditions (actions only)
-- Effects (actions only)
-- Returns
+### 2. **Complete Docstrings**
+All actions and methods include complete documentation following the style guide
 
 ### 3. **Code Markers**
 Actions use structured markers:
@@ -309,7 +281,10 @@ Check that the initial state includes:
 ## References
 
 - **GTPyhop Documentation**: https://github.com/dananau/GTPyhop
-- **MCP Protocol**: Model Context Protocol for server communication
+- **MCP Protocol**: https://modelcontextprotocol.io/
 - **HTN Planning**: Hierarchical Task Network planning methodology
+
+---
+*Generated 2025-12-14*
 
 

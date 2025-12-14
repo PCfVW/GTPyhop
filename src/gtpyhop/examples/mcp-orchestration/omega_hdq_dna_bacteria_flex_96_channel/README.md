@@ -2,7 +2,7 @@
 
 ## Overview
 
-This example demonstrates **multi-server HTN (Hierarchical Task Network) plan execution orchestration** for DNA extraction workflow automation using GTPyhop 1.6.0 and the Opentrons Flex robot platform with magnetic bead-based purification.
+This example demonstrates **multi-server HTN (Hierarchical Task Network) plan execution orchestration** for DNA extraction workflow automation using GTPyhop 1.7.0 and the Opentrons Flex robot platform with magnetic bead-based purification.
 
 ### Key Features
 
@@ -183,5 +183,5 @@ Based on [Opentrons Flex protocol](https://library.opentrons.com/p/HDQ_DNA_Flex_
 - [MCP Protocol](https://modelcontextprotocol.io/)
 
 ---
-*Generated 2025-11-29*
+*Generated 2025-12-14*
 
