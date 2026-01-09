@@ -1,7 +1,7 @@
 # GTPyhop Version History
 
 ## 1.7.0 — MCP Orchestration Enhancements & Consistency Updates (Latest, Recommended)
-**In Development**
+**Uploaded to PyPI: https://pypi.org/project/gtpyhop/1.7.0/**
 
 🚀 **Major Features:**
 - **🔧 Bug Fixes** - Fixed critical planning issues in MCP orchestration examples
@@ -68,8 +68,8 @@
   - Updated to version 2.1.0
   - Consistent with GTPyhop 1.7.0
 
-## 1.6.0 — Documentation Fixes
-**Soon uploaded to PyPI: https://pypi.org/project/gtpyhop/1.6.0/**
+## 1.6.0 — Two new examples & Two new style guides
+**Uploaded to PyPI: https://pypi.org/project/gtpyhop/1.6.0/**
 
 🚀 **Major Features:**
 - **📖 Documentation** - `domain.py` and `problems.py` style guides
