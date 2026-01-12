@@ -1,8 +1,8 @@
 # GTPyhop Structured Logging System
 
-GTPyhop 1.3.0 introduces a comprehensive structured logging system that replaces traditional print statements with configurable, thread-safe logging. This system provides programmatic access to planning logs, statistics, and debugging information.
+GTPyhop 1.3.0 introduced a comprehensive structured logging system that replaces traditional print statements with configurable, thread-safe logging. GTPyhop 1.8.0 adds real-time memory tracking capabilities. This system provides programmatic access to planning logs, statistics, and performance metrics.
 
-## 🎯 Why Structured Logging?
+## Why Structured Logging?
 
 **Traditional challenges:**
 - Print statements mixed with actual output
@@ -15,16 +15,17 @@ GTPyhop 1.3.0 introduces a comprehensive structured logging system that replaces
 - **Thread isolation**: Each session maintains separate logs
 - **Configurable output**: Control verbosity and formatting
 - **Performance monitoring**: Built-in statistics and performance metrics
+- **Memory tracking**: Real-time memory usage monitoring (1.8.0+)
 - **Backward compatibility**: Existing print-based output still works
 
-## 🔧 How It Works
+## How It Works
 
 The logging system operates in both legacy and session modes:
 
 **Legacy Mode:** Uses global logging with backward-compatible print output
 **Session Mode:** Each `PlannerSession` has isolated logging with structured data collection
 
-## 📊 Log Levels and Components
+## Log Levels and Components
 
 **Available log levels:**
 - `DEBUG` (0): Detailed debugging information
@@ -39,7 +40,7 @@ The logging system operates in both legacy and session modes:
 - `session`: Session management
 - `stdout_capture`: Captured print statements
 
-## 💻 Basic Usage Examples
+## Basic Usage Examples
 
 **Import note:** All logging classes and functions are available directly from the main `gtpyhop` module:
 
@@ -117,7 +118,7 @@ with gtpyhop.PlannerSession(domain=logistics_domain, verbose=3) as session:
                 print(f"  {error['message']}")
 ```
 
-## 🧵 Thread-Safe Concurrent Logging
+## Thread-Safe Concurrent Logging
 
 Each session maintains isolated logs, making concurrent planning safe:
 
@@ -159,9 +160,11 @@ for session_id, data in results.items():
           f"plan length: {len(data['result'].plan) if data['result'].success else 'failed'}")
 ```
 
-## 📈 Performance Monitoring
+## Performance Monitoring
 
-The logging system includes built-in performance monitoring:
+### Logging Statistics
+
+The logging system includes built-in performance monitoring for log entries:
 
 ```python
 import gtpyhop
@@ -179,7 +182,105 @@ with gtpyhop.PlannerSession(domain=my_domain, verbose=2) as session:
         print(f"  Entries by level: {stats.entries_by_level}")
 ```
 
-## 🔄 Legacy Mode Compatibility
+### Memory Tracking (1.8.0+)
+
+GTPyhop 1.8.0 introduces real-time memory tracking using the `psutil` library. This enables accurate measurement of memory consumption during planning, including detection of transient memory spikes.
+
+**Two tracking approaches:**
+
+| Approach | Class | Use Case |
+|----------|-------|----------|
+| Point-in-time | `MemoryTracker` | Lightweight, explicit sampling |
+| Background monitoring | `MemoryMonitor` | Accurate peak detection |
+
+#### Basic Memory Tracking
+
+```python
+from gtpyhop.memory_tracking import MemoryTracker, MEMORY_TRACKING_AVAILABLE
+
+if MEMORY_TRACKING_AVAILABLE:
+    tracker = MemoryTracker()
+    tracker.start_session_tracking("my_session")
+
+    # ... do planning work ...
+
+    stats = tracker.get_session_memory("my_session")
+    print(f"Current memory: {stats['memory_mb']:.2f} MB")
+    print(f"Peak memory: {stats['peak_memory_mb']:.2f} MB")
+
+    final_stats = tracker.stop_session_tracking("my_session")
+```
+
+#### Background Memory Monitoring
+
+For accurate peak detection (captures spikes between explicit measurements):
+
+```python
+from gtpyhop.memory_tracking import MemoryMonitor, MEMORY_TRACKING_AVAILABLE
+import psutil
+
+if MEMORY_TRACKING_AVAILABLE:
+    # Create monitor with 100ms sampling interval
+    monitor = MemoryMonitor(sampling_interval=0.1)
+
+    # Get baseline before starting
+    baseline = psutil.Process().memory_info().rss / 1024 / 1024
+    monitor.start_monitoring("my_session", baseline)
+
+    # ... do memory-intensive planning ...
+
+    # Force an immediate sample (useful for fast operations)
+    monitor.sample_now("my_session")
+
+    # Stop and get statistics
+    stats = monitor.stop_monitoring("my_session")
+    print(f"Peak memory: {stats['peak_memory_mb']:.2f} MB")
+    print(f"Average memory: {stats['avg_memory_mb']:.2f} MB")
+
+    # Stop the background thread when done
+    monitor.stop()
+```
+
+#### Integrated Session Memory Tracking
+
+`PlannerSession` integrates memory tracking automatically:
+
+```python
+import gtpyhop
+
+with gtpyhop.PlannerSession(
+    domain=my_domain,
+    memory_tracking=True,
+    memory_sampling_interval=0.001  # 1ms for accurate peaks
+) as session:
+    with session.isolated_execution():
+        result = session.find_plan(state, tasks)
+
+        if result.success:
+            print(f"Plan: {len(result.plan)} actions")
+            print(f"Memory used: {result.stats['memory_mb']:.2f} MB")
+            print(f"Peak memory: {result.stats['peak_memory_mb']:.2f} MB")
+```
+
+#### Why Background Monitoring?
+
+GTPyhop creates deep copies of states when applying actions (to preserve the original state if the action fails). With large state objects or many action applications, these temporary copies can cause significant memory spikes that are garbage collected before planning completes:
+
+```
+Session starts:    baseline = 100 MB
+During planning:   memory spikes to 500 MB (action state copies)
+GC runs:           memory drops to 150 MB
+Session ends:      point-in-time sees 150 MB, misses the 500 MB spike!
+```
+
+Background monitoring (0.1s interval) captures the true peak.
+
+**Requirements:**
+- `psutil>=5.8.0` (automatically installed with GTPyhop from PyPI)
+
+**See also:** [Memory Tracking Examples](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/memory_tracking/README.md)
+
+## Legacy Mode Compatibility
 
 The logging system maintains backward compatibility with existing code:
 
@@ -194,7 +295,7 @@ logs = logger.get_logs()
 print(f"Legacy planning generated {len(logs)} log entries")
 ```
 
-## 🛠️ Advanced Features
+## Advanced Features
 
 ### **Stdout Capture**
 
@@ -232,7 +333,7 @@ def filter_planning_logs(logs, component_filter=None, min_level='INFO'):
 planning_logs = filter_planning_logs(logs, component_filter='FP', min_level='INFO')
 ```
 
-## 🎓 Integration with Examples
+## Integration with Examples
 
 All migrated examples support structured logging in session mode:
 
@@ -259,3 +360,9 @@ with gtpyhop.PlannerSession(domain=the_domain, verbose=2) as session:
         method_calls = [log for log in logs if 'method' in log.get('context', {})]
         print(f"Called {len(method_calls)} methods during planning")
 ```
+
+## Related Documentation
+
+- [Memory Tracking Examples](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/memory_tracking/README.md) - Scalability examples with memory profiling
+- [Thread-Safe Sessions](https://github.com/PCfVW/GTPyhop/blob/pip/docs/thread_safe_sessions.md) - Session-based architecture guide
+- [All Examples Guide](https://github.com/PCfVW/GTPyhop/blob/pip/docs/all_examples.md) - Comprehensive example documentation
