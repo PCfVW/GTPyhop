@@ -1,17 +1,17 @@
 """
-Scalable Data Processing HTN Domain for GTPyhop Memory Tracking
+Scalable Data Processing - Memory Tracking Example for GTPyhop
 
-This package demonstrates memory tracking capabilities with:
-  - Scalable memory-intensive planning operations
-  - Real memory usage measurement using psutil
-  - Memory usage scaling from 1K to 100K data points
+This example demonstrates memory scaling behavior when planning complexity
+arises from large data structures rather than recursive decomposition.
 
-Features:
-  - Dynamic data size scaling (1K to 100K+ data points)
-  - Plan length: 6 actions (consistent across all scenarios)
-  - Memory scaling: ~2 MB to ~120 MB depending on data size
+Memory behavior is controlled via state configuration properties:
+    - config_data_size: Number of data items (1K to 1M)
+    - config_data_type: 'int', 'string', or 'dict'
+    - config_num_transforms: Number of transformation copies (1-16)
+    - config_accumulate: Keep all intermediate results
+    - config_cleanup: Release memory at end
 
--- Generated 2026-01-09
+-- Generated 2026-01-12
 """
 
 import sys
@@ -56,7 +56,6 @@ except ImportError:
 from . import domain
 from . import problems
 
-# Export the domain
 the_domain = domain.the_domain
 
 # ============================================================================
@@ -64,22 +63,11 @@ the_domain = domain.the_domain
 # ============================================================================
 
 def get_problems() -> Dict[str, Tuple[gtpyhop.State, List[Tuple], str]]:
-    """
-    Return all problem definitions for benchmarking.
-
-    Returns:
-        Dictionary mapping problem IDs to (state, task, description) tuples
-    """
+    """Return all problem definitions for benchmarking."""
     return problems.get_problems()
 
 # ============================================================================
 # EXPORTS
 # ============================================================================
 
-__all__ = [
-    'domain',
-    'problems',
-    'the_domain',
-    'get_problems',
-    'GTPYHOP_SOURCE'
-]
+__all__ = ['domain', 'problems', 'the_domain', 'get_problems', 'GTPYHOP_SOURCE']

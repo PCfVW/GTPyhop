@@ -22,18 +22,18 @@ Scenarios (20 total):
 import sys
 import os
 
+# ============================================================================
+# GTPYHOP IMPORT (with graceful degradation for direct imports)
+# ============================================================================
+
 try:
     import gtpyhop
     from gtpyhop import State
 except ImportError:
-    try:
-        sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..', '..'))
-        import gtpyhop
-        from gtpyhop import State
-    except ImportError as e:
-        print(f"Error: Could not import gtpyhop: {e}")
-        print("Please install gtpyhop using: pip install gtpyhop")
-        sys.exit(1)
+    # Graceful degradation: supports direct problems.py import (unsupported but functional)
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..', '..'))
+    import gtpyhop
+    from gtpyhop import State
 
 # ============================================================================
 # HELPER FUNCTIONS

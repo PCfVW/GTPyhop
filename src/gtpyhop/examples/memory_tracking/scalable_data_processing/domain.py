@@ -19,18 +19,18 @@ import sys
 import os
 from typing import Optional, Union, List, Tuple, Dict
 
-# Secure GTPyhop import strategy
+# ============================================================================
+# GTPYHOP IMPORT (with graceful degradation for direct imports)
+# ============================================================================
+
 try:
     import gtpyhop
     from gtpyhop import Domain, State, declare_actions, declare_task_methods, set_current_domain
 except ImportError:
-    try:
-        sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..', '..'))
-        import gtpyhop
-        from gtpyhop import Domain, State, declare_actions, declare_task_methods, set_current_domain
-    except ImportError as e:
-        print(f"Error: Could not import gtpyhop: {e}")
-        sys.exit(1)
+    # Graceful degradation: supports direct domain.py import (unsupported but functional)
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..', '..'))
+    import gtpyhop
+    from gtpyhop import Domain, State, declare_actions, declare_task_methods, set_current_domain
 
 # ============================================================================
 # DOMAIN
