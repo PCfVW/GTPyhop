@@ -3,24 +3,26 @@
 
 ################################################################################
 #                                                                              #
-#                              GTPyhop 1.7.0                                   #
+#                              GTPyhop 1.8.0                                   #
 #                                                                              #
 #                    Goal-Task-Network Planning System                         #
 #                                                                              #
 ################################################################################
 
 """
-GTPyhop 1.7.0: A Goal-Task-Network planning system with session-based architecture
+GTPyhop 1.8.0: A Goal-Task-Network planning system with session-based architecture
 
 GTPyhop is an automated planning system that can plan for both tasks and goals.
 Version 1.3.0 introduces session-based planning for better isolation, structured
 logging for improved debugging, timeout management, and persistence capabilities.
 Version 1.5.0 introduces MCP orchestration examples.
 Version 1.7.0 introduces enhanced MCP orchestration, bug fixes, and documentation updates.
+Version 1.8.0 introduces accurate memory tracking with background monitoring using psutil.
 
 Original Author: Dana Nau <nau@umd.edu>, July 7, 2021
 pip install project architecture: Eric Jacopin, 2025
 Session Architecture: Eric Jacopin, 2025
+Memory Tracking: Eric Jacopin, 2026
 
 Key Features:
 - Hierarchical Task Network (HTN) planning
@@ -29,7 +31,18 @@ Key Features:
 - Structured logging with programmatic access
 - Cross-platform timeout enforcement and resource management
 - Session persistence and recovery mechanisms
+- Memory tracking with accurate peak detection via background monitoring
 - 100% backward compatibility with GTPyhop v1.2.1
+
+Memory Tracking (New in 1.8.0):
+- Uses psutil for real memory measurement (not time-based estimates)
+- Background thread sampling (0.1s interval) captures true peak memory
+- Disabled by default (memory_tracking=False) - no overhead unless enabled
+- Graceful fallback when psutil is unavailable
+
+    with PlannerSession(domain=my_domain, memory_tracking=True) as session:
+        result = session.find_plan(state, tasks)
+        print(f"Peak memory: {result.stats['peak_memory_mb']:.2f} MB")
 
 This file contains the complete GTPyhop implementation organized into logical
 sections for improved maintainability while preserving the single-file
@@ -1825,7 +1838,86 @@ class ResourceManager:
     """Cross-platform resource management for planning operations."""
 
     _cancellation_flags = {}  # session_id -> threading.Event
-    _memory_tracking = {}     # session_id -> memory stats
+    _memory_tracker = None    # Lazy-initialized MemoryTracker instance
+    _memory_monitor = None    # Lazy-initialized MemoryMonitor instance
+
+    @staticmethod
+    def _get_tracker():
+        """Get or create memory tracker instance (lazy initialization)."""
+        if ResourceManager._memory_tracker is None:
+            try:
+                from .memory_tracking import MemoryTracker, MEMORY_TRACKING_AVAILABLE
+                if MEMORY_TRACKING_AVAILABLE:
+                    ResourceManager._memory_tracker = MemoryTracker()
+                else:
+                    ResourceManager._memory_tracker = None
+            except ImportError:
+                ResourceManager._memory_tracker = None
+        return ResourceManager._memory_tracker
+
+    # Default sampling interval for memory monitoring
+    _sampling_interval: float = 0.1
+
+    @staticmethod
+    def _get_monitor(sampling_interval: Optional[float] = None):
+        """Get or create memory monitor instance (lazy initialization).
+
+        Args:
+            sampling_interval: Seconds between memory samples. If provided and different
+                from current monitor's interval, recreates the monitor.
+        """
+        interval = sampling_interval if sampling_interval is not None else ResourceManager._sampling_interval
+
+        # Check if we need to recreate with a different interval
+        if ResourceManager._memory_monitor is not None:
+            if hasattr(ResourceManager._memory_monitor, 'sampling_interval'):
+                if ResourceManager._memory_monitor.sampling_interval != interval:
+                    # Stop existing monitor and recreate with new interval
+                    ResourceManager._memory_monitor = None
+
+        if ResourceManager._memory_monitor is None:
+            try:
+                from .memory_tracking import MemoryMonitor, MEMORY_TRACKING_AVAILABLE
+                if MEMORY_TRACKING_AVAILABLE and MemoryMonitor is not None:
+                    ResourceManager._memory_monitor = MemoryMonitor(sampling_interval=interval)
+                    ResourceManager._sampling_interval = interval
+                else:
+                    ResourceManager._memory_monitor = None
+            except ImportError:
+                ResourceManager._memory_monitor = None
+        return ResourceManager._memory_monitor
+
+    @staticmethod
+    def reset():
+        """Reset all cached state for fresh benchmarking.
+
+        This method clears the singleton instances (_memory_monitor, _memory_tracker)
+        and cancellation flags. Call this before each benchmark run to ensure
+        measurements are not affected by previous runs.
+
+        Also triggers garbage collection to release any accumulated memory.
+        """
+        import gc
+
+        # Stop and clear memory monitor
+        if ResourceManager._memory_monitor is not None:
+            try:
+                ResourceManager._memory_monitor.stop()
+            except Exception:
+                pass
+            ResourceManager._memory_monitor = None
+
+        # Clear memory tracker
+        ResourceManager._memory_tracker = None
+
+        # Clear cancellation flags
+        ResourceManager._cancellation_flags.clear()
+
+        # Reset sampling interval to default
+        ResourceManager._sampling_interval = 0.1
+
+        # Force garbage collection
+        gc.collect()
 
     @staticmethod
     def with_timeout(timeout_ms: Optional[int] = None, session_id: Optional[str] = None):
@@ -1910,49 +2002,106 @@ class ResourceManager:
                 raise PlanningTimeoutError("Planning cancelled due to timeout")
 
     @staticmethod
-    def start_memory_tracking(session_id: str):
-        """Start lightweight memory tracking for a session."""
-        # Use lightweight tracking - just record start time and basic info
-        ResourceManager._memory_tracking[session_id] = {
-            'start_time': time.time(),
-            'start_memory': 0,  # Placeholder for more sophisticated tracking if needed
-            'peak_memory': 0
-        }
+    def start_memory_tracking(session_id: str, sampling_interval: Optional[float] = None):
+        """Start memory tracking for a session using psutil with background monitoring.
+
+        Args:
+            session_id: Unique session identifier
+            sampling_interval: Seconds between memory samples (default: 0.1s).
+                Lower values capture faster peaks but add overhead.
+        """
+        tracker = ResourceManager._get_tracker()
+        monitor = ResourceManager._get_monitor(sampling_interval)
+
+        if tracker is not None:
+            tracker.start_session_tracking(session_id)
+
+            # Also start background monitoring for accurate peak detection
+            if monitor is not None:
+                try:
+                    import psutil
+                    baseline = psutil.Process().memory_info().rss / 1024 / 1024
+                    monitor.start_monitoring(session_id, baseline)
+                except Exception:
+                    pass  # Continue without monitoring if it fails
+            return True
+        return False
 
     @staticmethod
     def get_memory_usage(session_id: str) -> Dict[str, Any]:
-        """Get lightweight memory usage estimate for a session."""
-        if session_id not in ResourceManager._memory_tracking:
-            return {'memory_mb': 0, 'peak_memory_mb': 0}
+        """Get actual memory usage for a session with accurate peak from background monitoring."""
+        tracker = ResourceManager._get_tracker()
+        monitor = ResourceManager._get_monitor()
 
-        try:
-            # Use lightweight memory estimation
-            # For now, return minimal overhead tracking
-            tracking_data = ResourceManager._memory_tracking[session_id]
+        # Get current memory from tracker
+        if tracker is not None:
+            tracker_stats = tracker.get_session_memory(session_id)
+        else:
+            tracker_stats = {'memory_mb': 0.0, 'peak_memory_mb': 0.0}
 
-            # Simple estimation based on time elapsed (placeholder)
-            elapsed_time = time.time() - tracking_data['start_time']
-            estimated_memory = min(elapsed_time * 0.1, 10.0)  # Very rough estimate
+        # Take an immediate sample to capture current memory state
+        # This is critical for fast operations that complete before background sampling
+        if monitor is not None:
+            monitor.sample_now(session_id)
 
-            # Update peak if needed
-            tracking_data['peak_memory'] = max(tracking_data['peak_memory'], estimated_memory)
+        # Get peak from monitor (more accurate due to background sampling)
+        if monitor is not None and session_id in monitor.monitoring_sessions:
+            with monitor._lock:
+                session_data = monitor.monitoring_sessions.get(session_id)
+                if session_data and session_data['samples']:
+                    peak_from_monitor = max(session_data['samples']) - session_data['baseline_memory']
+                    # Use the higher peak value (monitor is more accurate)
+                    tracker_stats['peak_memory_mb'] = max(tracker_stats['peak_memory_mb'], peak_from_monitor)
 
-            return {
-                'memory_mb': estimated_memory,
-                'peak_memory_mb': tracking_data['peak_memory']
-            }
-        except Exception:
-            return {'memory_mb': 0, 'peak_memory_mb': 0}
+        return tracker_stats
 
     @staticmethod
-    def stop_memory_tracking(session_id: str):
-        """Stop memory tracking for a session."""
-        if session_id in ResourceManager._memory_tracking:
-            del ResourceManager._memory_tracking[session_id]
+    def stop_memory_tracking(session_id: str) -> Dict[str, float]:
+        """Stop memory tracking for a session and return final stats including accurate peak."""
+        tracker = ResourceManager._get_tracker()
+        monitor = ResourceManager._get_monitor()
+
+        # Get final stats from monitor first (before stopping)
+        monitor_stats = {'peak_memory_mb': 0.0, 'avg_memory_mb': 0.0}
+        if monitor is not None:
+            monitor_stats = monitor.stop_monitoring(session_id)
+
+        # Stop tracker
+        if tracker is not None:
+            tracker.stop_session_tracking(session_id)
 
         # Clean up cancellation flags
         if session_id in ResourceManager._cancellation_flags:
             del ResourceManager._cancellation_flags[session_id]
+
+        return monitor_stats
+
+    @staticmethod
+    def sample_memory(session_id: Optional[str] = None):
+        """
+        Take an immediate memory sample for one or all active sessions.
+
+        This is useful for capturing memory at specific points during execution,
+        particularly for fast operations that complete before the background
+        monitoring thread can sample.
+
+        Args:
+            session_id: If provided, sample only this session.
+                       If None, sample all active sessions.
+
+        Note:
+            This is a no-op if no monitor exists (i.e., no sessions have
+            memory tracking enabled). It will NOT create a monitor, ensuring
+            zero overhead when memory tracking is disabled.
+
+        Example:
+            >>> ResourceManager.sample_memory("my_session")  # Force a sample
+            >>> # Or call from within domain actions for fine-grained tracking
+        """
+        # Only sample if a monitor already exists - don't create one
+        # This ensures zero overhead when memory tracking is disabled
+        if ResourceManager._memory_monitor is not None:
+            ResourceManager._memory_monitor.sample_now(session_id)
 
 ################################################################################
 # Session Management Classes
@@ -1965,7 +2114,9 @@ class PlannerSession:
                  verbose: int = 0,
                  recursive: bool = False,
                  structured_logging: bool = True,
-                 auto_cleanup: bool = True):
+                 auto_cleanup: bool = True,
+                 memory_tracking: bool = False,
+                 memory_sampling_interval: Optional[float] = None):
         """
         Initialize a new planning session.
 
@@ -1976,6 +2127,10 @@ class PlannerSession:
             recursive: Use recursive planning strategy
             structured_logging: Enable structured logging
             auto_cleanup: Automatically clean up resources
+            memory_tracking: Enable psutil-based memory tracking with background
+                monitoring for accurate peak detection (default: False)
+            memory_sampling_interval: Seconds between memory samples when tracking
+                is enabled (default: 0.1s). Lower values capture faster peaks.
         """
         self.session_id = session_id or f"session_{uuid.uuid4().hex[:8]}"
         self.domain = domain
@@ -1983,6 +2138,8 @@ class PlannerSession:
         self.recursive = recursive
         self.structured_logging = structured_logging
         self.auto_cleanup = auto_cleanup
+        self.memory_tracking = memory_tracking
+        self.memory_sampling_interval = memory_sampling_interval
 
         # Session state
         self._created_at = time.time()
@@ -1999,8 +2156,9 @@ class PlannerSession:
             "cancellations": 0
         }
 
-        # Start memory tracking
-        ResourceManager.start_memory_tracking(self.session_id)
+        # Start memory tracking if enabled
+        if self.memory_tracking:
+            ResourceManager.start_memory_tracking(self.session_id, self.memory_sampling_interval)
 
         # Logging setup
         if structured_logging and _STRUCTURED_LOGGING_AVAILABLE:
@@ -2144,14 +2302,17 @@ class PlannerSession:
                 self._stats["errors"] += 1
                 self._log_operation("find_plan_error", error=str(e))
 
-            # Always update timing and memory stats
+            # Always update timing stats
             duration_ms = int((time.time() - start_time) * 1000)
             self._stats["total_planning_time_ms"] += duration_ms
 
-            # Update memory statistics
-            memory_stats = ResourceManager.get_memory_usage(self.session_id)
-            self._stats["memory_usage_mb"] = memory_stats["memory_mb"]
-            self._stats["peak_memory_mb"] = max(self._stats["peak_memory_mb"], memory_stats["peak_memory_mb"])
+            # Update memory statistics if tracking is enabled
+            if self.memory_tracking:
+                memory_stats = ResourceManager.get_memory_usage(self.session_id)
+                self._stats["memory_usage_mb"] = memory_stats["memory_mb"]
+                self._stats["peak_memory_mb"] = max(self._stats["peak_memory_mb"], memory_stats["peak_memory_mb"])
+            else:
+                memory_stats = {"memory_mb": 0.0, "peak_memory_mb": 0.0}
 
             # Ensure result has complete stats
             if not result.stats:
@@ -2161,7 +2322,7 @@ class PlannerSession:
                 "duration_ms": duration_ms,
                 "expansions": getattr(self, '_last_expansions', 0),
                 "strategy": "recursive" if self.recursive else "iterative",
-                "memory_usage_mb": memory_stats["memory_mb"],
+                "memory_mb": memory_stats["memory_mb"],
                 "peak_memory_mb": memory_stats["peak_memory_mb"]
             })
 
@@ -2241,14 +2402,17 @@ class PlannerSession:
                 self._stats["errors"] += 1
                 self._log_operation("run_lazy_lookahead_error", error=str(e))
 
-            # Always update timing and memory stats
+            # Always update timing stats
             duration_ms = int((time.time() - start_time) * 1000)
             self._stats["total_execution_time_ms"] += duration_ms
 
-            # Update memory statistics
-            memory_stats = ResourceManager.get_memory_usage(self.session_id)
-            self._stats["memory_usage_mb"] = memory_stats["memory_mb"]
-            self._stats["peak_memory_mb"] = max(self._stats["peak_memory_mb"], memory_stats["peak_memory_mb"])
+            # Update memory statistics if tracking is enabled
+            if self.memory_tracking:
+                memory_stats = ResourceManager.get_memory_usage(self.session_id)
+                self._stats["memory_usage_mb"] = memory_stats["memory_mb"]
+                self._stats["peak_memory_mb"] = max(self._stats["peak_memory_mb"], memory_stats["peak_memory_mb"])
+            else:
+                memory_stats = {"memory_mb": 0.0, "peak_memory_mb": 0.0}
 
             # Ensure result has complete stats
             if not result.stats:
@@ -2258,7 +2422,7 @@ class PlannerSession:
                 "duration_ms": duration_ms,
                 "tries_used": result.tries_used,
                 "executed_actions": len(result.executed_actions),
-                "memory_usage_mb": memory_stats["memory_mb"],
+                "memory_mb": memory_stats["memory_mb"],
                 "peak_memory_mb": memory_stats["peak_memory_mb"]
             })
 
@@ -2487,8 +2651,9 @@ class PlannerSession:
                     destroy_logger(self.session_id)
                 self.logger = None
 
-            # Stop resource tracking
-            ResourceManager.stop_memory_tracking(self.session_id)
+            # Stop resource tracking if it was enabled
+            if self.memory_tracking:
+                ResourceManager.stop_memory_tracking(self.session_id)
 
             # Clear references
             self.domain = None
