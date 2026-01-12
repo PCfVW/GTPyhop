@@ -1,8 +1,21 @@
-# GTPyhop 1.4.0 HTN Planning Examples
+# GTPyhop 1.8.0 HTN Planning Examples
 
-This document provides pedagogical details about all HTN Planning examples included with GTPyhop 1.4.0. Each example demonstrates different aspects of hierarchical task network planning, from basic concepts to advanced techniques.
+This document provides pedagogical details about all HTN Planning examples included with GTPyhop 1.8.0. Each example demonstrates different aspects of hierarchical task network planning, from basic concepts to advanced techniques.
 
-## 🎓 Learning Path
+## Table of Contents
+
+1. [Learning Path](#-learning-path)
+2. [Simple Examples](#-simple-examples-basic-concepts)
+3. [Complex Block World Examples](#-complex-block-world-examples-advanced-scenarios)
+4. [IPC 2020 Total Order Examples](#-ipc-2020-total-order-examples)
+5. [MCP Orchestration Examples](#-mcp-orchestration-examples)
+6. [Memory Tracking Examples](#-memory-tracking-examples-180)
+7. [Running the Examples](#-running-the-examples)
+8. [Pedagogical Recommendations](#-pedagogical-recommendations)
+
+---
+
+## Learning Path
 
 **Recommended order for learning:**
 1. **simple_htn.py** - Start here for basic HTN concepts
@@ -16,7 +29,9 @@ This document provides pedagogical details about all HTN Planning examples inclu
 9. **blocks_gtn/** - Mixed task/goal planning
 10. **blocks_goal_splitting/** - Built-in goal splitting methods
 
-## 📚 Simple Examples (Basic Concepts)
+---
+
+## Simple Examples (Basic Concepts)
 
 ### simple_htn.py - Basic Hierarchical Task Networks
 **Purpose:** Introduction to HTN planning fundamentals
@@ -105,7 +120,9 @@ This document provides pedagogical details about all HTN Planning examples inclu
 
 **Educational Value:** Helps users familiar with Pyhop understand GTPyhop's enhanced capabilities.
 
-## 🏗️ Complex Block World Examples (Advanced Scenarios)
+---
+
+## Complex Block World Examples (Advanced Scenarios)
 
 ### blocks_htn/ - Advanced Hierarchical Task Networks
 **Purpose:** Complex HTN methods for blocks world manipulation
@@ -169,7 +186,9 @@ This document provides pedagogical details about all HTN Planning examples inclu
 
 **Educational Value:** Illustrates both the power and limitations of automatic goal decomposition methods.
 
-## 🏆 IPC 2020 Total Order Examples
+---
+
+## IPC 2020 Total Order Examples
 
 ### Blocksworld-GTOHP and Childsnack Domains
 **Purpose:** Competition-grade planning domains
@@ -186,54 +205,173 @@ This document provides pedagogical details about all HTN Planning examples inclu
 
 **Educational Value:** Shows how GTPyhop handles competition-grade planning problems.
 
-## 🌐 MCP Orchestration Examples
+**Documentation:** [Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/ipc-2020-total-order/benchmarking_quickstart.md)
 
-### Cross-Server HTN Plan Execution
-**Purpose:** Demonstrate cross-server orchestration with HTN planning
-**Location:** `src/gtpyhop/examples/mcp-orchestration/cross_server/`
+---
+
+## MCP Orchestration Examples
+
+**Location:** `src/gtpyhop/examples/mcp-orchestration/`
+
+MCP (Model Context Protocol) is an open-source standard from Anthropic for connecting AI applications to external systems.
+
+### Bio-Opentrons PCR Workflow (1.6.0+)
+**Purpose:** PCR workflow automation with Opentrons Flex robots
+**Location:** `mcp-orchestration/bio_opentrons/`
+**Scenarios:** 6 scenarios (4 to 96 samples)
+
+**Key Learning Points:**
+- Multi-server robot coordination
+- Dynamic sample scaling
+- Laboratory automation workflows
+
+**Core Concepts Demonstrated:**
+- **Three-Server Architecture:** Deck, pipette, and protocol servers
+- **Actions (18):** Tip handling, liquid transfers, thermal cycling
+- **Methods (15):** PCR workflow orchestration
+
+**Documentation:** [Bio-Opentrons README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/bio_opentrons/README.md)
+
+### Cross-Server Orchestration (1.5.0+)
+**Purpose:** Cross-server coordination with HTN planning
+**Location:** `mcp-orchestration/cross_server/`
+**Scenarios:** 2 scenarios (9-15 actions)
+
 **Key Learning Points:**
 - Multi-server coordination using HTN planning
-- Model Context Protocol (MCP) integration patterns
 - Robot manipulation task decomposition
 - Cross-server action orchestration
 
 **Core Concepts Demonstrated:**
-- **Three-Server Architecture:**
-  - Server 1 (mcp-python-ingestion): HTN planning with GTPyhop
-  - Server 2 (robot-server): Robot gripper actions (mock)
-  - Server 3 (motion-server): Arm motion planning (mock)
-- **Actions (9):** Server initialization, gripper control, motion planning, grasp verification
-- **Methods (5):** Pick-and-place orchestration, task decomposition
-- **State Properties (15):** Server status, robot state, object tracking, motion planning
-
-**Educational Value:** Demonstrates how a single HTN planner can coordinate actions across multiple specialized servers to accomplish complex robotic tasks.
+- **Three-Server Architecture:** HTN planning, robot gripper, motion planning
+- **Actions (9):** Server initialization, gripper control, motion planning
+- **Methods (5):** Pick-and-place orchestration
 
 **Documentation:** [Cross-Server README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/cross_server/README.md)
 
-### TNF Cancer Modelling Workflow
+### Drug Target Discovery (1.7.0+)
+**Purpose:** Drug target discovery pipeline using OpenTargets platform
+**Location:** `mcp-orchestration/drug_target_discovery/`
+**Scenarios:** 3 scenarios (8 actions each)
+
+**Key Learning Points:**
+- Scientific workflow orchestration
+- External platform integration
+- Drug discovery pipelines
+
+**Core Concepts Demonstrated:**
+- **Workflow Stages:** Data retrieval, analysis, ranking
+- **Actions (8):** Query, analyze, rank targets
+- **Methods (3):** Discovery pipeline orchestration
+
+**Documentation:** [Drug Target Discovery README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/drug_target_discovery/README.md)
+
+### Omega HDQ DNA Extraction (1.6.0+)
+**Purpose:** DNA extraction workflow with Opentrons Flex 96-channel
+**Location:** `mcp-orchestration/omega_hdq_dna_bacteria_flex_96_channel/`
+**Scenarios:** 3 scenarios (89-129 actions)
+
+**Key Learning Points:**
+- Complex laboratory automation
+- Magnetic bead purification protocols
+- Four-server architecture coordination
+
+**Core Concepts Demonstrated:**
+- **Four-Server Architecture:** Deck, pipette, magnetic, protocol servers
+- **Actions (17):** Magnetic separation, wash cycles, elution
+- **Methods (14):** DNA extraction orchestration
+
+**Documentation:** [Omega HDQ README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/omega_hdq_dna_bacteria_flex_96_channel/README.md)
+
+### TNF Cancer Modelling (1.5.0+)
 **Purpose:** Multiscale cancer modeling with systems biology integration
-**Location:** `src/gtpyhop/examples/mcp-orchestration/tnf_cancer_modelling/`
+**Location:** `mcp-orchestration/tnf_cancer_modelling/`
+**Scenarios:** 1 scenario (12 actions)
+
 **Key Learning Points:**
 - Scientific workflow orchestration
 - Multi-scale biological modeling
-- Complex pipeline management
 - Integration with external tools (Neko, SBML, PhysiCell)
 
 **Core Concepts Demonstrated:**
-- **Workflow Stages:**
-  - Network creation and analysis
-  - Boolean model construction
-  - SBML conversion and simulation
-  - Agent-based modeling integration
+- **Workflow Stages:** Network creation, Boolean model, SBML, simulation
 - **Actions (12):** Network creation, analysis, model building, simulation
-- **Methods (3):** Workflow orchestration, pipeline management
-- **State Properties (20+):** Workflow status, file tracking, analysis results
-
-**Educational Value:** Shows how HTN planning can orchestrate complex scientific workflows involving multiple computational tools and data transformations.
+- **Methods (3):** Workflow orchestration
 
 **Documentation:** [TNF Cancer Modelling README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/tnf_cancer_modelling/README.md)
 
-## 🏎️ Running the Examples
+---
+
+## Memory Tracking Examples (1.8.0+)
+
+**Location:** `src/gtpyhop/examples/memory_tracking/`
+
+These examples demonstrate GTPyhop's memory tracking capabilities using the `psutil` library.
+
+### Scalable Data Processing
+**Purpose:** Memory scaling via data volume
+**Location:** `memory_tracking/scalable_data_processing/`
+**Scenarios:** 20 scenarios (10K to 1M items)
+
+**Key Learning Points:**
+- Memory behavior with varying data sizes
+- Data type impact on memory (int, string, dict)
+- Transformation passes and accumulation effects
+
+**Core Concepts Demonstrated:**
+- **Data Types:** `int` (~28 bytes), `string` (~500 bytes), `dict` (~1KB+)
+- **Configuration:** `num_transforms`, `accumulate`, `cleanup`
+- **Memory Range:** 1 MB to 300+ MB
+
+**Use Case:** Understanding how state payload size affects memory consumption.
+
+**Documentation:** [Scalable Data Processing README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/memory_tracking/scalable_data_processing/README.md)
+
+### Scalable Recursive Decomposition
+**Purpose:** Memory scaling via structural complexity
+**Location:** `memory_tracking/scalable_recursive_decomposition/`
+**Scenarios:** 12 scenarios (depth 4 to 14)
+
+**Key Learning Points:**
+- Memory behavior with varying recursion depths
+- Exponential task growth (2^k tasks for depth k)
+- HTN planning complexity (PSPACE-complete)
+
+**Core Concepts Demonstrated:**
+- **Binary Recursive Decomposition:** Depth k yields 2^k leaf tasks
+- **Payload Scaling:** 100B to 100KB per task
+- **Memory Formula:** `2^depth x payload_size`
+
+**Reference:** Based on Alford et al. (2015) "Tight Bounds for HTN Planning"
+
+**Use Case:** Understanding how HTN decomposition structure affects memory consumption.
+
+**Documentation:** [Scalable Recursive Decomposition README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/memory_tracking/scalable_recursive_decomposition/README.md)
+
+### Running Memory Benchmarks
+
+```bash
+cd src/gtpyhop/examples/memory_tracking
+
+# Run data processing scenarios
+python benchmarking.py --example data
+
+# Run recursive decomposition scenarios
+python benchmarking.py --example recursive
+
+# Accurate peak measurement
+python benchmarking.py --example recursive --scenario scenario_10 \
+    --disable-gc --sampling-interval 0.001
+
+# List available scenarios
+python benchmarking.py --list-scenarios --example recursive
+```
+
+**Documentation:** [Memory Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/memory_tracking/benchmarking_quickstart.md)
+
+---
+
+## Running the Examples
 
 ### Command-Line Interface
 All examples support both legacy and session modes:
@@ -263,7 +401,9 @@ python -m gtpyhop.examples.regression_tests
 python -m gtpyhop.examples.regression_tests --session
 ```
 
-## 📖 Pedagogical Recommendations
+---
+
+## Pedagogical Recommendations
 
 ### For Beginners
 1. Start with `simple_htn.py` to understand basic concepts
@@ -280,10 +420,15 @@ python -m gtpyhop.examples.regression_tests --session
 ### For Researchers
 1. Use the examples as templates for new domains
 2. Study the method design patterns in complex examples
-3. Benchmark performance using the IPC domains
+3. Benchmark performance using the IPC and memory tracking domains
 4. Extend examples with new planning techniques
 
-## 🔗 Related Documentation
-- [Running Examples Guide](running_examples.md) - Detailed execution instructions
-- [Structured Logging](logging.md) - Analyzing planning traces
-- [Thread-Safe Sessions](thread_safe_sessions.md) - Concurrent planning patterns
+---
+
+## Related Documentation
+- [Running Examples Guide](https://github.com/PCfVW/GTPyhop/blob/pip/docs/running_examples.md) - Detailed execution instructions
+- [Structured Logging](https://github.com/PCfVW/GTPyhop/blob/pip/docs/logging.md) - Analyzing planning traces
+- [Thread-Safe Sessions](https://github.com/PCfVW/GTPyhop/blob/pip/docs/thread_safe_sessions.md) - Concurrent planning patterns
+- [Example Style Guide](https://github.com/PCfVW/GTPyhop/blob/pip/docs/gtpyhop_example_style_guide.md) - How to write new examples
+- [Domain Style Guide](https://github.com/PCfVW/GTPyhop/blob/pip/docs/gtpyhop_domain_style_guide.md) - Conventions for domain files
+- [Problems Style Guide](https://github.com/PCfVW/GTPyhop/blob/pip/docs/gtpyhop_problems_style_guide.md) - Conventions for problem files
