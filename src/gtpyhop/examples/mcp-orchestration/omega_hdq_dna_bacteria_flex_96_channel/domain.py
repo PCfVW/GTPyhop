@@ -43,36 +43,18 @@ import sys
 import os
 from typing import Optional, Union, List, Tuple
 
-def safe_add_to_path(relative_path: str) -> Optional[str]:
-    """
-    Safely add a relative path to sys.path with validation to prevent path traversal attacks.
+# ============================================================================
+# GTPYHOP IMPORT (with graceful degradation for direct imports)
+# ============================================================================
 
-    Args:
-        relative_path: Relative path to add to sys.path
-
-    Returns:
-        The absolute path that was added, or None if validation failed
-    """
-    base_path = os.path.dirname(os.path.abspath(__file__))
-    target_path = os.path.normpath(os.path.join(base_path, relative_path))
-    if os.path.exists(target_path) and target_path not in sys.path:
-        sys.path.insert(0, target_path)
-        return target_path
-    return None
-
-# ----- Secure GTPyhop import strategy - tries PyPI first, falls back to local
 try:
     import gtpyhop
     from gtpyhop import Domain, State, set_current_domain, declare_actions, declare_task_methods
 except ImportError:
-    try:
-        safe_add_to_path(os.path.join('..', '..', '..', '..'))
-        import gtpyhop
-        from gtpyhop import Domain, State, set_current_domain, declare_actions, declare_task_methods
-    except (ImportError, ValueError) as e:
-        print(f"Error: Could not import gtpyhop: {e}")
-        print("Please install gtpyhop using: pip install gtpyhop")
-        sys.exit(1)
+    # Graceful degradation: supports direct domain.py import (unsupported but functional)
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..', '..'))
+    import gtpyhop
+    from gtpyhop import Domain, State, set_current_domain, declare_actions, declare_task_methods
 
 # ============================================================================
 # DOMAIN

@@ -21,11 +21,15 @@ import sys
 import os
 from typing import Dict, Tuple, List
 
-# Smart import
+# ============================================================================
+# GTPYHOP IMPORT (with graceful degradation for direct imports)
+# ============================================================================
+
 try:
     import gtpyhop
 except ImportError:
-    sys.path.insert(0, os.path.normpath(os.path.join(os.path.dirname(__file__), '..', '..', '..', '..')))
+    # Graceful degradation: supports direct problems.py import (unsupported but functional)
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..', '..'))
     import gtpyhop
 
 

@@ -6,7 +6,7 @@ This package demonstrates HTN planning for cross-server orchestration with:
   - Server 2 (robot-server): Robot gripper actions (mock)
   - Server 3 (motion-server): Arm motion planning (mock)
 
--- Generated 2025-11-27
+-- Generated 2026-01-12
 """
 
 import sys

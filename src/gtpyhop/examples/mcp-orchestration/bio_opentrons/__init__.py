@@ -1,5 +1,5 @@
 """
-Bio-Opentrons Flex HTN Domain for GTPyhop 1.6.0
+Bio-Opentrons Flex HTN Domain for GTPyhop
 
 This package demonstrates cross-server HTN planning for PCR workflow automation with:
   - Server 1 (movement-server): Pipette movement and tip operations
@@ -9,6 +9,8 @@ This package demonstrates cross-server HTN planning for PCR workflow automation 
 Features:
   - Dynamic sample scaling (4 to 128+ samples)
   - Plan length formula: 31 + 6 × num_samples
+
+-- Generated 2026-01-12
 """
 
 import sys

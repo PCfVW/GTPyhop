@@ -1,46 +1,66 @@
 """
-TNF Cancer Modelling Domain Package
+TNF Cancer Modelling Domain for GTPyhop
 
-This package contains the TNF cancer modelling domain definition and problem instances
-for the GTPyhop planning system.
+This package contains the TNF cancer modelling domain definition and problem
+instances for computational biology workflows.
 
-Supports both PyPI installation and local development setups.
+-- Generated 2026-01-12
 """
 
-# Smart GTPyhop import strategy
+import sys
+import os
+from typing import Dict, Tuple, List, Optional
+
+# ============================================================================
+# SMART GTPYHOP IMPORT STRATEGY
+# ============================================================================
+
+def safe_add_to_path(relative_path: str) -> Optional[str]:
+    """Safely add a relative path to sys.path with validation."""
+    base_path = os.path.dirname(os.path.abspath(__file__))
+    target_path = os.path.normpath(os.path.join(base_path, relative_path))
+
+    if not target_path.startswith(os.path.dirname(base_path)):
+        raise ValueError(f"Path traversal detected: {target_path}")
+
+    if os.path.exists(target_path) and target_path not in sys.path:
+        sys.path.insert(0, target_path)
+        return target_path
+    return None
+
+# Try PyPI installation first, fallback to local
 try:
-    # Try PyPI installation first (recommended)
-    from gtpyhop import Domain, State
-    GTPYHOP_SOURCE = "PyPI"
+    import gtpyhop
+    GTPYHOP_SOURCE = "pypi"
 except ImportError:
-    # Fallback to local development setup
-    import sys
-    import os
-    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..', '..'))
     try:
-        from gtpyhop import Domain, State
-        GTPYHOP_SOURCE = "Local"
-    except ImportError as e:
-        print(f"Warning: Could not import gtpyhop in tnf_cancer_modelling package: {e}")
+        safe_add_to_path(os.path.join('..', '..', '..', '..'))
+        import gtpyhop
+        GTPYHOP_SOURCE = "local"
+    except (ImportError, ValueError) as e:
+        print(f"Error: Could not import gtpyhop: {e}")
         print("Please install gtpyhop using: pip install gtpyhop")
-        raise
+        sys.exit(1)
 
-# Import domain components
-try:
-    from . import domain
-    from . import problems
+# ============================================================================
+# IMPORT DOMAIN AND PROBLEMS
+# ============================================================================
 
-    # Make key components available at package level
-    the_domain = domain.the_domain
+from . import domain
+from . import problems
 
-    # Export problem discovery function
-    def get_problems():
-        """Return all problem definitions for benchmarking."""
-        return problems.get_problems()
+the_domain = domain.the_domain
 
-    __all__ = ['domain', 'problems', 'the_domain', 'get_problems', 'GTPYHOP_SOURCE']
+# ============================================================================
+# PROBLEM DISCOVERY FUNCTION
+# ============================================================================
 
-except ImportError as e:
-    print(f"Warning: Could not import tnf_cancer_modelling components: {e}")
-    __all__ = ['GTPYHOP_SOURCE']
+def get_problems() -> Dict[str, Tuple[gtpyhop.State, List[Tuple], str]]:
+    """Return all problem definitions for benchmarking."""
+    return problems.get_problems()
 
+# ============================================================================
+# EXPORTS
+# ============================================================================
+
+__all__ = ['domain', 'problems', 'the_domain', 'get_problems', 'GTPYHOP_SOURCE']

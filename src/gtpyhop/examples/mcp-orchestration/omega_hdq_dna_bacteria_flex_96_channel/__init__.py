@@ -10,7 +10,7 @@ This package demonstrates HTN planning for DNA extraction automation with:
 Based on Opentrons Flex protocol by Zach Galluzzo <zachary.galluzzo@opentrons.com>
 Protocol: Omega_HDQ_DNA_Bacteria-Flex_96_channel.py (included for reference)
 
--- Generated 2025-11-29
+-- Generated 2026-01-12
 """
 
 import sys

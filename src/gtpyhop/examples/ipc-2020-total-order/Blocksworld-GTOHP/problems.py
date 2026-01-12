@@ -15,13 +15,17 @@
 # IMPORTS
 # ============================================================================
 
-# ------ Smart GTPyhop import strategy - tries PyPI first, falls back to local
+import sys
+import os
+
+# ============================================================================
+# GTPYHOP IMPORT (with graceful degradation for direct imports)
+# ============================================================================
+
 try:
     from gtpyhop import State, Multigoal
 except ImportError:
-    # Fallback to local development
-    import sys
-    import os
+    # Graceful degradation: supports direct problems.py import (unsupported but functional)
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..', '..'))
     from gtpyhop import State, Multigoal
 
