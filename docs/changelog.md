@@ -1,6 +1,110 @@
 # GTPyhop Version History
 
-## 1.7.0 — MCP Orchestration Enhancements & Consistency Updates (Latest, Recommended)
+## 1.8.0 — Memory Tracking & Scalability Examples (Latest, Recommended)
+**Soon to be uploaded to PyPI: https://pypi.org/project/gtpyhop/1.8.0/**
+
+🚀 **Major Features:**
+- **📊 Memory Tracking** - Real-time memory monitoring during planning with `psutil`
+- **🔬 Scalability Examples** - Two new examples demonstrating HTN planning complexity
+- **⚡ Zero-Overhead Design** - Memory tracking has no overhead when disabled
+
+**Memory Tracking Architecture:**
+- **`ResourceManager`** - Singleton manager for memory monitoring
+  - `ResourceManager.reset()` - Clear all cached state for fresh benchmarking
+  - `ResourceManager.sample_memory()` - Explicit memory sampling for fast operations
+- **`MemoryMonitor`** - Background thread for continuous memory sampling
+  - Configurable sampling interval (default 0.1s, use 0.001s for fast scenarios)
+  - `sample_now()` - Force immediate memory sample
+  - `stop()` - Fully terminate monitoring thread
+- **`PlannerSession` Integration** - New parameters:
+  - `memory_tracking=True` - Enable memory monitoring
+  - `memory_sampling_interval=0.001` - Set sampling interval in seconds
+- **Session Statistics** - New result fields:
+  - `result.stats['memory_mb']` - Memory used during planning
+  - `result.stats['peak_memory_mb']` - Peak memory observed
+
+**New Examples:**
+
+| Example | Directory | Description |
+|---------|-----------|-------------|
+| **Scalable Data Processing** | `memory_tracking/scalable_data_processing/` | Memory scaling via data size (10K-1M items) |
+| **Scalable Recursive Decomposition** | `memory_tracking/scalable_recursive_decomposition/` | Memory scaling via recursion depth (2^k tasks) |
+
+- **Scalable Data Processing** - 20 scenarios testing data types, transforms, and accumulation
+  - Data types: `int` (~28 bytes), `string` (~500 bytes), `dict` (~1KB+)
+  - Configurable: `num_transforms`, `accumulate`, `cleanup`
+  - Memory range: 1 MB to 300+ MB
+
+- **Scalable Recursive Decomposition** - 12 scenarios based on Alford et al. (2015) Theorem 4.1
+  - Binary recursive decomposition: depth k yields 2^k leaf tasks
+  - Demonstrates PSPACE-complete HTN planning complexity
+  - Payload scaling: 100B to 100KB per task
+  - Memory formula: `2^depth × payload_size`
+
+**Benchmarking Script:**
+```bash
+cd src/gtpyhop/examples/memory_tracking
+
+# Run data processing scenarios
+python benchmarking.py --example data
+
+# Run recursive decomposition scenarios
+python benchmarking.py --example recursive
+
+# Accurate peak measurement (recommended)
+python benchmarking.py --example recursive --scenario scenario_10 \
+    --disable-gc --sampling-interval 0.001
+```
+
+**Command-Line Options:**
+- `--example {data,recursive}` - Select example type
+- `--scenario NAME` - Run specific scenario
+- `--disable-gc` - Disable garbage collection during planning
+- `--sampling-interval FLOAT` - Memory sampling interval (default: 0.1)
+- `--list-scenarios` - List available scenarios
+- `--performance-test` - Compare overhead with/without memory tracking
+
+**Usage Example:**
+```python
+from gtpyhop import PlannerSession
+from gtpyhop.examples.memory_tracking.scalable_recursive_decomposition import (
+    the_domain, get_problems
+)
+
+problems = get_problems()
+state, tasks, description = problems['scenario_10']
+
+with PlannerSession(
+    domain=the_domain,
+    memory_tracking=True,
+    memory_sampling_interval=0.001
+) as session:
+    result = session.find_plan(state, tasks)
+
+    if result.success:
+        print(f"Plan: {len(result.plan)} actions")
+        print(f"Peak memory: {result.stats['peak_memory_mb']:.2f} MB")
+```
+
+**Requirements:**
+- Python 3.8+
+- `psutil>=5.8.0` (automatically installed with GTPyhop from PyPI)
+
+(https://github.com/PCfVW/GTPyhop/blob/pip/
+
+**Documentation:**
+- [Example Style Guide](https://github.com/PCfVW/GTPyhop/blob/pip/docs/gtpyhop_example_style_guide.md) - How to write GTPyhop examples
+- [Memory Tracking README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/memory_tracking/README.md)
+- [Benchmarking Quick Start](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/memory_tracking/benchmarking_quickstart.md)
+- [Scalable Data Processing](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/memory_tracking/scalable_data_processing/README.md)
+- [Scalable Recursive Decomposition](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/memory_tracking/scalable_recursive_decomposition/README.md)
+
+**References:**
+- Ron Alford, Pascal Bercher, & David Aha (2015). ["Tight Bounds for HTN Planning."](https://ojs.aaai.org/index.php/ICAPS/article/view/13721) 25th ICAPS, pp. 7-15. [Video Recording](https://www.icaps-conference.org/recording/tight-bounds-for-htn-planning/)
+
+---
+
+## 1.7.0 — MCP Orchestration Enhancements & Consistency Updates
 **Uploaded to PyPI: https://pypi.org/project/gtpyhop/1.7.0/**
 
 🚀 **Major Features:**
