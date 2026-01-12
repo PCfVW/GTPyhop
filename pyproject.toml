@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "gtpyhop"
 version = "1.8.0"
-description= "A Goal-Task-Network planning package written in Python"
+description = "A Goal-Task-Network planning package written in Python"
 readme = "README.md"
 authors = [
     # Packaging author:
@@ -15,10 +15,10 @@ authors = [
     #   - session-based architecture
     #   - structured logging
     #   - plan validation
-    #   - new examples (IPC 2020 Total Order, MCP orchestration, ansd memory tracking)
+    #   - new examples (IPC 2020 Total Order, MCP orchestration, and memory tracking)
     #   - documentation style guides for domains, problems, actions, methods, and new examples
     { name = "Eric Jacopin", email = "eric.jacopin@protonmail.com" },
- 
+
     # Original author
     { name = "Dana Nau", email = "nau@umd.edu" },
 ]
@@ -32,7 +32,7 @@ classifiers = [
     "Programming Language :: Python :: 3",
 ]
 keywords = ["Planning", "HTN", "Artificial Intelligence", "Automated Planning"]
-requires-python = ">=3"
+requires-python = ">=3.8"
 dependencies = [
     "psutil>=5.8.0",
 ]
