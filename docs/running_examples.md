@@ -2,7 +2,7 @@
 
 GTPyhop includes comprehensive examples demonstrating various planning techniques. **All examples support both legacy and session modes** for maximum flexibility and thread safety.
 
-## 🚀 Running Examples
+## Running Examples
 
 **All examples support dual-mode execution:**
 
@@ -22,9 +22,9 @@ python -m gtpyhop.examples.simple_htn --session --verbose 2 --no-pauses
 - `--verbose N`: Set verbosity level (0-3, default: 1 in session mode)
 - `--no-pauses`: Skip interactive pauses for automated testing
 
-## 📋 Available Examples
+## Available Examples
 
-### **Simple Examples** (Basic concepts and techniques)
+### Simple Examples (Basic concepts and techniques)
 
 | Example | Description | Key Features |
 |---------|-------------|--------------|
@@ -35,7 +35,7 @@ python -m gtpyhop.examples.simple_htn --session --verbose 2 --no-pauses
 | `logistics_hgn.py` | Logistics domain planning | Multi-goal planning, transportation |
 | `pyhop_simple_travel_example.py` | Travel planning | Basic domain modeling |
 
-### **Complex Block World Examples** (Advanced planning scenarios)
+### Complex Block World Examples (Advanced planning scenarios)
 
 | Example | Description | Key Features |
 |---------|-------------|--------------|
@@ -44,32 +44,59 @@ python -m gtpyhop.examples.simple_htn --session --verbose 2 --no-pauses
 | `blocks_gtn/` | Goal task networks | Mixed task/goal planning |
 | `blocks_goal_splitting/` | Goal splitting methodology | Built-in goal decomposition methods |
 
-### **IPC 2020 Total Order Planning Problems** (With advanced benchmarking and evaluation)
+### IPC 2020 Total Order Planning Problems
 
-Two examples from the IPC 2020 Total Order track are included:
+Two examples from the IPC 2020 Total Order track:
 
 | Example | Description | Key Features |
 |---------|-------------|--------------|
 | `Blocksworld-GTOHP/` | Classic blocks world | HTN planning, stacking, multigoals |
 | `Childsnack/` | Resource management in childcare setting | HTN planning, constraint handling, multigoals |
 
-The [IPC 2020 Total Order](https://github.com/panda-planner-dev/ipc2020-domains/tree/master/total-order) examples are located in the `src/gtpyhop/examples/ipc-2020-total-order/` directory and include comprehensive domain definitions, problem instances, and evaluation frameworks. **For detailed instructions on running these advanced examples, including setup requirements, execution procedures, and performance analysis tools, please refer to the comprehensive documentation in [`benchmarking_quickstart.md`](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/ipc-2020-total-order/benchmarking_quickstart.md)**. This dedicated benchmarking guide provides step-by-step instructions for executing the IPC problems, interpreting results, and conducting comparative performance analysis.
+Location: `src/gtpyhop/examples/ipc-2020-total-order/`
 
-### **MCP Orchestration Examples** (Cross-server coordination and scientific workflows)
+**Documentation:** [Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/ipc-2020-total-order/benchmarking_quickstart.md)
 
-Two examples demonstrating MCP (Model Context Protocol) orchestration:
+### MCP Orchestration Examples (1.5.0+)
 
-| Example | Description | Key Features |
-|---------|-------------|--------------|
-| `cross_server/` | Cross-server HTN plan execution | Multi-server coordination, robot manipulation, 9 actions, 5 methods |
-| `tnf_cancer_modelling/` | Multiscale cancer modeling workflow | Scientific workflow, systems biology, 12 actions, 3 methods |
+Five examples demonstrating MCP (Model Context Protocol) orchestration:
 
-The MCP Orchestration examples are located in the `src/gtpyhop/examples/mcp-orchestration/` directory and demonstrate how HTN planning can coordinate actions across multiple servers or orchestrate complex scientific workflows. **For detailed instructions, see the individual README files:**
-- **[Cross-Server Orchestration](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/cross_server/README.md)** - Robot pick-and-place with 3-server architecture
-- **[TNF Cancer Modelling](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/tnf_cancer_modelling/README.md)** - Multiscale biological modeling pipeline
-- **[MCP Benchmarking Guide](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/benchmarking_quickstart.md)** - Performance benchmarking for MCP domains
+| Example | Description | Scenarios | Actions |
+|---------|-------------|-----------|---------|
+| `bio_opentrons/` | PCR workflow automation with Opentrons Flex | 6 | 18 |
+| `cross_server/` | Cross-server HTN plan execution | 2 | 9 |
+| `drug_target_discovery/` | Drug target discovery pipeline | 3 | 8 |
+| `omega_hdq_dna_bacteria_flex_96_channel/` | DNA extraction workflow | 3 | 17 |
+| `tnf_cancer_modelling/` | Multiscale cancer modeling workflow | 1 | 12 |
 
-## 🧪 Testing Examples
+Location: `src/gtpyhop/examples/mcp-orchestration/`
+
+**Documentation:**
+- [Bio-Opentrons README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/bio_opentrons/README.md)
+- [Cross-Server README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/cross_server/README.md)
+- [Drug Target Discovery README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/drug_target_discovery/README.md)
+- [Omega HDQ README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/omega_hdq_dna_bacteria_flex_96_channel/README.md)
+- [TNF Cancer Modelling README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/tnf_cancer_modelling/README.md)
+- [MCP Benchmarking Guide](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/benchmarking_quickstart.md)
+
+### Memory Tracking Examples (1.8.0+)
+
+Two examples demonstrating memory tracking capabilities:
+
+| Example | Description | Scenarios | Memory Range |
+|---------|-------------|-----------|--------------|
+| `scalable_data_processing/` | Memory scaling via data volume | 20 | 1-300+ MB |
+| `scalable_recursive_decomposition/` | Memory scaling via recursion depth | 12 | Exponential |
+
+Location: `src/gtpyhop/examples/memory_tracking/`
+
+**Documentation:**
+- [Memory Tracking README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/memory_tracking/README.md)
+- [Scalable Data Processing README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/memory_tracking/scalable_data_processing/README.md)
+- [Scalable Recursive Decomposition README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/memory_tracking/scalable_recursive_decomposition/README.md)
+- [Memory Benchmarking Guide](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/memory_tracking/benchmarking_quickstart.md)
+
+## Testing Examples
 
 **Run all examples automatically:**
 
@@ -94,7 +121,7 @@ python -m gtpyhop.examples.regression_tests
 python -m gtpyhop.examples.regression_tests --session
 ```
 
-## 💡 Example Usage Patterns
+## Example Usage Patterns
 
 **Interactive exploration:**
 ```bash
@@ -114,7 +141,7 @@ import threading
 import gtpyhop
 
 # Load example Domain
-from gtpyhop.examples.blocks_htn import actions, methods
+from gtpyhop.examples.blocks_htn import actions, methods, the_domain
 
 def plan_worker(session_id, state, goals):
     with gtpyhop.PlannerSession(domain=the_domain, verbose=1) as session:
@@ -133,8 +160,9 @@ for t in threads:
     t.join()
 ```
 
-## 📚 Additional Resources
+## Related Documentation
 
-For advanced benchmarking and performance evaluation using the IPC 2020 Total Order problems, see:
-- **`benchmarking_quickstart.md`** - Comprehensive guide to running and analyzing IPC benchmarks
-- **`src/gtpyhop/examples/ipc-2020-total-order/`** - Complete IPC problem suite with domain definitions and test cases
+- [All Examples Guide](https://github.com/PCfVW/GTPyhop/blob/pip/docs/all_examples.md) - Detailed pedagogical information about each example
+- [Thread-Safe Sessions](https://github.com/PCfVW/GTPyhop/blob/pip/docs/thread_safe_sessions.md) - Session-based architecture guide
+- [Structured Logging](https://github.com/PCfVW/GTPyhop/blob/pip/docs/logging.md) - Logging and memory tracking
+- [Example Style Guide](https://github.com/PCfVW/GTPyhop/blob/pip/docs/gtpyhop_example_style_guide.md) - How to write new examples
