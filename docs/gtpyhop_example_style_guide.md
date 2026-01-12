@@ -2,7 +2,7 @@
 
 ## How to Write Examples for GTPyhop
 
-**Version**: 1.0.0
+**Version**: 1.1.0
 **Target Audience**: Developers creating new GTPyhop example domains
 
 ---
@@ -129,6 +129,40 @@ See [gtpyhop_domain_style_guide.md](gtpyhop_domain_style_guide.md) for detailed 
 - Export `the_domain` at module level
 - Use `declare_actions()` and `declare_task_methods()` to register
 
+**Import Template (Graceful Degradation):**
+
+The `domain.py` file should use a simplified import pattern that supports direct imports while relying on `__init__.py` for the authoritative import strategy:
+
+```python
+import sys
+import os
+from typing import Optional, Union, List, Tuple
+
+# ============================================================================
+# GTPYHOP IMPORT (with graceful degradation for direct imports)
+# ============================================================================
+
+try:
+    import gtpyhop
+    from gtpyhop import Domain, State, set_current_domain, declare_actions, declare_task_methods
+except ImportError:
+    # Graceful degradation: supports direct domain.py import (unsupported but functional)
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..', '..'))
+    import gtpyhop
+    from gtpyhop import Domain, State, set_current_domain, declare_actions, declare_task_methods
+
+# ============================================================================
+# DOMAIN
+# ============================================================================
+the_domain = Domain("your_domain_name")
+set_current_domain(the_domain)
+```
+
+**Design Rationale:**
+- The `__init__.py` contains the full import strategy with `safe_add_to_path()` and `GTPYHOP_SOURCE`
+- `domain.py` uses graceful degradation: if imported via `__init__.py`, gtpyhop is already available; if imported directly (unsupported), a simple fallback is provided
+- This avoids code duplication while maintaining functionality
+
 ### 2.3 `problems.py` - Problem Definitions
 
 See [gtpyhop_problems_style_guide.md](gtpyhop_problems_style_guide.md) for detailed conventions on writing problem files.
@@ -137,6 +171,26 @@ See [gtpyhop_problems_style_guide.md](gtpyhop_problems_style_guide.md) for detai
 - Use unified scenario blocks with `# BEGIN: Scenario` / `# END: Scenario` markers
 - Each problem is a tuple: `(state, tasks, description)`
 - Export `get_problems()` function returning a dictionary
+
+**Import Template (Graceful Degradation):**
+
+```python
+import sys
+import os
+
+# ============================================================================
+# GTPYHOP IMPORT (with graceful degradation for direct imports)
+# ============================================================================
+
+try:
+    import gtpyhop
+    from gtpyhop import State
+except ImportError:
+    # Graceful degradation: supports direct problems.py import (unsupported but functional)
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..', '..'))
+    import gtpyhop
+    from gtpyhop import State
+```
 
 ### 2.4 `README.md` - Documentation
 
@@ -249,5 +303,5 @@ To create a new example:
 
 ---
 
-*Document Version: 1.0.0*
-*Generated: 2026-01-10*
+*Document Version: 1.1.0*
+*Updated: 2026-01-12*
