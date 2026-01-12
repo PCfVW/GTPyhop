@@ -442,6 +442,6 @@ GTPyhop/
     │   ├── mcp-orchestration/
     │   │   └── bio_opentrons/, cross_server/, drug_target_discovery/, omega_hdq_dna_bacteria_flex_96_channel/, tnf_cancer_modelling/
     │   └── memory_tracking/
-    │       └── scalable_data_processing/, calable_recursive_decomposition/
+    │       └── scalable_data_processing/, scalable_recursive_decomposition/
     └── test_harness/
 ```
