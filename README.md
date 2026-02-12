@@ -1,4 +1,4 @@
-# GTPyhop version 1.8.0
+# GTPyhop version 1.9.0
 
 [![Python Version](https://img.shields.io/badge/python-3%2B-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-Clear%20BSD-green.svg)](https://github.com/PCfVW/GTPyhop/blob/pip/LICENSE.txt)
@@ -31,10 +31,10 @@ GTPyhop is an HTN planning system based on [Pyhop](https://bitbucket.org/dananau
 
 ### From PyPI (Recommended)
 
-**GTPyhop 1.8.0** is the latest version with memory tracking, enhanced MCP orchestration examples, Opentrons Flex domains, and comprehensive style guides.
+**GTPyhop 1.9.0** is the latest version with iterative DFS backtracking, poetry generation examples, memory tracking, enhanced MCP orchestration examples, Opentrons Flex domains, and comprehensive style guides.
 
 ```bash
-pip install gtpyhop>=1.8.0
+pip install gtpyhop>=1.9.0
 ```
 
 For basic single-threaded planning, any version works:
@@ -75,7 +75,7 @@ import gtpyhop
 The following should be printed in your terminal:
 
 ```code
-Imported GTPyhop version 1.8.0
+Imported GTPyhop version 1.9.0
 Messages from find_plan will be prefixed with 'FP>'.
 Messages from run_lazy_lookahead will be prefixed with 'RLL>'.
 Using session-based architecture with structured logging.
@@ -309,11 +309,11 @@ with gtpyhop.PlannerSession(domain=my_domain) as session:
 
 | Use Case | Recommended Version |
 |----------|-------------------|
-| **New projects** | **1.8.0+** |
+| **New projects** | **1.9.0+** |
+| **Backtracking with iterative planner** | **1.9.0+** |
 | **Memory tracking & benchmarking** | **1.8.0+** |
-| **MCP integration** | **1.8.0+** |
-| **Concurrent/parallel planning** | **1.8.0+** |
-| **Production systems** | **1.8.0+** |
+| **MCP integration** | **1.5.0+** |
+| **Concurrent/parallel planning** | **1.3.0+** |
 | **Educational/simple scripts** | Any version |
 
 ## Examples
@@ -334,7 +334,7 @@ python -m gtpyhop.examples.simple_htn --session
 
 ## Documentation
 
-GTPyhop 1.8.0 includes comprehensive documentation organized in the `docs/` folder:
+GTPyhop 1.9.0 includes comprehensive documentation organized in the `docs/` folder:
 
 ### Core Documentation
 - **[All Examples Guide](https://github.com/PCfVW/GTPyhop/blob/pip/docs/all_examples.md)** - Pedagogical details about all HTN planning examples
@@ -356,6 +356,14 @@ GTPyhop 1.8.0 includes comprehensive documentation organized in the `docs/` fold
 - **[Scalable Recursive Decomposition](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/memory_tracking/scalable_recursive_decomposition/README.md)** - Memory scaling via recursion depth (2^k tasks)
 - **[Memory Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/memory_tracking/benchmarking_quickstart.md)** - How to run memory benchmarks
 
+#### Poetry Examples (1.9.0+)
+- **[Poetry Overview](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/poetry/README.md)** - HTN-planned poetry generation with MCP delegation
+- **[Structured Poetry](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/poetry/structured_poetry/README.md)** - Baseline: couplet, limerick, haiku, sonnet (6 scenarios)
+- **[Backtracking Poetry](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/poetry/backtracking_poetry/README.md)** - Strict/relaxed rhyme methods with backtracking (3 scenarios)
+- **[Candidate Planning Poetry](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/poetry/candidate_planning_poetry/README.md)** - Multi-candidate rhyme selection pipeline (3 scenarios)
+- **[Bidirectional Planning Poetry](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/poetry/bidirectional_planning_poetry/README.md)** - Decomposed backward line construction (3 scenarios)
+- **[Replanning Poetry](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/poetry/replanning_poetry/README.md)** - Post-generation evaluation and steering/revision (3 scenarios)
+
 #### IPC 2020 Total Order Domains
 - **[Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/ipc-2020-total-order/benchmarking_quickstart.md)** - Performance benchmarking guide
 - **[Blocksworld-GTOHP](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/ipc-2020-total-order/Blocksworld-GTOHP/ipc-2020-to-bw-gtohp-readme.md)** - IPC 2020 Blocksworld domain
@@ -374,26 +382,39 @@ GTPyhop 1.8.0 includes comprehensive documentation organized in the `docs/` fold
 
 ## New Features
 
-### Iterative Planning Strategy
+### Planning Strategies
 
-[This pip branch](https://github.com/PCfVW/GTPyhop/tree/pip) introduces a new iterative planning strategy (default) that enhances the planner's capabilities for large planning scenarios.
+GTPyhop supports three planning strategies, selectable via `set_recursive_planning` or the `PlannerSession(strategy=...)` parameter:
 
-| Aspect | Iterative (Default) | Recursive |
-|--------|---------------------|-----------|
-| Implementation | Explicit stack | Python call stack |
-| Memory | More efficient | Stack frame per call |
-| Limits | None | Python recursion limit |
-| Use case | Large problems, production | Educational, debugging |
+| Strategy | Backtracking? | Stack | Activation |
+|----------|:------------:|-------|------------|
+| **Iterative greedy** (default) | No | Explicit stack | `set_recursive_planning(False)` |
+| **Recursive DFS** | Yes | Python call stack | `set_recursive_planning(True)` |
+| **Iterative DFS BT** (1.9.0+) | Yes | Explicit stack | `set_recursive_planning("iterative_dfs_backtracking")` |
+
+The **iterative greedy** strategy (default since 1.2.0) commits to the first applicable method and never reconsiders that choice. The **recursive DFS** strategy backtracks across methods via the Python call stack. The **iterative DFS backtracking** strategy (new in 1.9.0) combines the iterative planner's explicit stack with the recursive planner's ability to backtrack — it pushes all applicable method continuations onto the stack, so if one path fails, alternatives remain.
 
 ```python
-# Switch to recursive strategy
-gtpyhop.set_recursive_planning(True)
+# Global API
+gtpyhop.set_recursive_planning(False)                        # iterative greedy (default)
+gtpyhop.set_recursive_planning(True)                         # recursive DFS
+gtpyhop.set_recursive_planning("iterative_dfs_backtracking") # iterative DFS with backtracking
 
-# Switch back to iterative strategy
-gtpyhop.set_recursive_planning(False)
+# Session API (1.9.0+)
+with gtpyhop.PlannerSession(domain=d, strategy="iterative_dfs_backtracking") as s:
+    result = s.find_plan(state, tasks)
 ```
 
+All existing `True`/`False` callers continue to work identically. See the [changelog](https://github.com/PCfVW/GTPyhop/blob/pip/docs/changelog.md) for full details.
+
 ### New Functions by Version
+
+**1.9.0 (Iterative DFS Backtracking)**
+- `seek_plan_iterative_backtracking` - Iterative DFS with full backtracking via explicit stack
+- `_refine_task_and_continue_iterative_bt` - Multi-continuation task refinement
+- `_refine_unigoal_and_continue_iterative_bt` - Multi-continuation unigoal refinement
+- `_refine_multigoal_and_continue_iterative_bt` - Multi-continuation multigoal refinement
+- `PlannerSession(strategy=...)` - Strategy selection parameter (`"recursive_dfs"`, `"iterative_greedy"`, `"iterative_dfs_backtracking"`)
 
 **1.4.0 (Robustness & Benchmarking)**
 - `validate_plan_from_goal` - Plan validation from initial to goal state
@@ -441,7 +462,9 @@ GTPyhop/
     │   │   └── Blocksworld-GTOHP/, Childsnack/
     │   ├── mcp-orchestration/
     │   │   └── bio_opentrons/, cross_server/, drug_target_discovery/, omega_hdq_dna_bacteria_flex_96_channel/, tnf_cancer_modelling/
-    │   └── memory_tracking/
-    │       └── scalable_data_processing/, scalable_recursive_decomposition/
+    │   ├── memory_tracking/
+    │   │   └── scalable_data_processing/, scalable_recursive_decomposition/
+    │   └── poetry/
+    │       └── structured_poetry/, backtracking_poetry/, candidate_planning_poetry/, bidirectional_planning_poetry/, replanning_poetry/
     └── test_harness/
 ```

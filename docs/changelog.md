@@ -1,7 +1,104 @@
 # GTPyhop Version History
 
-## 1.8.0 — Memory Tracking & Scalability Examples (Latest, Recommended)
-**Soon to be uploaded to PyPI: https://pypi.org/project/gtpyhop/1.8.0/**
+## 1.9.0 — Iterative DFS Backtracking & Poetry Examples (Latest, Recommended)
+
+🚀 **Major Features:**
+- **🔀 Iterative DFS Backtracking** - Third planning strategy combining the iterative planner's explicit stack with full backtracking across methods
+- **📝 Poetry Examples** - Five poetry generation domains demonstrating structured, backtracking, candidate planning, bidirectional, and replanning HTN planning
+
+**Iterative DFS Backtracking:**
+
+GTPyhop 1.8.0 provided two planning strategies: recursive DFS (backtracks via Python call stack) and iterative greedy (commits to first applicable method, no backtracking). The iterative greedy planner could not recover when a chosen method's subtasks failed downstream.
+
+GTPyhop 1.9.0 adds a third strategy — **iterative DFS with backtracking** — that pushes all applicable method continuations onto an explicit stack. If one path fails, the planner falls back to the next alternative. This provides the same correctness as recursive DFS without Python's recursion depth limit.
+
+| Strategy | Backtracking? | Stack | Activation |
+|----------|:------------:|-------|------------|
+| Recursive DFS | Yes | Python call stack | `set_recursive_planning(True)` |
+| Iterative greedy | No | Explicit stack | `set_recursive_planning(False)` |
+| **Iterative DFS BT** | **Yes** | **Explicit stack** | `set_recursive_planning("iterative_dfs_backtracking")` |
+
+**New Internal Functions (purely additive — no existing function removed or modified):**
+- `seek_plan_iterative_backtracking` - Main iterative loop with multi-continuation stack
+- `_refine_task_and_continue_iterative_bt` - Returns all applicable task method continuations
+- `_refine_unigoal_and_continue_iterative_bt` - Returns all applicable unigoal method continuations
+- `_refine_multigoal_and_continue_iterative_bt` - Returns all applicable multigoal method continuations
+
+**API Changes (backward-compatible):**
+- **`set_recursive_planning(strategy)`** - Now accepts string values in addition to `True`/`False`:
+  - `"recursive_dfs"` (same as `True`)
+  - `"iterative_greedy"` or `"iterative_irrevocable_commitment"` (same as `False`)
+  - `"iterative_dfs_backtracking"` (new)
+  - Existing `True`/`False` callers are unaffected (`isinstance(strategy, bool)` dispatch)
+- **`PlannerSession(strategy=...)`** - New optional keyword parameter:
+  - `PlannerSession(strategy="iterative_dfs_backtracking")` activates the new strategy
+  - When `strategy` is `None` (default), the existing `recursive` bool parameter drives behavior identically to 1.8.0
+  - `PlannerSession.recursive` is now a derived property (`self._strategy == "recursive_dfs"`)
+- **`PlannerSession.isolated_execution()`** - Restore logic simplified to direct function reference assignment, correctly handling all three strategies
+- **`SessionSerializer`** - Serialization includes the `strategy` field; deserialization falls back to `recursive` bool for data from older versions
+- **Result stats `"strategy"` field** - Now reports the full strategy name (`"recursive_dfs"`, `"iterative_greedy"`, or `"iterative_dfs_backtracking"`) instead of the previous binary `"recursive"` / `"iterative"`
+
+**Usage Examples:**
+```python
+# Global API
+import gtpyhop
+gtpyhop.set_recursive_planning("iterative_dfs_backtracking")
+plan = gtpyhop.find_plan(state, tasks)
+
+# Session API
+with gtpyhop.PlannerSession(
+    domain=my_domain,
+    strategy="iterative_dfs_backtracking"
+) as session:
+    result = session.find_plan(state, tasks)
+```
+
+**New Examples:**
+
+The five poetry examples form a progression, each extending the baseline with a different aspect of Anthropic's "Planning in Poems" (March 2025) findings:
+
+| # | Example | Directory | Description | Strategy |
+|---|---------|-----------|-------------|----------|
+| 1 | **Structured Poetry** | `poetry/structured_poetry/` | Baseline: select → generate → verify (6 scenarios) | Any |
+| 2 | **Backtracking Poetry** | `poetry/backtracking_poetry/` | Strict/relaxed methods with backtracking (3 scenarios) | Backtracking |
+| 3 | **Candidate Planning Poetry** | `poetry/candidate_planning_poetry/` | Multi-candidate rhyme selection pipeline (3 scenarios) | Any |
+| 4 | **Bidirectional Planning Poetry** | `poetry/bidirectional_planning_poetry/` | Decomposed backward line construction (3 scenarios) | Any |
+| 5 | **Replanning Poetry** | `poetry/replanning_poetry/` | Post-generation evaluation and steering/revision (3 scenarios) | Backtracking |
+
+- **Backtracking Poetry** (example 2) — Tests action-level failure triggering method-level backtracking at the line composition level:
+
+| Strategy | Couplet (8) | Limerick (17) | Haiku (8) |
+|----------|:-------:|:--------:|:-----:|
+| Recursive DFS | 8 actions | 17 actions | 8 actions |
+| Iterative greedy | 8 actions | **Fails** | 8 actions |
+| Iterative DFS BT | 8 actions | 17 actions | 8 actions |
+
+- **Replanning Poetry** (example 5) — Tests action-level failure triggering method-level backtracking at the evaluation level. Models the paper's finding that injecting an alternative planned word causes the model to restructure the entire line in 70% of test poems:
+
+| Strategy | Couplet (12) | Limerick (28) | Haiku (8) |
+|----------|:-------:|:--------:|:-----:|
+| Recursive DFS | 12 actions | 28 actions | 8 actions |
+| Iterative greedy | **Fails** | **Fails** | 8 actions |
+| Iterative DFS BT | 12 actions | 28 actions | 8 actions |
+
+- **Candidate Planning Poetry** (example 3) — Replaces single rhyme target selection with a 3-action pipeline (generate candidates → rank → commit). Plan lengths: Couplet: 12, Limerick: 27, Haiku: 8.
+
+- **Bidirectional Planning Poetry** (example 4) — Splits line generation into backward transition planning and forward surface text generation. Plan lengths: Couplet: 10, Limerick: 22, Haiku: 8.
+
+**Poetry benchmarking script** updated with `--strategy` option:
+```bash
+cd src/gtpyhop/examples/poetry
+python benchmarking.py structured_poetry                                    # default strategy
+python benchmarking.py backtracking_poetry --strategy recursive_dfs         # requires backtracking
+python benchmarking.py replanning_poetry --strategy iterative_dfs_backtracking  # requires backtracking
+```
+
+**Compatibility:** 100% backward compatible with GTPyhop 1.8.0. All existing `True`/`False` callers produce identical behavior.
+
+---
+
+## 1.8.0 — Memory Tracking & Scalability Examples
+**Uploaded to PyPI: https://pypi.org/project/gtpyhop/1.8.0/**
 
 🚀 **Major Features:**
 - **📊 Memory Tracking** - Real-time memory monitoring during planning with `psutil`

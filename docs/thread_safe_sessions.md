@@ -1,12 +1,12 @@
 # GTPyhop Thread-Safe Sessions Guide
 
-GTPyhop 1.3.0 introduced a session-based, thread-safe architecture. GTPyhop 1.8.0 adds memory tracking integration. This guide explains why sessions matter, how to use them, and shows concurrent examples.
+GTPyhop 1.3.0 introduced a session-based, thread-safe architecture. GTPyhop 1.8.0 adds memory tracking integration. GTPyhop 1.9.0 adds the iterative DFS backtracking strategy and the `strategy` parameter. This guide explains why sessions matter, how to use them, and shows concurrent examples.
 
 ## Why Thread-Safe Sessions?
 
 - **Isolation of global state**: Pre-1.3.0 workflows depended on process-global state (e.g., `current_domain`, verbosity, planning strategy). In concurrent code, runs could interfere with each other.
 - **Reliable concurrency**: Each `PlannerSession` has its own configuration, lock, logs, and stats; concurrent planning in threads is safe starting with 1.3.0.
-- **Per-session control**: Set per-session verbosity, iterative/recursive strategy, timeouts, and memory tracking. Persist and restore sessions independently.
+- **Per-session control**: Set per-session verbosity, planning strategy (recursive DFS, iterative greedy, or iterative DFS backtracking), timeouts, and memory tracking. Persist and restore sessions independently.
 
 Key APIs in `gtpyhop` (1.3.0+): `PlannerSession`, `create_session`, `get_session`, `destroy_session`, `list_sessions`, `PlanningTimeoutError`, `SessionSerializer`, `restore_session`, `restore_all_sessions`.
 
@@ -54,7 +54,7 @@ with gtpyhop.PlannerSession(domain=my_domain, verbose=1) as session:
 
 Notes:
 - `PlannerSession(domain=...)` keeps the planning isolated. The `isolated_execution()` context manager safely sets and restores global knobs during the call.
-- You can also pass session-specific controls, e.g. `recursive=True` for the recursive strategy, or a `timeout_ms` to `find_plan`.
+- You can also pass session-specific controls, e.g. `recursive=True` for the recursive strategy, `strategy="iterative_dfs_backtracking"` for the iterative backtracking strategy (1.9.0+), or a `timeout_ms` to `find_plan`.
 
 Example with a timeout:
 
@@ -80,6 +80,36 @@ with gtpyhop.PlannerSession(
             print(f"Memory used: {result.stats['memory_mb']:.2f} MB")
             print(f"Peak memory: {result.stats['peak_memory_mb']:.2f} MB")
 ```
+
+## Planning Strategy Selection (1.9.0+)
+
+GTPyhop 1.9.0 supports three planning strategies. The `strategy` parameter (new in 1.9.0) takes precedence over the legacy `recursive` bool when both are provided.
+
+| Strategy name | Backtracking? | Stack | `PlannerSession` parameter |
+|---------------|:------------:|-------|----------------------------|
+| Recursive DFS | Yes | Python call stack | `recursive=True` or `strategy="recursive_dfs"` |
+| Iterative greedy | No | Explicit stack | `recursive=False` (default) or `strategy="iterative_greedy"` |
+| Iterative DFS BT | Yes | Explicit stack | `strategy="iterative_dfs_backtracking"` |
+
+```python
+# Iterative DFS with backtracking (1.9.0+)
+with gtpyhop.PlannerSession(
+    domain=my_domain,
+    strategy="iterative_dfs_backtracking"
+) as session:
+    result = session.find_plan(state, tasks)
+
+# Legacy interface still works identically
+with gtpyhop.PlannerSession(domain=my_domain, recursive=True) as session:
+    result = session.find_plan(state, tasks)  # recursive DFS
+
+with gtpyhop.PlannerSession(domain=my_domain, recursive=False) as session:
+    result = session.find_plan(state, tasks)  # iterative greedy
+```
+
+When `strategy` is provided, `recursive` is ignored. The `session.recursive` property remains available and returns `True` only when the strategy is `"recursive_dfs"`.
+
+The strategy name is reported in `result.stats["strategy"]` (e.g. `"iterative_dfs_backtracking"`).
 
 ## Concurrent Planning Example
 
@@ -152,6 +182,7 @@ Concurrent use of the classic global API is effectively unsafe:
 | API | Description |
 |-----|-------------|
 | `PlannerSession(domain, verbose, ...)` | Isolated planning context |
+| `PlannerSession(strategy=...)` | Strategy selection: `"recursive_dfs"`, `"iterative_greedy"`, `"iterative_dfs_backtracking"` (1.9.0+) |
 | `session.isolated_execution()` | Context manager for safe execution |
 | `session.find_plan(state, tasks, timeout_ms)` | Plan with optional timeout |
 | `create_session(session_id, **kwargs)` | Create and register a session |
@@ -203,7 +234,7 @@ python -m gtpyhop.examples.simple_htn --session --verbose 3 --no-pauses
 
 Use sessions when:
 - Running planners concurrently (threads/processes) or from a web/API server
-- Needing per-run settings (verbosity, recursive vs iterative) without affecting others
+- Needing per-run settings (verbosity, planning strategy) without affecting others
 - Requiring timeouts/cancellation, structured logs, or persistence per run
 - Tracking memory usage during planning (1.8.0+)
 

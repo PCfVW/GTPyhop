@@ -1,6 +1,6 @@
-# GTPyhop 1.8.0 HTN Planning Examples
+# GTPyhop 1.9.0 HTN Planning Examples
 
-This document provides pedagogical details about all HTN Planning examples included with GTPyhop 1.8.0. Each example demonstrates different aspects of hierarchical task network planning, from basic concepts to advanced techniques.
+This document provides pedagogical details about all HTN Planning examples included with GTPyhop 1.9.0. Each example demonstrates different aspects of hierarchical task network planning, from basic concepts to advanced techniques.
 
 ## Table of Contents
 
@@ -10,8 +10,9 @@ This document provides pedagogical details about all HTN Planning examples inclu
 4. [IPC 2020 Total Order Examples](#-ipc-2020-total-order-examples)
 5. [MCP Orchestration Examples](#-mcp-orchestration-examples)
 6. [Memory Tracking Examples](#-memory-tracking-examples-180)
-7. [Running the Examples](#-running-the-examples)
-8. [Pedagogical Recommendations](#-pedagogical-recommendations)
+7. [Poetry Examples](#-poetry-examples-190)
+8. [Running the Examples](#-running-the-examples)
+9. [Pedagogical Recommendations](#-pedagogical-recommendations)
 
 ---
 
@@ -74,14 +75,15 @@ This document provides pedagogical details about all HTN Planning examples inclu
 - Method failure handling
 - Backtracking through alternative methods
 - Search space exploration
-- Planning strategy comparison (recursive vs. iterative)
+- Planning strategy comparison (recursive DFS vs. iterative greedy vs. iterative DFS backtracking)
 
 **Core Concepts Demonstrated:**
 - **Multiple Methods:** Several methods for the same task
 - **Failure Conditions:** Methods that can fail under certain conditions
 - **Backtracking:** How the planner explores alternatives
+- **Strategy Differences:** Recursive DFS and iterative DFS backtracking find plans; iterative greedy fails when the first method's path is a dead end
 
-**Educational Value:** Critical for understanding how HTN planners handle uncertainty and multiple solution paths.
+**Educational Value:** Critical for understanding how HTN planners handle uncertainty and multiple solution paths. See also the `backtracking_poetry` example (1.9.0+) for a more realistic backtracking scenario.
 
 ### simple_htn_acting_error.py - Error Handling Patterns
 **Purpose:** Execution failures and replanning strategies
@@ -368,6 +370,161 @@ python benchmarking.py --list-scenarios --example recursive
 ```
 
 **Documentation:** [Memory Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/memory_tracking/benchmarking_quickstart.md)
+
+---
+
+## Poetry Examples (1.9.0+)
+
+**Location:** `src/gtpyhop/examples/poetry/`
+
+These examples demonstrate HTN-planned poetry generation where the planner produces structural plans (form, rhyme scheme, meter constraints) and leaf-level actions are delegated to external MCP servers for text generation and phonetic verification. The collection is motivated by Anthropic's "Planning in Poems" (March 2025) discovery that Claude 3.5 Haiku plans ahead when writing rhyming poetry.
+
+**Progression:** The five examples form a progression, each extending the baseline with a different aspect of the paper's findings:
+
+| # | Example | Key Extension | Actions | Methods | Strategy |
+|---|---------|---------------|---------|---------|----------|
+| 1 | Structured Poetry | Baseline (select → generate → verify) | 6 | 8 | Any |
+| 2 | Backtracking Poetry | Strict/relaxed methods with backtracking | 7 | 9 | Backtracking |
+| 3 | Candidate Planning Poetry | Multi-candidate target selection pipeline | 8 | 8 | Any |
+| 4 | Bidirectional Planning Poetry | Decomposed backward line construction | 7 | 8 | Any |
+| 5 | Replanning Poetry | Post-generation evaluation and revision | 8 | 10 | Backtracking |
+
+### 1. Structured Poetry
+**Purpose:** HTN-planned poetry with MCP-delegated generation
+**Location:** `poetry/structured_poetry/`
+**Scenarios:** 6 scenarios (couplet, limerick, haiku, sonnet)
+
+**Key Learning Points:**
+- Hierarchical decomposition of poetic forms
+- Forward planning for rhyme target selection
+- Backward planning for constrained text generation
+- MCP server delegation for phonetics and LLM generation
+
+**Core Concepts Demonstrated:**
+- **Form Hierarchy:** `m_write_poem` → `m_compose_<form>` → `m_write_rhymed_line` / `m_write_free_line`
+- **Actions (6):** `a_initialize_poem`, `a_select_rhyme_target`, `a_generate_line`, `a_generate_line_no_rhyme`, `a_verify_line`, `a_assemble_poem`
+- **Methods (8):** One method per task (no backtracking needed)
+
+**Plan Lengths:** Couplet: 8, Limerick: 17, Haiku: 8, Sonnet: 44
+
+**Educational Value:** Demonstrates the core HTN decomposition pattern for poetry generation. Serves as the baseline for the four extensions that follow.
+
+### 2. Backtracking Poetry
+**Purpose:** HTN backtracking for rhyme selection with multiple methods
+**Location:** `poetry/backtracking_poetry/`
+**Scenarios:** 3 scenarios (couplet, limerick, haiku)
+
+**Key Learning Points:**
+- Multiple methods for the same task (strict vs. relaxed rhyme selection)
+- How iterative greedy planning fails when the first method leads to a dead end
+- How iterative DFS backtracking recovers by trying alternative methods
+- Strategy comparison across all three planning strategies
+
+**Core Concepts Demonstrated:**
+- **Two Methods for `m_write_rhymed_line`:**
+  - `m_write_rhymed_line_strict` (tried first; uses exact rhyme; fails when rhyme label has 2+ lines)
+  - `m_write_rhymed_line_relaxed` (fallback; uses near-rhyme; always succeeds)
+- **Backtracking Trigger:** In AABBA limerick, line 4 is the 3rd use of label A → strict selection fails → planner must backtrack to relaxed method
+- **Actions (7):** Same as structured poetry plus `a_select_rhyme_target_strict` and `a_select_rhyme_target_relaxed` (replacing the single `a_select_rhyme_target`)
+
+**Strategy Comparison:**
+
+| Strategy | Couplet (8) | Limerick (17) | Haiku (8) |
+|----------|:-----------:|:-------------:|:---------:|
+| Recursive DFS | Finds plan | Finds plan | Finds plan |
+| Iterative greedy | Finds plan | **Fails** | Finds plan |
+| Iterative DFS BT | Finds plan | Finds plan | Finds plan |
+
+**Educational Value:** The primary example for understanding the practical difference between the three planning strategies. Demonstrates a realistic scenario where backtracking is required for correctness.
+
+### 3. Candidate Planning Poetry
+**Purpose:** Multi-candidate rhyme target selection pipeline
+**Location:** `poetry/candidate_planning_poetry/`
+**Scenarios:** 3 scenarios (couplet, limerick, haiku)
+
+**Key Learning Points:**
+- Replacing a single action with a multi-step pipeline
+- Modeling the LLM's simultaneous consideration of multiple end-words
+- Forward planning with candidate generation, ranking, and commitment
+
+**Core Concepts Demonstrated:**
+- **3-Action Pipeline for rhyme selection:** `a_generate_rhyme_candidates` → `a_rank_candidates` → `a_commit_rhyme_target` (replacing the single `a_select_rhyme_target`)
+- **Actions (8):** 6 from structured poetry + 3 candidate pipeline actions - 1 original selection action
+- **Methods (8):** One method per task (no backtracking needed)
+
+**Plan Lengths:** Couplet: 12, Limerick: 27, Haiku: 8, Sonnet: 72
+
+**Educational Value:** Shows how a single action can be decomposed into a more detailed pipeline to model the underlying cognitive process more faithfully.
+
+### 4. Bidirectional Planning Poetry
+**Purpose:** Decomposed backward line construction
+**Location:** `poetry/bidirectional_planning_poetry/`
+**Scenarios:** 3 scenarios (couplet, limerick, haiku)
+
+**Key Learning Points:**
+- Splitting line generation into backward transition planning and forward surface text generation
+- Modeling the LLM's backward reasoning from the planned end-word to determine intermediate words
+- Two-step line construction: structural skeleton → fluent text
+
+**Core Concepts Demonstrated:**
+- **2-Action Line Generation:** `a_plan_transition` (backward: target word → structural skeleton) + `a_generate_surface_text` (forward: skeleton → fluent text), replacing the single `a_generate_line`
+- **Actions (7):** 6 from structured poetry + 2 decomposed actions - 1 original generation action
+- **Methods (8):** One method per task (no backtracking needed)
+
+**Plan Lengths:** Couplet: 10, Limerick: 22, Haiku: 8, Sonnet: 58
+
+**Educational Value:** Models the paper's finding that the LLM builds a structural skeleton before generating fluent text — the word "like" in "His hunger was like a starving rabbit" is determined by backward reasoning from "rabbit".
+
+### 5. Replanning Poetry
+**Purpose:** Post-generation evaluation and steering/revision
+**Location:** `poetry/replanning_poetry/`
+**Scenarios:** 3 scenarios (couplet, limerick, haiku)
+
+**Key Learning Points:**
+- Adding an evaluation step after generation that may trigger replanning
+- Using HTN backtracking to model line revision with a steered target word
+- How action-level failure triggers method-level backtracking at the evaluation level
+- Deterministic revision triggers computed from the rhyme scheme
+
+**Core Concepts Demonstrated:**
+- **Two Methods for `m_evaluate_and_replan`:**
+  - `m_accept_line` (tried first; `a_evaluate_line` fails if line needs revision)
+  - `m_revise_line` (fallback; `a_steer_target` → `a_generate_line` → `a_verify_line`)
+- **Backtracking Trigger:** `a_evaluate_line` fails for lines in `lines_requiring_revision` — subsequent uses of each rhyme label need revision
+- **Actions (8):** 6 from structured poetry + `a_evaluate_line` + `a_steer_target`
+- **Methods (10):** 8 from structured poetry + `m_accept_line` + `m_revise_line`
+
+**Strategy Comparison:**
+
+| Strategy | Couplet (12) | Limerick (28) | Haiku (8) |
+|----------|:------------:|:-------------:|:---------:|
+| Recursive DFS | Finds plan | Finds plan | Finds plan |
+| Iterative greedy | **Fails** | **Fails** | Finds plan |
+| Iterative DFS BT | Finds plan | Finds plan | Finds plan |
+
+**Plan Lengths:** Couplet: 12, Limerick: 28, Haiku: 8, Sonnet: 72
+
+**Educational Value:** Models the paper's finding that injecting an alternative planned word causes the model to restructure the entire line in 70% of test poems. Also demonstrates that backtracking can be required at different decomposition levels — compare with backtracking_poetry which backtracks at the line composition level.
+
+### Running the Poetry Benchmarks
+
+```bash
+cd src/gtpyhop/examples/poetry
+
+# List all available poetry domains
+python benchmarking.py --list-domains
+
+# Examples 1, 3, 4 work with default strategy
+python benchmarking.py structured_poetry
+python benchmarking.py candidate_planning_poetry
+python benchmarking.py bidirectional_planning_poetry
+
+# Examples 2, 5 require a backtracking strategy
+python benchmarking.py backtracking_poetry --strategy recursive_dfs
+python benchmarking.py replanning_poetry --strategy iterative_dfs_backtracking
+```
+
+**Documentation:** [Poetry Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/poetry/benchmarking_quickstart.md)
 
 ---
 
