@@ -3,14 +3,14 @@
 
 ################################################################################
 #                                                                              #
-#                              GTPyhop 1.8.0                                   #
+#                              GTPyhop 1.9.0                                   #
 #                                                                              #
 #                    Goal-Task-Network Planning System                         #
 #                                                                              #
 ################################################################################
 
 """
-GTPyhop 1.8.0: A Goal-Task-Network planning system with session-based architecture
+GTPyhop 1.9.0: A Goal-Task-Network planning system with session-based architecture
 
 GTPyhop is an automated planning system that can plan for both tasks and goals.
 Version 1.3.0 introduces session-based planning for better isolation, structured
@@ -18,21 +18,33 @@ logging for improved debugging, timeout management, and persistence capabilities
 Version 1.5.0 introduces MCP orchestration examples.
 Version 1.7.0 introduces enhanced MCP orchestration, bug fixes, and documentation updates.
 Version 1.8.0 introduces accurate memory tracking with background monitoring using psutil.
+Version 1.9.0 introduces iterative DFS planning with full backtracking via explicit stack.
 
 Original Author: Dana Nau <nau@umd.edu>, July 7, 2021
 pip install project architecture: Eric Jacopin, 2025
 Session Architecture: Eric Jacopin, 2025
 Memory Tracking: Eric Jacopin, 2026
+Iterative Backtracking: Eric Jacopin, 2026
 
 Key Features:
 - Hierarchical Task Network (HTN) planning
 - Goal-oriented planning with multigoals
+- Three planning strategies: recursive DFS, iterative greedy, iterative DFS with backtracking
 - Session-based architecture for isolation and concurrency
 - Structured logging with programmatic access
 - Cross-platform timeout enforcement and resource management
 - Session persistence and recovery mechanisms
 - Memory tracking with accurate peak detection via background monitoring
 - 100% backward compatibility with GTPyhop v1.2.1
+
+Iterative DFS Backtracking (New in 1.9.0):
+- Combines the iterative planner's explicit stack with the recursive planner's
+  ability to backtrack across methods
+- When a task has multiple applicable methods, all continuations are pushed onto
+  the stack; if one path fails, the planner falls back to the next alternative
+- Activated via set_recursive_planning("iterative_dfs_backtracking") or
+  PlannerSession(strategy="iterative_dfs_backtracking")
+- No Python recursion depth limit; safe because methods are read-only
 
 Memory Tracking (New in 1.8.0):
 - Uses psutil for real memory measurement (not time-based estimates)
@@ -983,9 +995,12 @@ Cross-references:
 - Integrates with Logging and Utilities for debugging and verbose output
 
 Design Notes:
-- Supports both recursive and iterative planning strategies
-- Recursive planning uses Python's call stack for backtracking
-- Iterative planning uses explicit stack for better control and debugging
+- Supports three planning strategies: recursive DFS, iterative greedy, and
+  iterative DFS with backtracking
+- Recursive DFS uses Python's call stack for backtracking
+- Iterative greedy uses explicit stack but commits to first applicable method
+- Iterative DFS backtracking uses explicit stack and pushes all applicable
+  method continuations, enabling backtracking without recursion depth limits
 - All planning respects the global verbose level for output control
 """
 
@@ -1330,6 +1345,127 @@ def _refine_multigoal_and_continue_iterative(state, goal1, todo_list, plan, dept
     return None
 
 ################################################################################
+# Iterative Backtracking Refinement Helpers
+
+def _refine_task_and_continue_iterative_bt(state, task1, todo_list, plan, depth):
+    """
+    Refine a task using task methods in iterative backtracking mode.
+    Returns a list of continuations (one per applicable method), possibly empty.
+    """
+    relevant = current_domain._task_method_dict[task1[0]]
+    if verbose >= 3:
+        _verbose_print_and_log(f'depth {depth} task {task1} methods {[m.__name__ for m in relevant]}', 3, "refine_task_bt")
+
+    _log_if_available("debug", "refine_task_bt", "Attempting task refinement (backtracking)",
+                     task_name=task1[0], depth=depth, method_count=len(relevant))
+
+    continuations = []
+    for method in relevant:
+        if verbose >= 3:
+            _verbose_print_and_log(f'depth {depth} trying {method.__name__}: ', 3, "refine_task_bt", end='')
+
+        _log_if_available("debug", "refine_task_bt", "Trying method",
+                         method_name=method.__name__, task_name=task1[0], depth=depth)
+
+        subtasks = method(state, *task1[1:])
+        if subtasks is not False and subtasks is not None:
+            if verbose >= 3:
+                print('applicable')
+                _verbose_print_and_log(f'depth {depth} subtasks: {subtasks}', 3, "refine_task_bt")
+            _log_if_available("debug", "refine_task_bt", "Method applicable",
+                             method_name=method.__name__, subtask_count=len(subtasks))
+            continuations.append((state, subtasks + todo_list, plan, depth + 1))
+        else:
+            if verbose >= 3:
+                print(f'not applicable')
+            _log_if_available("debug", "refine_task_bt", "Method not applicable",
+                             method_name=method.__name__)
+
+    if not continuations:
+        if verbose >= 3:
+            _verbose_print_and_log(f'depth {depth} could not accomplish task {task1}', 3, "refine_task_bt")
+        _log_if_available("debug", "refine_task_bt", "Task refinement failed",
+                         task_name=task1[0], depth=depth)
+    return continuations
+
+
+def _refine_unigoal_and_continue_iterative_bt(state, goal1, todo_list, plan, depth):
+    """
+    Refine a unigoal using unigoal methods in iterative backtracking mode.
+    Returns a list of continuations (one per applicable method), possibly empty.
+    """
+    if verbose >= 3:
+        print(f'depth {depth} goal {goal1}: ', end='')
+    (state_var_name, arg, val) = goal1
+    if vars(state).get(state_var_name).get(arg) == val:
+        if verbose >= 3:
+            print(f'already achieved')
+        return [(state, todo_list, plan, depth + 1)]
+    relevant = current_domain._unigoal_method_dict[state_var_name]
+    if verbose >= 3:
+        print(f'methods {[m.__name__ for m in relevant]}')
+
+    continuations = []
+    for method in relevant:
+        if verbose >= 3:
+            print(f'depth {depth} trying method {method.__name__}: ', end='')
+        subgoals = method(state, arg, val)
+        if subgoals is not False and subgoals is not None:
+            if verbose >= 3:
+                print('applicable')
+                print(f'depth {depth} subgoals: {subgoals}')
+            if verify_goals:
+                verification = [('_verify_g', method.__name__, state_var_name, arg, val, depth)]
+            else:
+                verification = []
+            new_todo_list = subgoals + verification + todo_list
+            continuations.append((state, new_todo_list, plan, depth + 1))
+        else:
+            if verbose >= 3:
+                print(f'not applicable')
+
+    if not continuations:
+        if verbose >= 3:
+            print(f'depth {depth} could not achieve goal {goal1}')
+    return continuations
+
+
+def _refine_multigoal_and_continue_iterative_bt(state, goal1, todo_list, plan, depth):
+    """
+    Refine a multigoal using multigoal methods in iterative backtracking mode.
+    Returns a list of continuations (one per applicable method), possibly empty.
+    """
+    if verbose >= 3:
+        print(f'depth {depth} multigoal {goal1}: ', end='')
+    relevant = current_domain._multigoal_method_list
+    if verbose >= 3:
+        print(f'methods {[m.__name__ for m in relevant]}')
+
+    continuations = []
+    for method in relevant:
+        if verbose >= 3:
+            print(f'depth {depth} trying method {method.__name__}: ', end='')
+        subgoals = method(state, goal1)
+        if subgoals is not False and subgoals is not None:
+            if verbose >= 3:
+                print('applicable')
+                print(f'depth {depth} subgoals: {subgoals}')
+            if verify_goals:
+                verification = [('_verify_mg', method.__name__, goal1, depth)]
+            else:
+                verification = []
+            new_todo_list = subgoals + verification + todo_list
+            continuations.append((state, new_todo_list, plan, depth + 1))
+        else:
+            if verbose >= 3:
+                print(f'not applicable')
+
+    if not continuations:
+        if verbose >= 3:
+            print(f'depth {depth} could not achieve multigoal {goal1}')
+    return continuations
+
+################################################################################
 # Iterative Planning Implementation
 
 def seek_plan_iterative(initial_state, initial_todo_list, initial_plan, initial_depth):
@@ -1395,44 +1531,149 @@ def seek_plan_iterative(initial_state, initial_todo_list, initial_plan, initial_
 
     return False
 
+################################################################################
+# Iterative Backtracking Planning Implementation
+
+def seek_plan_iterative_backtracking(initial_state, initial_todo_list, initial_plan, initial_depth):
+    """
+    Iterative DFS workhorse for find_plan with full backtracking.
+    When a task has multiple applicable methods, all continuations are pushed
+    onto the stack (in reverse order for LIFO correctness). If one path fails,
+    the stack falls through to the next alternative.
+
+    Arguments:
+     - initial_state is the current state
+     - initial_todo_list is the current list of goals, tasks, and actions
+     - initial_plan is the current partial plan
+     - initial_depth is the recursion depth, for use in debugging
+    """
+    stack = [(initial_state, initial_todo_list, initial_plan, initial_depth)]
+    expansions = 0
+
+    _log_if_available("debug", "seek_plan_iterative_bt", "Starting iterative backtracking planning",
+                     initial_depth=initial_depth,
+                     initial_todo_count=len(initial_todo_list))
+
+    while stack:
+        state, todo_list, plan, depth = stack.pop()
+        expansions += 1
+
+        # Check for cooperative cancellation periodically (every 100 expansions for performance)
+        if expansions % 100 == 0:
+            try:
+                if _global_logger and hasattr(_global_logger, 'session_id'):
+                    ResourceManager.check_cancellation(_global_logger.session_id)
+            except (AttributeError, PlanningTimeoutError):
+                pass
+
+        if verbose >= 2:
+            todo_string = '[' + ', '.join([_item_to_string(x) for x in todo_list]) + ']'
+            _verbose_print_and_log(f'depth {depth} todo_list ' + todo_string, 2, "seek_plan_iterative_bt")
+
+        if not todo_list:
+            if verbose >= 3:
+                _verbose_print_and_log(f'depth {depth} no more tasks or goals, return plan', 3, "seek_plan_iterative_bt")
+            _log_if_available("debug", "seek_plan_iterative_bt", "Planning completed successfully",
+                             final_depth=depth, expansions=expansions, plan_length=len(plan))
+            return plan
+
+        item1 = todo_list[0]
+        ttype = get_type(item1)
+
+        if ttype in {'Multigoal'}:
+            continuations = _refine_multigoal_and_continue_iterative_bt(state, item1, todo_list[1:], plan, depth)
+            # Push in reverse so first method is tried first (LIFO)
+            for c in reversed(continuations):
+                stack.append(c)
+        elif ttype in {'list', 'tuple'}:
+            if item1[0] in current_domain._action_dict:
+                # Actions have no alternatives -- reuse the standard iterative handler
+                result = _apply_action_and_continue_iterative(state, item1, todo_list[1:], plan, depth)
+                if result is not None:
+                    stack.append(result)
+                # If None: action failed, stack falls through to next alternative
+            elif item1[0] in current_domain._task_method_dict:
+                continuations = _refine_task_and_continue_iterative_bt(state, item1, todo_list[1:], plan, depth)
+                for c in reversed(continuations):
+                    stack.append(c)
+            elif item1[0] in current_domain._unigoal_method_dict:
+                continuations = _refine_unigoal_and_continue_iterative_bt(state, item1, todo_list[1:], plan, depth)
+                for c in reversed(continuations):
+                    stack.append(c)
+
+    return False
+
 ############################################################
 # The planning system
 
 _current_seek_plan = None
 
 
-def set_recursive_planning(use_recursive, verbose_output=False):
+def set_recursive_planning(strategy, verbose_output=False):
     """
-    Set the planning strategy to recursive or iterative.
+    Set the planning strategy.
 
     Args:
-        use_recursive: If True, use recursive planning; if False, use iterative
+        strategy: Planning strategy to use. Accepts:
+            - True: recursive DFS (depth-first search with backtracking
+              via Python call stack)
+            - False: iterative greedy (irrevocable commitment to first
+              applicable method; no backtracking)
+            - "recursive_dfs": same as True
+            - "iterative_greedy": same as False
+            - "iterative_irrevocable_commitment": same as False
+            - "iterative_dfs_backtracking": iterative depth-first search
+              with full backtracking via explicit stack
         verbose_output: If True, print strategy change messages
     """
     global _current_seek_plan
-    if use_recursive:
-        _current_seek_plan = seek_plan_recursive
-        if verbose_output:
-            print("Using recursive seek_plan.")
+    if isinstance(strategy, bool):
+        if strategy:
+            _current_seek_plan = seek_plan_recursive
+            if verbose_output:
+                print("Using recursive seek_plan.")
+        else:
+            _current_seek_plan = seek_plan_iterative
+            if verbose_output:
+                print("Using iterative seek_plan.")
+    elif isinstance(strategy, str):
+        if strategy == "recursive_dfs":
+            _current_seek_plan = seek_plan_recursive
+            if verbose_output:
+                print("Using recursive DFS seek_plan.")
+        elif strategy in ("iterative_greedy", "iterative_irrevocable_commitment"):
+            _current_seek_plan = seek_plan_iterative
+            if verbose_output:
+                print("Using iterative greedy seek_plan.")
+        elif strategy == "iterative_dfs_backtracking":
+            _current_seek_plan = seek_plan_iterative_backtracking
+            if verbose_output:
+                print("Using iterative DFS seek_plan with backtracking.")
+        else:
+            raise ValueError(
+                f"Unknown strategy '{strategy}'. Valid strategies: "
+                f"'recursive_dfs', 'iterative_greedy', "
+                f"'iterative_irrevocable_commitment', "
+                f"'iterative_dfs_backtracking'")
     else:
-        _current_seek_plan = seek_plan_iterative
-        if verbose_output:
-            print("Using iterative seek_plan.")
+        raise TypeError(
+            f"strategy must be bool or str, got {type(strategy).__name__}")
 
 
 def get_recursive_planning():
     """
-    Returns True if the current seek_plan is recursive, False if it is iterative.
+    Returns True if the current strategy is recursive DFS, False otherwise.
+    Note: returns False for both iterative greedy and iterative DFS backtracking.
     """
     if None == _current_seek_plan:
-        raise Exception("No planning strategy (iterative or else recursive) has been set. Use set_recursive_planning(True|False) to set it.")
+        raise Exception("No planning strategy has been set. Use set_recursive_planning(True|False|<strategy_name>) to set it.")
     return _current_seek_plan == seek_plan_recursive
 
 
 def reset_planning_strategy():
     """
     Resets the planning strategy to None, so that the user must set it again
-    using set_recursive_planning(True|False).
+    using set_recursive_planning(True|False|<strategy_name>).
     """
     global _current_seek_plan
     _current_seek_plan = None
@@ -1454,13 +1695,18 @@ def find_plan(state, todo_list):
      - 'todo_list' is a list of goals, tasks, and actions.
     """
     if None == _current_seek_plan:
-        raise Exception("No planning strategy (iterative or else recursive) has been set. Use set_recursive_planning(True|False) to set it.")
+        raise Exception("No planning strategy has been set. Use set_recursive_planning(True|False|<strategy_name>) to set it.")
 
     # Start timing for performance logging
     start_time = time.time()
 
     # Log planning start
-    strategy = "recursive" if _current_seek_plan == seek_plan_recursive else "iterative"
+    if _current_seek_plan == seek_plan_recursive:
+        strategy = "recursive_dfs"
+    elif _current_seek_plan == seek_plan_iterative_backtracking:
+        strategy = "iterative_dfs_backtracking"
+    else:
+        strategy = "iterative_greedy"
     _log_if_available("info", "find_plan", "Planning started",
                      state_name=state.__name__,
                      todo_count=len(todo_list),
@@ -1702,13 +1948,14 @@ class SessionSerializer:
                     'session_id': session.session_id,
                     'verbose': session.verbose,
                     'recursive': session.recursive,
+                    'strategy': session._strategy,
                     'structured_logging': session.structured_logging,
                     'auto_cleanup': session.auto_cleanup,
                     'created_at': session._created_at,
                     'last_used': session._last_used,
                     'stats': session._stats.copy(),
                     'domain_name': session.domain.__name__ if session.domain else None,
-                    'version': '1.3.0',
+                    'version': '1.9.0',
                     'timestamp': time.time()
                 }
 
@@ -2113,6 +2360,7 @@ class PlannerSession:
                  domain: Optional['Domain'] = None,
                  verbose: int = 0,
                  recursive: bool = False,
+                 strategy: Optional[str] = None,
                  structured_logging: bool = True,
                  auto_cleanup: bool = True,
                  memory_tracking: bool = False,
@@ -2124,7 +2372,11 @@ class PlannerSession:
             session_id: Unique identifier for this session
             domain: Planning domain to use
             verbose: Verbosity level (0-3)
-            recursive: Use recursive planning strategy
+            recursive: Use recursive planning strategy (legacy; use strategy instead)
+            strategy: Planning strategy name. When provided, takes precedence over
+                recursive. Valid values: "recursive_dfs", "iterative_greedy",
+                "iterative_irrevocable_commitment", "iterative_dfs_backtracking".
+                Default None (falls back to recursive parameter).
             structured_logging: Enable structured logging
             auto_cleanup: Automatically clean up resources
             memory_tracking: Enable psutil-based memory tracking with background
@@ -2135,11 +2387,18 @@ class PlannerSession:
         self.session_id = session_id or f"session_{uuid.uuid4().hex[:8]}"
         self.domain = domain
         self.verbose = verbose
-        self.recursive = recursive
         self.structured_logging = structured_logging
         self.auto_cleanup = auto_cleanup
         self.memory_tracking = memory_tracking
         self.memory_sampling_interval = memory_sampling_interval
+
+        # Resolve effective strategy
+        if strategy is not None:
+            self._strategy = strategy
+        elif recursive:
+            self._strategy = "recursive_dfs"
+        else:
+            self._strategy = "iterative_greedy"
 
         # Session state
         self._created_at = time.time()
@@ -2178,6 +2437,11 @@ class PlannerSession:
         if self.auto_cleanup:
             self.cleanup()
 
+    @property
+    def recursive(self):
+        """Whether the session uses recursive DFS (derived from self._strategy)."""
+        return self._strategy == "recursive_dfs"
+
     def _update_last_used(self):
         """Update last used timestamp."""
         self._last_used = time.time()
@@ -2193,6 +2457,8 @@ class PlannerSession:
         Context manager for isolated execution with state restoration.
         Saves and restores global GTPyhop state (domain, verbose, strategy).
         """
+        global _current_seek_plan
+
         # Save current global state
         saved_domain = current_domain
         saved_verbose = verbose
@@ -2203,7 +2469,7 @@ class PlannerSession:
             if self.domain:
                 set_current_domain(self.domain)
             set_verbose_level(self.verbose)
-            set_recursive_planning(self.recursive)
+            set_recursive_planning(self._strategy)
 
             self._log_operation("isolated_execution_start",
                               saved_domain=saved_domain.__name__ if saved_domain else None,
@@ -2216,12 +2482,7 @@ class PlannerSession:
             if saved_domain:
                 set_current_domain(saved_domain)
             set_verbose_level(saved_verbose)
-            if saved_strategy:
-                # Restore planning strategy by setting it properly
-                if saved_strategy == seek_plan_recursive:
-                    set_recursive_planning(True)
-                else:
-                    set_recursive_planning(False)
+            _current_seek_plan = saved_strategy
 
             self._log_operation("isolated_execution_end")
 
@@ -2261,14 +2522,18 @@ class PlannerSession:
                     # Apply timeout decorator to planning function
                     @ResourceManager.with_timeout(timeout_ms, self.session_id)
                     def timed_planning():
-                        if self.recursive:
+                        if self._strategy == "recursive_dfs":
                             return self._plan_recursive(state, todo_list)
+                        elif self._strategy == "iterative_dfs_backtracking":
+                            return self._plan_iterative_bt(state, todo_list)
                         else:
                             return self._plan_iterative(state, todo_list)
                     plan = timed_planning()
                 else:
-                    if self.recursive:
+                    if self._strategy == "recursive_dfs":
                         plan = self._plan_recursive(state, todo_list)
+                    elif self._strategy == "iterative_dfs_backtracking":
+                        plan = self._plan_iterative_bt(state, todo_list)
                     else:
                         plan = self._plan_iterative(state, todo_list)
 
@@ -2286,7 +2551,7 @@ class PlannerSession:
                 result.stats = {
                     "duration_ms": duration_ms,
                     "expansions": getattr(self, '_last_expansions', 0),
-                    "strategy": "recursive" if self.recursive else "iterative"
+                    "strategy": self._strategy
                 }
 
             except PlanningTimeoutError as e:
@@ -2321,7 +2586,7 @@ class PlannerSession:
             result.stats.update({
                 "duration_ms": duration_ms,
                 "expansions": getattr(self, '_last_expansions', 0),
-                "strategy": "recursive" if self.recursive else "iterative",
+                "strategy": self._strategy,
                 "memory_mb": memory_stats["memory_mb"],
                 "peak_memory_mb": memory_stats["peak_memory_mb"]
             })
@@ -2341,6 +2606,11 @@ class PlannerSession:
         """Session-specific iterative planning implementation."""
         with self.isolated_execution():
             return seek_plan_iterative(state, todo_list, [], 0)
+
+    def _plan_iterative_bt(self, state: 'State', todo_list: List) -> Optional[List[Tuple]]:
+        """Session-specific iterative backtracking planning implementation."""
+        with self.isolated_execution():
+            return seek_plan_iterative_backtracking(state, todo_list, [], 0)
 
     def run_lazy_lookahead(self, state: 'State', todo_list: List, *,
                           max_tries: int = 10,
@@ -2609,12 +2879,16 @@ class PlannerSession:
                     # Domain not found, create session without domain
                     pass
 
+            # Resolve strategy (backward compat: older data lacks 'strategy' field)
+            strategy = session_data.get('strategy', None)
+
             # Create new session with restored configuration
             session = cls(
                 session_id=session_data['session_id'],
                 domain=domain,
                 verbose=session_data['verbose'],
                 recursive=session_data['recursive'],
+                strategy=strategy,
                 structured_logging=session_data.get('structured_logging', True),
                 auto_cleanup=session_data.get('auto_cleanup', True)
             )
@@ -2949,7 +3223,7 @@ def list_sessions() -> List[str]:
 
 ################################################################################
 #                                                                              #
-#                            END OF GTPYHOP 1.3.0+                             #
+#                            END OF GTPYHOP 1.9.0                              #
 #                                                                              #
 ################################################################################
 
