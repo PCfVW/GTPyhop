@@ -947,7 +947,7 @@ def validate_plan_from_goal(initial_state: State, plan, key_string: str = "", go
                 return False
             if verbose == 2:
                 print(f'New state after action {action[0]} (#{action_counter}): {state.__str__()}')
-            else:   # verbose >= 3
+            elif verbose >= 3:
                 print(f'New state after action {action} (#{action_counter}):')
                 state.display()
         else:

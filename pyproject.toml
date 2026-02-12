@@ -11,11 +11,12 @@ authors = [
     # Packaging author:
     #   - this toml file,
     #   - new folder names and new package folder structure,
-    #   - iterative_seek_plan
+    #   - greedy iterative_seek_plan
+    #   - backtracking iterative_seek_plan
     #   - session-based architecture
     #   - structured logging
     #   - plan validation
-    #   - new examples (IPC 2020 Total Order, MCP orchestration, and memory tracking)
+    #   - new examples (IPC 2020 Total Order, MCP orchestration, memory tracking, and poetry)
     #   - documentation style guides for domains, problems, actions, methods, and new examples
     { name = "Eric Jacopin", email = "eric.jacopin@protonmail.com" },
 

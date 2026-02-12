@@ -34,7 +34,7 @@ from benchmarking import (
     set_verbose_level, gtpyhop_source, get_verbose_level,
     BenchmarkResult, ResourceUsage
 )
-from gtpyhop import PlannerSession
+from gtpyhop import PlannerSession, validate_plan_from_goal
 
 
 class PoetryBenchmark(PlannerBenchmark):
@@ -80,8 +80,17 @@ class PoetryBenchmark(PlannerBenchmark):
                             # Tasks are already a list, pass directly
                             result = session.find_plan(state, tasks)
                             plan = result.plan if (result and result.success) else None
+                            # Validate plan executability (domain is set by isolated_execution)
+                            if plan is not None:
+                                if not validate_plan_from_goal(state, plan):
+                                    error = "Plan validation failed: action(s) cannot execute"
+                                    plan = None
                 else:
                     plan = self.planner(state, tasks)
+                    if plan is not None and plan is not False:
+                        if not validate_plan_from_goal(state, plan):
+                            error = "Plan validation failed: action(s) cannot execute"
+                            plan = None
 
             exec_time = tracker.exec_time
             resources = tracker.resources
