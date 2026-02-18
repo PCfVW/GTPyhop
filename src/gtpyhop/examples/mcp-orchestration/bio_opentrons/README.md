@@ -197,7 +197,7 @@ The domain actions map directly to Opentrons API commands:
 ## References
 
 - [Opentrons Python API v2](https://docs.opentrons.com/v2/)
-- [GTPyhop Documentation](https://github.com/dananau/GTPyhop)
+- [GTPyhop Documentation](https://github.com/PCfVW/GTPyhop)
 - [MCP Protocol](https://modelcontextprotocol.io/)
 
 ---

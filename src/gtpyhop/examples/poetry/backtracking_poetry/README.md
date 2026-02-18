@@ -298,7 +298,7 @@ Methods use:
 
 ## References
 
-- **GTPyhop Documentation**: https://github.com/dananau/GTPyhop
+- **GTPyhop Documentation**: https://github.com/PCfVW/GTPyhop
 - **Backtracking Design Report**: `gitignore/iterative_backtracking_find_plan.md`
 - **Structured Poetry Domain**: `examples/poetry/structured_poetry/`
 - **Anthropic "Planning in Poems"**: Anthropic Research, March 2025

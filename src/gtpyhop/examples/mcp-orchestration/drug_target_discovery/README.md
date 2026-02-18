@@ -115,7 +115,7 @@ The planner should generate a plan with 8 actions:
 ## References
 
 - OpenTargets Platform: https://platform.opentargets.org/
-- GTPyhop Documentation: https://github.com/dananau/GTPyhop
+- GTPyhop Documentation: https://github.com/PCfVW/GTPyhop
 - MCP Protocol: https://modelcontextprotocol.io/
 
 ---

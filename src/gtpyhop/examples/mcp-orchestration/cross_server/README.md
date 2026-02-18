@@ -280,7 +280,7 @@ Check that the initial state includes:
 
 ## References
 
-- **GTPyhop Documentation**: https://github.com/dananau/GTPyhop
+- **GTPyhop Documentation**: https://github.com/PCfVW/GTPyhop
 - **MCP Protocol**: https://modelcontextprotocol.io/
 - **HTN Planning**: Hierarchical Task Network planning methodology
 

@@ -335,7 +335,7 @@ Comprehensive documentation of all state properties with:
 
 ## References
 
-- **GTPyhop Documentation**: https://github.com/dananau/GTPyhop
+- **GTPyhop Documentation**: https://github.com/PCfVW/GTPyhop
 - **Anthropic "Planning in Poems"**: Anthropic Research, March 2025
 - **Structured Poetry Domain**: `examples/poetry/structured_poetry/`
 - **Backtracking Poetry Domain**: `examples/poetry/backtracking_poetry/`

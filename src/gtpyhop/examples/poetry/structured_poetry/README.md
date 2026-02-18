@@ -220,7 +220,7 @@ Comprehensive documentation of all state properties with:
 
 ## References
 
-- **GTPyhop Documentation**: https://github.com/dananau/GTPyhop
+- **GTPyhop Documentation**: https://github.com/PCfVW/GTPyhop
 - **Anthropic "Planning in Poems"**: Anthropic Research, March 2025
 - **MCP Protocol**: https://modelcontextprotocol.io/
 
