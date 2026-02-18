@@ -2,7 +2,7 @@
 
 ## How to Write Problem Files (Initial States and Goal Tasks) for GTPyhop 1.7.0+ (LibCST-Compatible Format)
 
-**Version**: 2.1.0
+**Version**: 2.2.0
 **Target Audience**: Domain developers writing GTPyhop 1.7.0+ problem files
 **Purpose**: Enable automated extraction of scenarios with configuration variables and problem metadata using Meta's LibCST tool for database ingestion
 
@@ -172,6 +172,61 @@ def get_problems():
     """
     return problems
 ```
+
+### 2.3 Doctests in `get_problems()`
+
+The `get_problems()` docstring is the recommended location for **doctests** that verify plan correctness. Doctests serve as both documentation and regression tests — they show expected behavior inline and can be run with `python -m doctest problems.py`.
+
+**When to add doctests:**
+- When scenarios have specific expected plan lengths
+- When backtracking scenarios should verify which candidate succeeds
+- When greedy planner failure is expected behavior worth documenting
+
+**Pattern:** Each doctest block should suppress GTPyhop's import messages (which would break doctest output matching), then verify plan success and length:
+
+```python
+def get_problems():
+    """
+    Return all problem definitions for benchmarking.
+
+    Setup: suppress GTPyhop import messages.
+
+    >>> import sys, io; _o = sys.stdout; sys.stdout = io.StringIO()
+    >>> import gtpyhop
+    >>> from gtpyhop.examples.your_domain import the_domain, problems
+    >>> sys.stdout = _o
+    >>> probs = problems.get_problems()
+    >>> len(probs)
+    3
+
+    Scenario 1 — description (N actions).
+
+    >>> _o = sys.stdout; sys.stdout = io.StringIO()
+    >>> with gtpyhop.PlannerSession(domain=the_domain, verbose=0, strategy='iterative_dfs_backtracking') as s:
+    ...     r1 = s.find_plan(*probs['scenario_1'][:2])
+    >>> sys.stdout = _o
+    >>> r1.success, len(r1.plan)
+    (True, N)
+
+    Returns:
+        Dictionary mapping problem IDs to (state, tasks, description) tuples.
+    """
+    return problems
+```
+
+**Key conventions:**
+- **Stdout suppression**: `_o = sys.stdout; sys.stdout = io.StringIO()` before noisy calls, `sys.stdout = _o` after
+- **`[:2]` slice**: Passes `(state, tasks)` from the 3-element problem tuple, skipping the description
+- **`verbose=0`**: Prevents planner messages from interfering with doctest output
+- **Narrative text between tests**: Explains what each scenario verifies (does not need `>>>` prefix)
+
+**Running doctests:**
+
+```bash
+python -m doctest -v src/gtpyhop/examples/poetry/feature_space_poetry/problems.py
+```
+
+**Reference implementation:** See `feature_space_poetry/problems.py` for a complete example with 31 tests covering plan success, plan length, injected feature identity, and greedy planner failure.
 
 ---
 
@@ -629,6 +684,7 @@ problems['test'] = (initial_state, [...], 'Desc')
 - [ ] GTPyhop import with fallback strategy
 - [ ] `problems = {}` declaration before domain block
 - [ ] `get_problems()` function defined at end
+- [ ] Doctests in `get_problems()` docstring (recommended for plan verification)
 
 ### 11.2 Domain Markers
 - [ ] `# BEGIN: Domain: domain_name` present
@@ -696,6 +752,6 @@ scenario_marker     = "# BEGIN: Scenario:" SPACE scenario_name
 
 ---
 
-*Document Version: 2.0.0*
-*Generated: 2025-12-09*
+*Document Version: 2.2.0*
+*Updated: 2026-02-18*
 *Based on: Unified Scenario Block structure (Alternative D)*

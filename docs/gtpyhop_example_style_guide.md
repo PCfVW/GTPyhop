@@ -2,7 +2,7 @@
 
 ## How to Write Examples for GTPyhop
 
-**Version**: 1.1.0
+**Version**: 1.2.0
 **Target Audience**: Developers creating new GTPyhop example domains
 
 ---
@@ -287,6 +287,7 @@ Before submitting an example, verify:
 - [ ] `README.md` documents scenarios, domain structure, and usage
 - [ ] Example runs successfully with `PlannerSession`
 - [ ] All scenarios produce valid plans
+- [ ] Doctests in `get_problems()` verify plan lengths and expected behavior (recommended)
 
 ---
 
@@ -300,8 +301,36 @@ To create a new example:
 4. Define scenarios in `problems.py`
 5. Update `README.md`
 6. Test: `python -c "from gtpyhop.examples.your_example import get_problems; print(get_problems())"`
+7. Add doctests to `get_problems()` (see section 7)
+8. Verify: `python -m doctest -v src/gtpyhop/examples/your_example/problems.py`
 
 ---
 
-*Document Version: 1.1.0*
-*Updated: 2026-01-12*
+## 7. Doctests for Plan Verification
+
+Add doctests to the `get_problems()` docstring in `problems.py` to verify that all scenarios produce correct plans. Doctests serve as both inline documentation and regression tests.
+
+**What to test:**
+- Plan success and plan length for each scenario
+- Identity of key actions in the plan (e.g., which candidate was selected)
+- Expected greedy planner failures for backtracking scenarios
+
+**How to run:**
+
+```bash
+# Run doctests for a specific problems file
+python -m doctest -v src/gtpyhop/examples/your_example/problems.py
+```
+
+**Conventions:**
+- Suppress GTPyhop import messages with stdout redirection (they break doctest output matching)
+- Use `verbose=0` in PlannerSession to prevent planner messages
+- Pass `*probs['key'][:2]` to `find_plan` (slices off the description string)
+- Add narrative text between test blocks explaining what each scenario verifies
+
+See the [problems style guide](gtpyhop_problems_style_guide.md) (section 2.3) for the full pattern, and `feature_space_poetry/problems.py` for a reference implementation.
+
+---
+
+*Document Version: 1.2.0*
+*Updated: 2026-02-18*

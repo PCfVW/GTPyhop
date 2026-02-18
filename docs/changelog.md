@@ -1,16 +1,16 @@
 # GTPyhop Version History
 
-## 1.9.0 — Iterative DFS Backtracking & Poetry Examples (Latest, Recommended)
+## 1.9.1 — Poetry Examples & Bug Fixes (Latest, Recommended)
 
 🚀 **Major Features:**
 - **🔀 Iterative DFS Backtracking** - Third planning strategy combining the iterative planner's explicit stack with full backtracking across methods
-- **📝 Poetry Examples** - Five poetry generation domains demonstrating structured, backtracking, candidate planning, bidirectional, and replanning HTN planning
+- **📝 Poetry Examples** - Seven poetry generation domains demonstrating structured, backtracking, candidate planning, bidirectional, replanning, formal mechanism, and feature-space HTN planning
 
 **Iterative DFS Backtracking:**
 
 GTPyhop 1.8.0 provided two planning strategies: recursive DFS (backtracks via Python call stack) and iterative greedy (commits to first applicable method, no backtracking). The iterative greedy planner could not recover when a chosen method's subtasks failed downstream.
 
-GTPyhop 1.9.0 adds a third strategy — **iterative DFS with backtracking** — that pushes all applicable method continuations onto an explicit stack. If one path fails, the planner falls back to the next alternative. This provides the same correctness as recursive DFS without Python's recursion depth limit.
+GTPyhop 1.9.1 adds a third strategy — **iterative DFS with backtracking** — that pushes all applicable method continuations onto an explicit stack. If one path fails, the planner falls back to the next alternative. This provides the same correctness as recursive DFS without Python's recursion depth limit.
 
 | Strategy | Backtracking? | Stack | Activation |
 |----------|:------------:|-------|------------|
@@ -55,7 +55,7 @@ with gtpyhop.PlannerSession(
 
 **New Examples:**
 
-The five poetry examples form a progression, each extending the baseline with a different aspect of Anthropic's "Planning in Poems" (March 2025) findings:
+The seven poetry examples form a progression, each extending the baseline with a different aspect of Anthropic's "Planning in Poems" (March 2025) findings:
 
 | # | Example | Directory | Description | Strategy |
 |---|---------|-----------|-------------|----------|
@@ -64,6 +64,8 @@ The five poetry examples form a progression, each extending the baseline with a 
 | 3 | **Candidate Planning Poetry** | `poetry/candidate_planning_poetry/` | Multi-candidate rhyme selection pipeline (3 scenarios) | Any |
 | 4 | **Bidirectional Planning Poetry** | `poetry/bidirectional_planning_poetry/` | Decomposed backward line construction (3 scenarios) | Any |
 | 5 | **Replanning Poetry** | `poetry/replanning_poetry/` | Post-generation evaluation and steering/revision (3 scenarios) | Backtracking |
+| 6 | **Formal Mechanism Poetry** | `poetry/formal_mechanism_poetry/` | Three planning mechanisms from Anthropic's paper (3 scenarios) | Any |
+| 7 | **Feature Space Poetry** | `poetry/feature_space_poetry/` | Feature-space interventions with measured Version D data (4 scenarios) | Backtracking |
 
 - **Backtracking Poetry** (example 2) — Tests action-level failure triggering method-level backtracking at the line composition level:
 
@@ -85,13 +87,36 @@ The five poetry examples form a progression, each extending the baseline with a 
 
 - **Bidirectional Planning Poetry** (example 4) — Splits line generation into backward transition planning and forward surface text generation. Plan lengths: Couplet: 10, Limerick: 22, Haiku: 8.
 
+- **Formal Mechanism Poetry** (example 6) — Implements three planning mechanisms from the paper (full pipeline, commitment focus, three-stage). All 3 scenarios succeed with any strategy. Plan lengths: 19, 7, 13.
+
+- **Feature Space Poetry** (example 7) — Probability-based evaluation using measured data from Version D's `suppress_inject_sweep.json`. Four scenarios: ground truth replication (34 actions) plus three counterfactual what-ifs. Scenarios 1 and 3 require backtracking because weaker candidates are tried first:
+
+| Strategy | Scenario 0 (34) | Scenario 1 (34) | Scenario 2 (9) | Scenario 3 (10) |
+|----------|:---:|:---:|:---:|:---:|
+| Iterative DFS BT | 34 actions | 34 actions | 9 actions | 10 actions |
+| Iterative greedy | 34 actions | **Fails** | 9 actions | **Fails** |
+
 **Poetry benchmarking script** updated with `--strategy` option:
 ```bash
 cd src/gtpyhop/examples/poetry
 python benchmarking.py structured_poetry                                    # default strategy
 python benchmarking.py backtracking_poetry --strategy recursive_dfs         # requires backtracking
 python benchmarking.py replanning_poetry --strategy iterative_dfs_backtracking  # requires backtracking
+python benchmarking.py formal_mechanism_poetry                                 # works with any strategy
+python benchmarking.py feature_space_poetry --strategy iterative_dfs_backtracking  # requires backtracking
 ```
+
+**Documentation & Style Guides:**
+- **[All Examples Guide](https://github.com/PCfVW/GTPyhop/blob/pip/docs/all_examples.md)** — Updated with examples 6-7 (sections, summary table, benchmarking commands)
+- **[Poetry README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/poetry/README.md)** — Updated with examples 6-7 (tables, directory structure, server architectures); fixed example 6 strategy classification (Backtracking → Any)
+- **[Poetry Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/poetry/benchmarking_quickstart.md)** — Updated with examples 6-7 (expected results, troubleshooting, strategy tables)
+- **[Problems Style Guide](https://github.com/PCfVW/GTPyhop/blob/pip/docs/gtpyhop_problems_style_guide.md)** — v2.2.0: added section 2.3 on doctests in `get_problems()` with template and conventions
+- **[Example Style Guide](https://github.com/PCfVW/GTPyhop/blob/pip/docs/gtpyhop_example_style_guide.md)** — v1.2.0: added section 7 on doctests for plan verification; updated checklist and quick start template
+
+**Bug Fixes:**
+- Fixed Unicode encoding issue in IPC benchmarking `print_summary`: replaced non-ASCII characters (Delta, checkmark, cross) with ASCII equivalents for Windows cp1252 compatibility
+- Fixed `--verbose` flag handling in poetry `benchmarking.py` (was not being passed to planner sessions)
+- Added plan validation to poetry benchmarking (verifies plan is a list, not just truthy)
 
 **Compatibility:** 100% backward compatible with GTPyhop 1.8.0. All existing `True`/`False` callers produce identical behavior.
 

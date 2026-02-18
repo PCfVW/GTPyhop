@@ -1,6 +1,6 @@
-# GTPyhop 1.9.0 HTN Planning Examples
+# GTPyhop 1.9.1 HTN Planning Examples
 
-This document provides pedagogical details about all HTN Planning examples included with GTPyhop 1.9.0. Each example demonstrates different aspects of hierarchical task network planning, from basic concepts to advanced techniques.
+This document provides pedagogical details about all HTN Planning examples included with GTPyhop 1.9.1. Each example demonstrates different aspects of hierarchical task network planning, from basic concepts to advanced techniques.
 
 ## Table of Contents
 
@@ -379,7 +379,7 @@ python benchmarking.py --list-scenarios --example recursive
 
 These examples demonstrate HTN-planned poetry generation where the planner produces structural plans (form, rhyme scheme, meter constraints) and leaf-level actions are delegated to external MCP servers for text generation and phonetic verification. The collection is motivated by Anthropic's "Planning in Poems" (March 2025) discovery that Claude 3.5 Haiku plans ahead when writing rhyming poetry.
 
-**Progression:** The five examples form a progression, each extending the baseline with a different aspect of the paper's findings:
+**Progression:** The seven examples form a progression. Examples 1-5 model text-generation poetry workflows; examples 6-7 model the underlying planning mechanisms and feature-space interventions:
 
 | # | Example | Key Extension | Actions | Methods | Strategy |
 |---|---------|---------------|---------|---------|----------|
@@ -388,6 +388,8 @@ These examples demonstrate HTN-planned poetry generation where the planner produ
 | 3 | Candidate Planning Poetry | Multi-candidate target selection pipeline | 8 | 8 | Any |
 | 4 | Bidirectional Planning Poetry | Decomposed backward line construction | 7 | 8 | Any |
 | 5 | Replanning Poetry | Post-generation evaluation and revision | 8 | 10 | Backtracking |
+| 6 | Formal Mechanism Poetry | Three planning mechanisms from the paper | 7 | 6 | Any |
+| 7 | Feature Space Poetry | Feature-space interventions with measured data | 9 | 7 | Backtracking |
 
 ### 1. Structured Poetry
 **Purpose:** HTN-planned poetry with MCP-delegated generation
@@ -506,6 +508,58 @@ These examples demonstrate HTN-planned poetry generation where the planner produ
 
 **Educational Value:** Models the paper's finding that injecting an alternative planned word causes the model to restructure the entire line in 70% of test poems. Also demonstrates that backtracking can be required at different decomposition levels — compare with backtracking_poetry which backtracks at the line composition level.
 
+### 6. Formal Mechanism Poetry
+**Purpose:** Three planning mechanisms from Anthropic's paper as explicit HTN decompositions
+**Location:** `poetry/formal_mechanism_poetry/`
+**Scenarios:** 3 scenarios (full mechanism, commitment focus, three-stage)
+
+**Key Learning Points:**
+- Separating pre-commitment candidate generation from verified commitment
+- Couplet commitment for multi-line rhyme coordination
+- How multiple methods can exist for a task without requiring backtracking (if candidate ordering is favorable)
+
+**Core Concepts Demonstrated:**
+- **Three Mechanisms from the Paper:**
+  - Candidate activation: generate multiple end-word candidates
+  - Commitment: verify and commit to a single candidate
+  - Couplet commitment: coordinate rhyme targets across line pairs
+- **Three Methods for `m_select_end_word`:** Try each candidate in order; `a_verify_phonetic_match` fails for weak candidates
+- **Actions (7):** Candidate generation, phonetic verification, commitment, line writing
+- **Methods (6):** Three try-methods for candidate selection, plus form-level decomposition
+
+**Plan Lengths:** Full mechanism: 19, Commitment focus: 7, Three-stage: 13
+
+**Educational Value:** All current scenarios succeed with any strategy because the strongest candidate is tried first. The domain has backtracking capability (3 methods for `m_select_end_word`) but the current scenarios don't exercise it — compare with feature_space_poetry where candidate reordering forces backtracking.
+
+### 7. Feature Space Poetry
+**Purpose:** HTN planning for feature-space interventions on neural network representations
+**Location:** `poetry/feature_space_poetry/`
+**Scenarios:** 4 scenarios (ground truth + 3 counterfactual what-ifs)
+
+**Key Learning Points:**
+- Planning in CLT activation space rather than text space
+- Probability-based backtracking using measured experimental data
+- Ground truth + counterfactual scenario structure
+- Three-server coordination (local, inference, CLT)
+
+**Core Concepts Demonstrated:**
+- **Suppress+Inject Protocol:** Suppress natural rhyme group features, inject alternative group feature, measure probability shift
+- **Probability-Based Backtracking:** `a_evaluate_threshold` compares `measured_probability` against `probability_threshold`; failure triggers backtracking to the next candidate
+- **Three Methods for `m_try_candidate`:** Each tries a different CLT feature; `a_evaluate_threshold` fails when the injected feature's probability is below threshold
+- **Actions (9):** Initialize, locate planning site, measure baseline, encode layers, suppress features, inject feature, measure effect, evaluate threshold, compile report
+- **Methods (7):** Three try-methods for candidate selection, plus workflow orchestration
+
+**Scenario Structure:**
+
+| Scenario | Description | Actions | Backtracking | Greedy |
+|----------|-------------|---------|-------------|--------|
+| 0: Version D star result | Ground truth (what actually happened) | 34 | No | SUCCESS |
+| 1: Cheapest first | What if candidates were reordered? | 34 | Yes (2 failures) | **FAIL** |
+| 2: Planning layer only | What if only 1 layer was needed? | 9 | No | SUCCESS |
+| 3: Different group | What if we redirected oo→ound? | 10 | Yes (1 failure) | **FAIL** |
+
+**Educational Value:** Scenario 0 anchors the domain in reality (the actual Version D experiment result), making scenarios 1-3 pedagogically meaningful as counterfactual explorations. Probability data comes from measured Version D experiments (`suppress_inject_sweep.json`), not artificial thresholds. Demonstrates that the same domain can test both greedy and backtracking strategies depending on candidate ordering.
+
 ### Running the Poetry Benchmarks
 
 ```bash
@@ -514,14 +568,16 @@ cd src/gtpyhop/examples/poetry
 # List all available poetry domains
 python benchmarking.py --list-domains
 
-# Examples 1, 3, 4 work with default strategy
+# Examples 1, 3, 4, 6 work with default strategy
 python benchmarking.py structured_poetry
 python benchmarking.py candidate_planning_poetry
 python benchmarking.py bidirectional_planning_poetry
+python benchmarking.py formal_mechanism_poetry
 
-# Examples 2, 5 require a backtracking strategy
+# Examples 2, 5, 7 require a backtracking strategy
 python benchmarking.py backtracking_poetry --strategy recursive_dfs
 python benchmarking.py replanning_poetry --strategy iterative_dfs_backtracking
+python benchmarking.py feature_space_poetry --strategy iterative_dfs_backtracking
 ```
 
 **Documentation:** [Poetry Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/poetry/benchmarking_quickstart.md)
