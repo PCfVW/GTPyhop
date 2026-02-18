@@ -32,8 +32,10 @@ pip install psutil
 | 3 | `candidate_planning_poetry` | Multi-candidate rhyme selection pipeline | 3 (couplet, limerick, haiku) | 8-27 | Any |
 | 4 | `bidirectional_planning_poetry` | Decomposed backward line construction | 3 (couplet, limerick, haiku) | 8-22 | Any |
 | 5 | `replanning_poetry` | Post-generation evaluation and steering/revision | 3 (couplet, limerick, haiku) | 8-28 | Backtracking* |
+| 6 | `formal_mechanism_poetry` | Three planning mechanisms from Anthropic's paper | 3 (full, commitment, three-stage) | 7-19 | Any |
+| 7 | `feature_space_poetry` | Feature-space interventions with measured data | 4 (ground truth + 3 what-ifs) | 9-34 | Backtracking* |
 
-\* Backtracking required for rhymed forms. Haiku works with any strategy.
+\* Backtracking required: examples 2, 5 for rhymed forms; example 7 for scenarios with multiple candidates.
 
 All examples follow the **GTPyhop 1.9.0+ style guide** with unified scenario block format.
 
@@ -56,11 +58,17 @@ python benchmarking.py candidate_planning_poetry
 # Run bidirectional planning poetry scenarios (works with default strategy)
 python benchmarking.py bidirectional_planning_poetry
 
+# Run formal mechanism poetry scenarios (works with default strategy)
+python benchmarking.py formal_mechanism_poetry
+
 # Run backtracking poetry scenarios (requires backtracking strategy)
 python benchmarking.py backtracking_poetry --strategy recursive_dfs
 
 # Run replanning poetry scenarios (requires backtracking strategy)
 python benchmarking.py replanning_poetry --strategy iterative_dfs_backtracking
+
+# Run feature space poetry scenarios (requires backtracking strategy)
+python benchmarking.py feature_space_poetry --strategy iterative_dfs_backtracking
 ```
 
 ### Command-Line Options
@@ -88,11 +96,11 @@ The `--strategy` option selects the planning strategy:
 
 | Strategy | Backtracking | Default | When to Use |
 |----------|-------------|---------|-------------|
-| `iterative_greedy` | None | Yes | Examples 1, 3, 4 (no backtracking needed) |
-| `recursive_dfs` | Via call stack | No | Examples 2, 5 (backtracking required) |
-| `iterative_dfs_backtracking` | Via explicit stack | No | Examples 2, 5 (backtracking required) |
+| `iterative_greedy` | None | Yes | Examples 1, 3, 4, 6 (no backtracking needed) |
+| `recursive_dfs` | Via call stack | No | Examples 2, 5, 7 (backtracking required) |
+| `iterative_dfs_backtracking` | Via explicit stack | No | Examples 2, 5, 7 (backtracking required) |
 
-**Note:** Running examples 2 or 5 without a backtracking strategy will produce `False` for scenarios that require backtracking. This is expected behavior, not a bug.
+**Note:** Running examples 2, 5, or 7 without a backtracking strategy will produce `False` for scenarios that require backtracking. This is expected behavior, not a bug.
 
 ### Verbosity Levels
 
@@ -184,6 +192,27 @@ The limerick fails with iterative greedy because label "A" is used 3 times in th
 
 The couplet and limerick fail with iterative greedy because `a_evaluate_line` fails for lines requiring revision (subsequent uses of each rhyme label). Without backtracking, the planner cannot recover by trying `m_revise_line` after `m_accept_line` fails.
 
+### Example 6: Formal Mechanism Poetry (No Backtracking Needed)
+
+| Scenario | Actions (all strategies) |
+|----------|:---:|
+| `scenario_1_full_mechanism` | 19 |
+| `scenario_2_commitment_focus` | 7 |
+| `scenario_3_three_stage` | 13 |
+
+All scenarios succeed with any strategy. The domain registers three methods for `m_select_end_word`, but all current scenarios place the strongest candidate first, so the greedy planner never needs to backtrack.
+
+### Example 7: Feature Space Poetry
+
+| Scenario | Iterative DFS BT | Iterative Greedy |
+|----------|:---:|:---:|
+| `scenario_0_version_d_star_result` | 34 | 34 |
+| `scenario_1_cheapest_first` | 34 | **False** |
+| `scenario_2_planning_layer_only` | 9 | 9 |
+| `scenario_3_different_group` | 10 | **False** |
+
+Scenarios 1 and 3 fail with iterative greedy because weaker candidates are tried first. Their measured probabilities (0.001-0.003) fall below the threshold, and the greedy planner cannot backtrack to try the stronger candidate (L22:10243 "around").
+
 ## Interpreting Results
 
 ### Successful Run Example
@@ -203,14 +232,14 @@ Solving scenario_6_limerick_code...
 === structured_poetry Benchmark Results ===
 
 === Benchmark Summary ===
-Problem                      | Status | Plan Len | Time (s) |  CPU % | Mem (KB) | Peak Mem (KB)
----------------------------------------------------------------------------------------------
-scenario_1_couplet_autumn    |   OK   |        8 |    0.001s |    0.0% |      ... |          ...
-scenario_2_limerick_cat      |   OK   |       17 |    0.001s |    0.0% |      ... |          ...
-scenario_3_haiku_ocean       |   OK   |        8 |    0.001s |    0.0% |      ... |          ...
-scenario_4_sonnet_time       |   OK   |       44 |    0.002s |    0.0% |      ... |          ...
-scenario_5_couplet_stars     |   OK   |        8 |    0.001s |    0.0% |      ... |          ...
-scenario_6_limerick_code     |   OK   |       17 |    0.001s |    0.0% |      ... |          ...
+Problem                      | Status | Plan Len | Time (s) |  CPU % | Mem D (KB) | Peak Mem (KB)
+-----------------------------------------------------------------------------------------------
+scenario_1_couplet_autumn    | PASS   |        8 |    0.001s |    0.0% |        ... |          ...
+scenario_2_limerick_cat      | PASS   |       17 |    0.001s |    0.0% |        ... |          ...
+scenario_3_haiku_ocean       | PASS   |        8 |    0.001s |    0.0% |        ... |          ...
+scenario_4_sonnet_time       | PASS   |       44 |    0.002s |    0.0% |        ... |          ...
+scenario_5_couplet_stars     | PASS   |        8 |    0.001s |    0.0% |        ... |          ...
+scenario_6_limerick_code     | PASS   |       17 |    0.001s |    0.0% |        ... |          ...
 ```
 
 ### Expected Plan Lengths (Structured Poetry Baseline)
@@ -281,6 +310,10 @@ pip install gtpyhop
 
 **This is expected behavior** with the default (iterative greedy) planner. These scenarios require backtracking because `a_evaluate_line` fails for lines requiring revision. Use `--strategy recursive_dfs` or `--strategy iterative_dfs_backtracking`. See the "Planning Strategies" section above.
 
+### "No plan found" for feature_space_poetry scenarios 1 or 3
+
+**This is expected behavior** with the default (iterative greedy) planner. These scenarios order candidates so that weaker ones are tried first, and `a_evaluate_threshold` fails when the measured probability is below the threshold. Use `--strategy iterative_dfs_backtracking`. See the "Planning Strategies" section above.
+
 ### "No plan found" (other scenarios)
 
 **Possible causes**:
@@ -297,8 +330,8 @@ pip install gtpyhop
 
 - Review individual domain README.md files for detailed documentation
 - Examine generated plans to understand task decomposition
-- Compare planning strategies on the backtracking_poetry and replanning_poetry domains
+- Compare planning strategies on the backtracking_poetry, replanning_poetry, and feature_space_poetry domains
 - Add new poetry forms or domains following the style guides
 
 ---
-*Updated 2026-02-12*
+*Updated 2026-02-18*

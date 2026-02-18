@@ -15,23 +15,28 @@ This collection is motivated by Anthropic's "Planning in Poems" (March 2025) dis
 | 3 | **Candidate Planning Poetry** | `candidate_planning_poetry/` | 8 | 8 | 3 | Any |
 | 4 | **Bidirectional Planning Poetry** | `bidirectional_planning_poetry/` | 7 | 8 | 3 | Any |
 | 5 | **Replanning Poetry** | `replanning_poetry/` | 8 | 10 | 3 | Backtracking* |
+| 6 | **Formal Mechanism Poetry** | `formal_mechanism_poetry/` | 7 | 6 | 3 | Any |
+| 7 | **Feature Space Poetry** | `feature_space_poetry/` | 9 | 7 | 4 | Backtracking* |
 
-\* Backtracking required for rhymed forms (couplet, limerick, sonnet). Haiku works with any strategy.
+\* Backtracking required: examples 2, 5 for rhymed forms; example 7 for scenarios with multiple candidates.
 
 ## Planning Strategy Requirements
 
 GTPyhop 1.9.0 provides three planning strategies. Not all examples work with all strategies:
 
-| Strategy | Backtracking | Examples 1, 3, 4 | Example 2 (backtracking) | Example 5 (replanning) |
-|----------|-------------|-------------------|--------------------------|------------------------|
-| `iterative_greedy` | None | All scenarios pass | Limerick **FAILS** | Couplet, Limerick **FAIL** |
-| `recursive_dfs` | Via call stack | All scenarios pass | All scenarios pass | All scenarios pass |
-| `iterative_dfs_backtracking` | Via explicit stack | All scenarios pass | All scenarios pass | All scenarios pass |
+| Strategy | Backtracking | Examples 1, 3, 4, 6 | Example 2 | Example 5 | Example 7 |
+|----------|-------------|----------------------|-----------|-----------|-----------|
+| `iterative_greedy` | None | All pass | Limerick **FAILS** | Couplet, Limerick **FAIL** | Scenarios 1, 3 **FAIL** |
+| `recursive_dfs` | Via call stack | All pass | All pass | All pass | All pass |
+| `iterative_dfs_backtracking` | Via explicit stack | All pass | All pass | All pass | All pass |
 
-**Why do examples 2 and 5 fail with greedy?** Both register two methods for a single task (a backtracking point). The greedy planner commits irrevocably to the first applicable method. When an action within that method's subtasks subsequently fails, the greedy planner has no mechanism to backtrack and try the second method — so it reports failure.
+**Why do examples 2, 5, and 7 fail with greedy?** They register multiple methods for a single task (a backtracking point). The greedy planner commits irrevocably to the first applicable method. When an action within that method's subtasks subsequently fails, the greedy planner has no mechanism to backtrack and try the next method — so it reports failure.
 
 - **Backtracking Poetry**: `m_write_rhymed_line` has two methods (strict, relaxed). `a_select_rhyme_target_strict` fails on the 3rd+ use of a rhyme label.
 - **Replanning Poetry**: `m_evaluate_and_replan` has two methods (accept, revise). `a_evaluate_line` fails for lines requiring revision (subsequent uses of each rhyme label).
+- **Feature Space Poetry**: `m_try_candidate` has three methods (try each feature). `a_evaluate_threshold` fails when `measured_probability < probability_threshold`.
+
+**Note:** Example 6 (formal mechanism) also registers three methods for `m_select_end_word`, but all current scenarios succeed with greedy because the strongest candidate is tried first.
 
 ```python
 # For examples that require backtracking, use either:
@@ -111,7 +116,39 @@ Extension modeling **post-generation evaluation and steering/revision**:
 | Limerick (AABBA) | 28 actions | **False** | 28 actions |
 | Haiku (5-7-5) | 8 actions | 8 actions | 8 actions |
 
-## Supported Poetic Forms
+### 6. Formal Mechanism Poetry
+
+Extension modeling **Anthropic's three planning mechanisms** from the "Planning in Poems" paper:
+- 7 actions, 6 methods (three methods for `m_select_end_word`)
+- 3 scenarios: full mechanism (19), commitment focus (7), three-stage (13)
+- Separates pre-commitment candidate generation from verified commitment, with couplet commitment for multi-line coordination
+
+**Use case**: Makes the three mechanisms from the paper (candidate activation, commitment, couplet commitment) explicit as HTN task decompositions.
+
+| Scenario | Actions | Backtracking |
+|----------|---------|-------------|
+| Full mechanism | 19 | No |
+| Commitment focus | 7 | No |
+| Three-stage | 13 | No |
+
+### 7. Feature Space Poetry
+
+Extension operating in **CLT activation space** rather than text space:
+- 9 actions, 7 methods (three methods for `m_try_candidate`)
+- 4 scenarios: ground truth + 3 counterfactual what-ifs
+- Plans interventions on neural network internal representations (suppress+inject protocol)
+- Probability-based backtracking using measured data from Version D experiments
+
+**Use case**: Demonstrates HTN planning for feature-space interventions coordinated across 3 servers (local, inference, CLT). Scenario 0 replicates the actual Version D result; scenarios 1-3 explore counterfactual departures.
+
+| Scenario | Description | Actions | Backtracking | Greedy |
+|----------|-------------|---------|-------------|--------|
+| 0: Version D star result | Ground truth (out->ound, 26 layers) | 34 | No | SUCCESS |
+| 1: Cheapest first | Reordered candidates | 34 | Yes (2 failures) | **FAIL** |
+| 2: Planning layer only | Single layer, single candidate | 9 | No | SUCCESS |
+| 3: Different group | oo->ound, lower threshold | 10 | Yes (1 failure) | **FAIL** |
+
+## Supported Poetic Forms (Examples 1-5)
 
 | Form | Lines | Rhyme Scheme | Meter | Structured | Candidate | Bidirectional | Replanning |
 |------|-------|-------------|-------|------------|-----------|---------------|------------|
@@ -120,10 +157,18 @@ Extension modeling **post-generation evaluation and steering/revision**:
 | Haiku | 3 | None | Syllabic (5-7-5) | 8 | 8 | 8 | 8 |
 | Sonnet | 14 | ABAB CDCD EFEF GG | Iambic pentameter | 44 | 72 | 58 | 72 |
 
-## Two-Server Architecture
+## Server Architectures
 
+**Examples 1-5** (text-generation domains) use a two-server architecture:
 1. **phonetics-server**: Rhyme candidate selection, steering, syllable counting, verification
 2. **llm-server**: Constrained text generation, transition planning, line evaluation
+
+**Example 6** (formal mechanism) uses a single **llm-server** for candidate generation, verification, and line writing.
+
+**Example 7** (feature space) uses a three-server architecture:
+1. **Local computation**: Initialize, suppress, evaluate threshold, compile report
+2. **inference_server**: Forward passes, probability measurement
+3. **clt_server**: CLT encode/decode, feature injection
 
 ## Directory Structure
 
@@ -131,6 +176,7 @@ Extension modeling **post-generation evaluation and steering/revision**:
 poetry/
 +-- __init__.py
 +-- benchmarking.py                        # Unified benchmarking script
++-- benchmarking_quickstart.md             # Benchmarking quick start guide
 +-- README.md                              # This file
 +-- structured_poetry/
 |   +-- __init__.py
@@ -153,9 +199,19 @@ poetry/
 |   +-- problems.py                        # 3 scenarios
 |   +-- README.md
 +-- replanning_poetry/
+|   +-- __init__.py
+|   +-- domain.py                          # 8 actions, 10 methods
+|   +-- problems.py                        # 3 scenarios
+|   +-- README.md
++-- formal_mechanism_poetry/
+|   +-- __init__.py
+|   +-- domain.py                          # 7 actions, 6 methods
+|   +-- problems.py                        # 3 scenarios
+|   +-- README.md
++-- feature_space_poetry/
     +-- __init__.py
-    +-- domain.py                          # 8 actions, 10 methods
-    +-- problems.py                        # 3 scenarios
+    +-- domain.py                          # 9 actions, 7 methods
+    +-- problems.py                        # 4 scenarios
     +-- README.md
 ```
 
@@ -170,8 +226,11 @@ python benchmarking.py --list-domains
 # Run structured poetry scenarios
 python benchmarking.py structured_poetry
 
-# Run backtracking poetry scenarios
-python benchmarking.py backtracking_poetry
+# Run backtracking poetry scenarios (requires backtracking strategy)
+python benchmarking.py backtracking_poetry --strategy iterative_dfs_backtracking
+
+# Run feature space poetry scenarios (requires backtracking strategy)
+python benchmarking.py feature_space_poetry --strategy iterative_dfs_backtracking
 
 # Run with verbose output
 python benchmarking.py structured_poetry --verbose 1
@@ -189,7 +248,9 @@ python benchmarking.py structured_poetry --verbose 1
 - [candidate_planning_poetry/README.md](candidate_planning_poetry/README.md) - Multi-candidate pipeline details
 - [bidirectional_planning_poetry/README.md](bidirectional_planning_poetry/README.md) - Decomposed line construction details
 - [replanning_poetry/README.md](replanning_poetry/README.md) - Evaluation and revision details
+- [formal_mechanism_poetry/README.md](formal_mechanism_poetry/README.md) - Three planning mechanisms from the paper
+- [feature_space_poetry/README.md](feature_space_poetry/README.md) - Feature-space interventions with measured data
 - [gitignore/iterative_backtracking_find_plan.md](../../../../gitignore/iterative_backtracking_find_plan.md) - Design report for iterative DFS backtracking
 
 ---
-*Updated 2026-02-12*
+*Updated 2026-02-18*

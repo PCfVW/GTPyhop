@@ -29,9 +29,20 @@ Examples:
   evaluation and steering/revision. After initial generation, an evaluation
   step may trigger replanning with a different target word, causing complete
   line regeneration. Uses HTN backtracking at the evaluation level.
+- formal_mechanism_poetry: HTN as formal model of the LLM's implicit rhyme
+  planning mechanism (Architecture 12). Instead of steering the LLM, the HTN
+  decomposition models the transformer's layer-by-layer computation and
+  validates each stage with systematic knockout/injection experiments.
+  Demonstrates computational cognitive science: HTN planning theory applied
+  to neural network computation.
+- feature_space_poetry: HTN operates in the CLT feature space (Architecture 6).
+  The HTN's state IS the activation space -- actions are feature-level
+  operations on the residual stream. Automates the suppress+inject protocol
+  from melometis Version D with backtracking over ranked injection candidates.
+  Demonstrates mechanistic interpretability formalized as classical planning.
 
--- Generated 2026-02-12
+-- Generated 2026-02-18
 """
 
 # Make subpackages available
-__all__ = ['structured_poetry', 'backtracking_poetry', 'candidate_planning_poetry', 'bidirectional_planning_poetry', 'replanning_poetry']
+__all__ = ['structured_poetry', 'backtracking_poetry', 'candidate_planning_poetry', 'bidirectional_planning_poetry', 'replanning_poetry', 'formal_mechanism_poetry', 'feature_space_poetry']
