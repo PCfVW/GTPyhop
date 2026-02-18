@@ -539,7 +539,7 @@ class PlannerBenchmark:
             f"{'Plan Len':>{widths['plan_len']}} | "
             f"{'Time (s)':>{widths['time']}} | "
             f"{'CPU %':>{widths['cpu']}} | "
-            f"{'Mem Δ (KB)':>{widths['mem_delta']}} | "
+            f"{'Mem D (KB)':>{widths['mem_delta']}} | "
             f"{'Peak Mem (KB)':>{widths['peak_mem']}}"
         )
         print(header)
@@ -551,7 +551,7 @@ class PlannerBenchmark:
         # Generate data rows with consistent formatting
         for result in sorted_results:
             # Format status with appropriate emoji and error information
-            status = "✅" if result.success else f"❌ ({result.error})"
+            status = "PASS" if result.success else f"FAIL ({result.error})"
             length = str(result.plan_length) if result.plan_length is not None else "N/A"
 
             # Build row with precise column alignment
@@ -586,7 +586,7 @@ class PlannerBenchmark:
             'plan_len': len('Plan Len'),
             'time': len('Time (s)'),
             'cpu': len('CPU %'),
-            'mem_delta': len('Mem Δ (KB)'),
+            'mem_delta': len('Mem D (KB)'),
             'peak_mem': len('Peak Mem (KB)')
         }
 
@@ -596,7 +596,7 @@ class PlannerBenchmark:
             widths['problem'] = max(widths['problem'], len(result.problem_name))
 
             # Status width (account for both success ✅ and failure ❌ (error) formats)
-            status = "✅" if result.success else f"❌ ({result.error})"
+            status = "PASS" if result.success else f"FAIL ({result.error})"
             widths['status'] = max(widths['status'], len(status))
 
             # Plan length width (handles both numeric values and "N/A")
