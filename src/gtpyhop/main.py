@@ -3,14 +3,14 @@
 
 ################################################################################
 #                                                                              #
-#                              GTPyhop 1.9.1                                   #
+#                              GTPyhop 1.9.2                                   #
 #                                                                              #
 #                    Goal-Task-Network Planning System                         #
 #                                                                              #
 ################################################################################
 
 """
-GTPyhop 1.9.1: A Goal-Task-Network planning system with session-based architecture
+GTPyhop 1.9.2: A Goal-Task-Network planning system with session-based architecture
 
 GTPyhop is an automated planning system that can plan for both tasks and goals.
 Version 1.3.0 introduces session-based planning for better isolation, structured
@@ -18,7 +18,7 @@ logging for improved debugging, timeout management, and persistence capabilities
 Version 1.5.0 introduces MCP orchestration examples.
 Version 1.7.0 introduces enhanced MCP orchestration, bug fixes, and documentation updates.
 Version 1.8.0 introduces accurate memory tracking with background monitoring using psutil.
-Version 1.9.1 introduces iterative DFS planning with full backtracking via explicit stack.
+Version 1.9.2 introduces iterative DFS planning with full backtracking via explicit stack.
 
 Original Author: Dana Nau <nau@umd.edu>, July 7, 2021
 pip install project architecture: Eric Jacopin, 2025
@@ -1955,7 +1955,7 @@ class SessionSerializer:
                     'last_used': session._last_used,
                     'stats': session._stats.copy(),
                     'domain_name': session.domain.__name__ if session.domain else None,
-                    'version': '1.9.1',
+                    'version': '1.9.2',
                     'timestamp': time.time()
                 }
 
@@ -3223,7 +3223,7 @@ def list_sessions() -> List[str]:
 
 ################################################################################
 #                                                                              #
-#                            END OF GTPYHOP 1.9.1                              #
+#                            END OF GTPYHOP 1.9.2                              #
 #                                                                              #
 ################################################################################
 
