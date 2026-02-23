@@ -1,6 +1,6 @@
-# GTPyhop 1.9.1 HTN Planning Examples
+# GTPyhop 1.9.2 HTN Planning Examples
 
-This document provides pedagogical details about all HTN Planning examples included with GTPyhop 1.9.1. Each example demonstrates different aspects of hierarchical task network planning, from basic concepts to advanced techniques.
+This document provides pedagogical details about all HTN Planning examples included with GTPyhop 1.9.2. Each example demonstrates different aspects of hierarchical task network planning, from basic concepts to advanced techniques.
 
 ## Table of Contents
 
@@ -377,7 +377,7 @@ python benchmarking.py --list-scenarios --example recursive
 
 **Location:** `src/gtpyhop/examples/poetry/`
 
-These examples demonstrate HTN-planned poetry generation where the planner produces structural plans (form, rhyme scheme, meter constraints) and leaf-level actions are delegated to external MCP servers for text generation and phonetic verification. The collection is motivated by Anthropic's "Planning in Poems" (March 2025) discovery that Claude 3.5 Haiku plans ahead when writing rhyming poetry.
+These examples demonstrate HTN-planned poetry generation where the planner produces structural plans (form, rhyme scheme, meter constraints) and leaf-level actions are delegated to external MCP servers for text generation and phonetic verification. The collection is motivated by Anthropic's "[Planning in Poems](https://transformer-circuits.pub/2025/attribution-graphs/biology.html#dives-poems)" (March 2025) discovery that Claude 3.5 Haiku plans ahead when writing rhyming poetry.
 
 **Progression:** The seven examples form a progression. Examples 1-5 model text-generation poetry workflows; examples 6-7 model the underlying planning mechanisms and feature-space interventions:
 
@@ -389,7 +389,7 @@ These examples demonstrate HTN-planned poetry generation where the planner produ
 | 4 | Bidirectional Planning Poetry | Decomposed backward line construction | 7 | 8 | Any |
 | 5 | Replanning Poetry | Post-generation evaluation and revision | 8 | 10 | Backtracking |
 | 6 | Formal Mechanism Poetry | Three planning mechanisms from the paper | 7 | 6 | Any |
-| 7 | Feature Space Poetry | Feature-space interventions with measured data | 9 | 7 | Backtracking |
+| 7 | Feature Space Poetry | Feature-space interventions with measured data | 9 | 5 | Backtracking |
 
 ### 1. Structured Poetry
 **Purpose:** HTN-planned poetry with MCP-delegated generation
@@ -509,7 +509,7 @@ These examples demonstrate HTN-planned poetry generation where the planner produ
 **Educational Value:** Models the paper's finding that injecting an alternative planned word causes the model to restructure the entire line in 70% of test poems. Also demonstrates that backtracking can be required at different decomposition levels — compare with backtracking_poetry which backtracks at the line composition level.
 
 ### 6. Formal Mechanism Poetry
-**Purpose:** Three planning mechanisms from Anthropic's paper as explicit HTN decompositions
+**Purpose:** Three planning mechanisms from Anthropic's "[Planning in Poems](https://transformer-circuits.pub/2025/attribution-graphs/biology.html#dives-poems)" paper as explicit HTN decompositions
 **Location:** `poetry/formal_mechanism_poetry/`
 **Scenarios:** 3 scenarios (full mechanism, commitment focus, three-stage)
 
@@ -534,22 +534,26 @@ These examples demonstrate HTN-planned poetry generation where the planner produ
 ### 7. Feature Space Poetry
 **Purpose:** HTN planning for feature-space interventions on neural network representations
 **Location:** `poetry/feature_space_poetry/`
-**Scenarios:** 4 scenarios (ground truth + 3 counterfactual what-ifs)
+**Scenarios:** 12 scenarios (4 Gemma 2 2B 426K + 4 Llama 3.2 1B 524K + 4 Gemma 2 2B 2.5M)
 
 **Key Learning Points:**
 - Planning in CLT activation space rather than text space
 - Probability-based backtracking using measured experimental data
 - Ground truth + counterfactual scenario structure
 - Three-server coordination (local, inference, CLT)
+- Cross-model comparison (forward planning vs. late selection)
+- Cross-resolution comparison (426K vs. 2.5M CLT on same model)
 
 **Core Concepts Demonstrated:**
 - **Suppress+Inject Protocol:** Suppress natural rhyme group features, inject alternative group feature, measure probability shift
 - **Probability-Based Backtracking:** `a_evaluate_threshold` compares `measured_probability` against `probability_threshold`; failure triggers backtracking to the next candidate
-- **Three Methods for `m_try_candidate`:** Each tries a different CLT feature; `a_evaluate_threshold` fails when the injected feature's probability is below threshold
+- **Three Methods for `m_find_best_injection`:** Each tries a different CLT feature; `a_evaluate_threshold` fails when the injected feature's probability is below threshold
 - **Actions (9):** Initialize, locate planning site, measure baseline, encode layers, suppress features, inject feature, measure effect, evaluate threshold, compile report
-- **Methods (7):** Three try-methods for candidate selection, plus workflow orchestration
+- **Methods (5):** Three try-methods for candidate selection, plus workflow orchestration
 
 **Scenario Structure:**
+
+Gemma 2 2B (scenarios 0-3): forward planning model, 26 layers, CLT 426K
 
 | Scenario | Description | Actions | Backtracking | Greedy |
 |----------|-------------|---------|-------------|--------|
@@ -558,7 +562,25 @@ These examples demonstrate HTN-planned poetry generation where the planner produ
 | 2: Planning layer only | What if only 1 layer was needed? | 9 | No | SUCCESS |
 | 3: Different group | What if we redirected oo→ound? | 10 | Yes (1 failure) | **FAIL** |
 
-**Educational Value:** Scenario 0 anchors the domain in reality (the actual Version D experiment result), making scenarios 1-3 pedagogically meaningful as counterfactual explorations. Probability data comes from measured Version D experiments (`suppress_inject_sweep.json`), not artificial thresholds. Demonstrates that the same domain can test both greedy and backtracking strategies depending on candidate ordering.
+Llama 3.2 1B (scenarios 4-7): late selection model, 16 layers, CLT 524K
+
+| Scenario | Description | Actions | Backtracking | Greedy |
+|----------|-------------|---------|-------------|--------|
+| 4: Llama star result | Ground truth (ee→at, "that" at 77.7%) | 24 | No | SUCCESS |
+| 5: Llama sat first | What if "sat" was tried before "that"? | 24 | Yes (1 failure) | **FAIL** |
+| 6: Llama output layer | What if only L15 was encoded? | 9 | No | SUCCESS |
+| 7: Llama different group | What if we redirected at→ore? | 10 | Yes (2 failures) | **FAIL** |
+
+Gemma 2 2B + CLT 2.5M (scenarios 8-11): word-level planning model, 26 layers, CLT 2.5M
+
+| Scenario | Description | Actions | Backtracking | Greedy |
+|----------|-------------|---------|-------------|--------|
+| 8: 2.5M star result | Ground truth (out→an, "can" at 48.2%) | 34 | No | SUCCESS |
+| 9: 2.5M weakest first | What if "plan" was tried before "can"? | 34 | Yes (2 failures) | **FAIL** |
+| 10: 2.5M planning layer | What if only L25 was encoded? | 9 | No | SUCCESS |
+| 11: 2.5M different group | What if we redirected oo→an? | 10 | Yes (1 failure) | **FAIL** |
+
+**Educational Value:** Scenario 0 anchors the domain in reality (the actual Version D experiment result), making scenarios 1-3 pedagogically meaningful as counterfactual explorations. Scenarios 4-7 replicate the same protocol on Llama 3.2 1B (Version L), demonstrating that the HTN domain generalizes across models with different planning architectures. Scenarios 8-11 repeat the pattern with CLT 2.5M (98,304 features/layer), demonstrating word-level precision on the same Gemma 2 2B model. Probability data comes from measured experimental sweeps (`suppress_inject_sweep.json` for Gemma 426K, `suppress_inject_sweep_llama_v2.json` for Llama, `outputs/2.5M/suppress_inject_sweep.json` for Gemma 2.5M), not artificial thresholds.
 
 ### Running the Poetry Benchmarks
 

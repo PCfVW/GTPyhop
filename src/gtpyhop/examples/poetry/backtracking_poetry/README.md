@@ -301,7 +301,7 @@ Methods use:
 - **GTPyhop Documentation**: https://github.com/PCfVW/GTPyhop
 - **Backtracking Design Report**: `gitignore/iterative_backtracking_find_plan.md`
 - **Structured Poetry Domain**: `examples/poetry/structured_poetry/`
-- **Anthropic "Planning in Poems"**: Anthropic Research, March 2025
+- **Anthropic "[Planning in Poems](https://transformer-circuits.pub/2025/attribution-graphs/biology.html#dives-poems)"**: Anthropic Research, March 2025
 - **MCP Protocol**: https://modelcontextprotocol.io/
 
 ---

@@ -4,7 +4,7 @@
 
 This directory contains examples demonstrating **neuro-symbolic poetry generation** using GTPyhop. The examples show hierarchical task network (HTN) planning for structured poetry workflows where the HTN planner produces structural plans (form, rhyme scheme, meter) and leaf-level actions are delegated to external MCP servers (LLM for text generation, phonetics for rhyme selection and verification).
 
-This collection is motivated by Anthropic's "Planning in Poems" (March 2025) discovery that Claude 3.5 Haiku plans ahead when writing rhyming poetry, activating candidate end-of-line words before writing each line. These domains make that implicit planning **explicit** via HTN decomposition.
+This collection is motivated by Anthropic's "[Planning in Poems](https://transformer-circuits.pub/2025/attribution-graphs/biology.html#dives-poems)" (March 2025) discovery that Claude 3.5 Haiku plans ahead when writing rhyming poetry, activating candidate end-of-line words before writing each line. These domains make that implicit planning **explicit** via HTN decomposition.
 
 ## Available Examples
 
@@ -16,7 +16,7 @@ This collection is motivated by Anthropic's "Planning in Poems" (March 2025) dis
 | 4 | **Bidirectional Planning Poetry** | `bidirectional_planning_poetry/` | 7 | 8 | 3 | Any |
 | 5 | **Replanning Poetry** | `replanning_poetry/` | 8 | 10 | 3 | Backtracking* |
 | 6 | **Formal Mechanism Poetry** | `formal_mechanism_poetry/` | 7 | 6 | 3 | Any |
-| 7 | **Feature Space Poetry** | `feature_space_poetry/` | 9 | 7 | 4 | Backtracking* |
+| 7 | **Feature Space Poetry** | `feature_space_poetry/` | 9 | 5 | 12 | Backtracking* |
 
 \* Backtracking required: examples 2, 5 for rhymed forms; example 7 for scenarios with multiple candidates.
 
@@ -26,7 +26,7 @@ GTPyhop 1.9.0 provides three planning strategies. Not all examples work with all
 
 | Strategy | Backtracking | Examples 1, 3, 4, 6 | Example 2 | Example 5 | Example 7 |
 |----------|-------------|----------------------|-----------|-----------|-----------|
-| `iterative_greedy` | None | All pass | Limerick **FAILS** | Couplet, Limerick **FAIL** | Scenarios 1, 3 **FAIL** |
+| `iterative_greedy` | None | All pass | Limerick **FAILS** | Couplet, Limerick **FAIL** | Scenarios 1, 3, 5, 7, 9, 11 **FAIL** |
 | `recursive_dfs` | Via call stack | All pass | All pass | All pass | All pass |
 | `iterative_dfs_backtracking` | Via explicit stack | All pass | All pass | All pass | All pass |
 
@@ -34,7 +34,7 @@ GTPyhop 1.9.0 provides three planning strategies. Not all examples work with all
 
 - **Backtracking Poetry**: `m_write_rhymed_line` has two methods (strict, relaxed). `a_select_rhyme_target_strict` fails on the 3rd+ use of a rhyme label.
 - **Replanning Poetry**: `m_evaluate_and_replan` has two methods (accept, revise). `a_evaluate_line` fails for lines requiring revision (subsequent uses of each rhyme label).
-- **Feature Space Poetry**: `m_try_candidate` has three methods (try each feature). `a_evaluate_threshold` fails when `measured_probability < probability_threshold`.
+- **Feature Space Poetry**: `m_find_best_injection` has three methods (try each feature). `a_evaluate_threshold` fails when `measured_probability < probability_threshold`.
 
 **Note:** Example 6 (formal mechanism) also registers three methods for `m_select_end_word`, but all current scenarios succeed with greedy because the strongest candidate is tried first.
 
@@ -118,7 +118,7 @@ Extension modeling **post-generation evaluation and steering/revision**:
 
 ### 6. Formal Mechanism Poetry
 
-Extension modeling **Anthropic's three planning mechanisms** from the "Planning in Poems" paper:
+Extension modeling **Anthropic's three planning mechanisms** from the "[Planning in Poems](https://transformer-circuits.pub/2025/attribution-graphs/biology.html#dives-poems)" paper:
 - 7 actions, 6 methods (three methods for `m_select_end_word`)
 - 3 scenarios: full mechanism (19), commitment focus (7), three-stage (13)
 - Separates pre-commitment candidate generation from verified commitment, with couplet commitment for multi-line coordination
@@ -134,12 +134,14 @@ Extension modeling **Anthropic's three planning mechanisms** from the "Planning 
 ### 7. Feature Space Poetry
 
 Extension operating in **CLT activation space** rather than text space:
-- 9 actions, 7 methods (three methods for `m_try_candidate`)
-- 4 scenarios: ground truth + 3 counterfactual what-ifs
+- 9 actions, 5 methods (three methods for `m_find_best_injection`)
+- 12 scenarios: 4 Gemma 2 2B 426K (Version D) + 4 Llama 3.2 1B 524K (Version L) + 4 Gemma 2 2B 2.5M (Version D 2.5M)
 - Plans interventions on neural network internal representations (suppress+inject protocol)
-- Probability-based backtracking using measured data from Version D experiments
+- Probability-based backtracking using measured experimental data
 
-**Use case**: Demonstrates HTN planning for feature-space interventions coordinated across 3 servers (local, inference, CLT). Scenario 0 replicates the actual Version D result; scenarios 1-3 explore counterfactual departures.
+**Use case**: Demonstrates HTN planning for feature-space interventions coordinated across 3 servers (local, inference, CLT). The same HTN protocol applies to all three configurations despite different planning architectures (forward planning vs. late selection) and CLT resolutions (426K vs. 2.5M).
+
+Gemma 2 2B (scenarios 0-3): forward planning model, 26 layers, CLT 426K
 
 | Scenario | Description | Actions | Backtracking | Greedy |
 |----------|-------------|---------|-------------|--------|
@@ -147,6 +149,24 @@ Extension operating in **CLT activation space** rather than text space:
 | 1: Cheapest first | Reordered candidates | 34 | Yes (2 failures) | **FAIL** |
 | 2: Planning layer only | Single layer, single candidate | 9 | No | SUCCESS |
 | 3: Different group | oo->ound, lower threshold | 10 | Yes (1 failure) | **FAIL** |
+
+Llama 3.2 1B (scenarios 4-7): late selection model, 16 layers, CLT 524K
+
+| Scenario | Description | Actions | Backtracking | Greedy |
+|----------|-------------|---------|-------------|--------|
+| 4: Llama star result | Ground truth (ee->at, "that" at 77.7%) | 24 | No | SUCCESS |
+| 5: Llama sat first | "sat" before "that" | 24 | Yes (1 failure) | **FAIL** |
+| 6: Llama output layer | Only L15 encoded | 9 | No | SUCCESS |
+| 7: Llama different group | at->ore, lower threshold | 10 | Yes (2 failures) | **FAIL** |
+
+Gemma 2 2B + CLT 2.5M (scenarios 8-11): word-level planning model, 26 layers, CLT 2.5M
+
+| Scenario | Description | Actions | Backtracking | Greedy |
+|----------|-------------|---------|-------------|--------|
+| 8: 2.5M star result | Ground truth (out->an, "can" at 48.2%) | 34 | No | SUCCESS |
+| 9: 2.5M weakest first | "plan" before "can" | 34 | Yes (2 failures) | **FAIL** |
+| 10: 2.5M planning layer | Only L25 encoded | 9 | No | SUCCESS |
+| 11: 2.5M different group | oo->an, lower threshold | 10 | Yes (1 failure) | **FAIL** |
 
 ## Supported Poetic Forms (Examples 1-5)
 
@@ -157,18 +177,89 @@ Extension operating in **CLT activation space** rather than text space:
 | Haiku | 3 | None | Syllabic (5-7-5) | 8 | 8 | 8 | 8 |
 | Sonnet | 14 | ABAB CDCD EFEF GG | Iambic pentameter | 44 | 72 | 58 | 72 |
 
-## Server Architectures
+## Server Architectures and MCP
 
-**Examples 1-5** (text-generation domains) use a two-server architecture:
-1. **phonetics-server**: Rhyme candidate selection, steering, syllable counting, verification
-2. **llm-server**: Constrained text generation, transition planning, line evaluation
+### Why MCP?
 
-**Example 6** (formal mechanism) uses a single **llm-server** for candidate generation, verification, and line writing.
+Every action in these poetry domains is annotated with an `MCP_Tool:` tag in its
+docstring, indicating which [Model Context Protocol](https://modelcontextprotocol.io/)
+(MCP) server and tool should handle that action at execution time. This design
+reflects a deliberate **separation of concerns** between the HTN planner and the
+services that carry out its decisions:
 
-**Example 7** (feature space) uses a three-server architecture:
-1. **Local computation**: Initialize, suppress, evaluate threshold, compile report
-2. **inference_server**: Forward passes, probability measurement
-3. **clt_server**: CLT encode/decode, feature injection
+| Layer | Responsibility | Technology |
+|-------|---------------|------------|
+| **HTN Planner** (GTPyhop) | *What* to do: decompose the poem into structural steps (form, rhyme scheme, meter, line ordering) | Pure Python, deterministic search |
+| **MCP Servers** | *How* to do it: generate text, select rhyme words, verify phonetic constraints, run neural-network experiments | External processes, accessed via MCP |
+
+The planner **never generates text or calls an LLM itself**. It produces a
+totally-ordered sequence of leaf actions like `a_select_rhyme_target`,
+`a_generate_line`, `a_verify_line`. Each leaf action carries an `MCP_Tool:`
+annotation that names the server and tool to call. For example:
+
+```python
+def a_select_rhyme_target(state, line_idx, rhyme_label):
+    """
+    Class: Action
+    MCP_Tool: phonetics_server:select_rhyme_target
+    ...
+    """
+
+def a_generate_line(state, line_idx, target_syllables):
+    """
+    Class: Action
+    MCP_Tool: llm_server:generate_line
+    ...
+    """
+```
+
+### What does MCP bring?
+
+1. **Clean neuro-symbolic boundary.** The planner handles symbolic reasoning
+   (form decomposition, rhyme-label tracking, backtracking on failure) while MCP
+   servers handle neural or computational tasks (LLM inference, phonetic lookup).
+   Neither side needs to know the internals of the other.
+
+2. **Swappable servers.** Because the interface is a standard protocol, the
+   phonetics server could be backed by CMU Pronouncing Dictionary today and a
+   neural phonetics model tomorrow -- without changing the domain or the planner.
+
+3. **Composable multi-server workflows.** A single HTN plan can orchestrate
+   calls to multiple servers in a determined order. Examples 1-5 coordinate two
+   servers; examples 6-7 coordinate three. The planner decides the sequencing;
+   MCP handles the transport.
+
+4. **Testability without servers.** During planning, the `MCP_Tool:` annotations
+   are documentary -- the planner simulates actions via precondition/effect
+   updates on the state. Real MCP calls only happen at *execution* time. This
+   means all 7 domains can be planned, benchmarked, and tested without any
+   running server.
+
+### Server configurations by example
+
+**Examples 1-5** (text-generation domains) use a **two-server** architecture:
+
+| MCP Server | Role | Example tools |
+|------------|------|---------------|
+| **phonetics_server** | Rhyme candidate selection, steering, syllable counting, verification | `select_rhyme_target`, `generate_rhyme_candidates`, `rank_candidates`, `verify_line`, `steer_target` |
+| **llm_server** | Constrained text generation, transition planning, line evaluation | `generate_line`, `generate_line_free`, `plan_transition`, `generate_surface_text`, `evaluate_line` |
+
+Both servers are complemented by **local** actions (`local:initialize_poem`, `local:assemble_poem`) that require no external call.
+
+**Examples 6-7** (mechanistic analysis domains) use a **three-server** architecture:
+
+| MCP Server | Role | Example tools |
+|------------|------|---------------|
+| **inference_server** | Forward passes through the neural network, probability measurement | `locate_planning_site`, `measure_rhyme_probability`, `measure_group_probability` |
+| **clt_server** | CLT (Concept Lattice Topology) feature experiments: encode/decode residual streams, knockout and injection | `run_experiment`, `encode_residual`, `suppress_group`, `inject_feature` |
+| **local** | Hypothesis formulation, threshold evaluation, report compilation | `initialize_analysis`, `initialize_intervention`, `formulate_stage`, `evaluate_threshold`, `evaluate_correspondence`, `compile_report` |
+
+### MCP reference summary across files
+
+All 7 `domain.py` files declare their MCP server architecture in a header comment
+and annotate every action with `MCP_Tool:`. Four of the 7 `problems.py` files
+also mention MCP when describing the server coordination for their scenarios
+(structured, candidate, bidirectional, replanning).
 
 ## Directory Structure
 
@@ -210,8 +301,8 @@ poetry/
 |   +-- README.md
 +-- feature_space_poetry/
     +-- __init__.py
-    +-- domain.py                          # 9 actions, 7 methods
-    +-- problems.py                        # 4 scenarios
+    +-- domain.py                          # 9 actions, 5 methods
+    +-- problems.py                        # 12 scenarios
     +-- README.md
 ```
 
@@ -253,4 +344,4 @@ python benchmarking.py structured_poetry --verbose 1
 - [gitignore/iterative_backtracking_find_plan.md](../../../../gitignore/iterative_backtracking_find_plan.md) - Design report for iterative DFS backtracking
 
 ---
-*Updated 2026-02-18*
+*Updated 2026-02-23*

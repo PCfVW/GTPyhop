@@ -4,7 +4,7 @@
 
 This example demonstrates **neuro-symbolic poetry generation** using GTPyhop 1.8.0+. An HTN planner produces structural plans (form, rhyme scheme, meter constraints) while leaf-level actions are delegated to external MCP servers for text generation and phonetic verification.
 
-This domain is motivated by Anthropic's "Planning in Poems" (March 2025) discovery that Claude 3.5 Haiku plans ahead when writing rhyming poetry, activating candidate end-of-line words before writing each line. This domain makes that implicit planning **explicit** via HTN decomposition.
+This domain is motivated by Anthropic's "[Planning in Poems](https://transformer-circuits.pub/2025/attribution-graphs/biology.html#dives-poems)" (March 2025) discovery that Claude 3.5 Haiku plans ahead when writing rhyming poetry, activating candidate end-of-line words before writing each line. This domain makes that implicit planning **explicit** via HTN decomposition.
 
 ## Benchmarking Scenarios
 
@@ -221,7 +221,7 @@ Comprehensive documentation of all state properties with:
 ## References
 
 - **GTPyhop Documentation**: https://github.com/PCfVW/GTPyhop
-- **Anthropic "Planning in Poems"**: Anthropic Research, March 2025
+- **Anthropic "[Planning in Poems](https://transformer-circuits.pub/2025/attribution-graphs/biology.html#dives-poems)"**: Anthropic Research, March 2025
 - **MCP Protocol**: https://modelcontextprotocol.io/
 
 ---

@@ -4,7 +4,7 @@
 
 This example demonstrates **decomposed line construction** for neuro-symbolic poetry generation using GTPyhop 1.9.0+. Instead of treating line generation as a black box (as in the structured_poetry domain), this domain splits it into two explicit steps: backward transition planning and surface text generation.
 
-This models Anthropic's "Planning in Poems" (March 2025) finding that Claude 3.5 Haiku uses **backward reasoning** from the planned end-word to determine intermediate words in a line. For example, the word "like" in "His hunger was like a starving rabbit" is determined by backward reasoning from the target "rabbit". The model builds a structural skeleton before generating fluent text.
+This models Anthropic's "[Planning in Poems](https://transformer-circuits.pub/2025/attribution-graphs/biology.html#dives-poems)" (March 2025) finding that Claude 3.5 Haiku uses **backward reasoning** from the planned end-word to determine intermediate words in a line. For example, the word "like" in "His hunger was like a starving rabbit" is determined by backward reasoning from the target "rabbit". The model builds a structural skeleton before generating fluent text.
 
 ## Difference from Structured Poetry
 
@@ -244,7 +244,7 @@ Comprehensive documentation of all state properties with:
 ## References
 
 - **GTPyhop Documentation**: https://github.com/PCfVW/GTPyhop
-- **Anthropic "Planning in Poems"**: Anthropic Research, March 2025
+- **Anthropic "[Planning in Poems](https://transformer-circuits.pub/2025/attribution-graphs/biology.html#dives-poems)"**: Anthropic Research, March 2025
 - **Structured Poetry Domain**: `examples/poetry/structured_poetry/`
 - **MCP Protocol**: https://modelcontextprotocol.io/
 

@@ -4,7 +4,7 @@
 
 This example demonstrates **Architecture 12: HTN as Formal Model of the LLM's Implicit Planning** from the `htn-roles-for-planning-in-poems.md` analysis. Instead of using the HTN planner to *steer* the LLM, this domain uses the HTN formalism to **model what the LLM computes internally** during rhyme planning, then validates the model with systematic experiments.
 
-The key insight: Anthropic's "Planning in Poems" (March 2025) and the melometis v1.3.0 results proved that LLMs have an implicit planner for rhyme. At the planning site (the newline token between lines 3 and 4), the residual stream encodes a rhyme decision confirmed by a 155-million-fold probability spike. This domain expresses the *hypothesis about that mechanism* as an HTN task decomposition, where each stage maps to a layer range in the transformer.
+The key insight: Anthropic's "[Planning in Poems](https://transformer-circuits.pub/2025/attribution-graphs/biology.html#dives-poems)" (March 2025) and the melometis v1.3.0 results proved that LLMs have an implicit planner for rhyme. At the planning site (the newline token between lines 3 and 4), the residual stream encodes a rhyme decision confirmed by a 155-million-fold probability spike. This domain expresses the *hypothesis about that mechanism* as an HTN task decomposition, where each stage maps to a layer range in the transformer.
 
 This is **computational cognitive science**: using HTN planning theory to model neural network computation. The plan IS the hypothesis, and the plan's execution IS the experimental validation.
 
@@ -267,7 +267,7 @@ The formal comparison between HTN decomposition and neural computation is a cont
 
 - **Architecture 12**: `htn-roles-for-planning-in-poems.md`, Section "TIER 4: The Wild Ideas"
 - **Melometis v1.3.0 Results**: Planning site discovery, 155M-fold probability spike
-- **Anthropic "Planning in Poems"**: Anthropic Research, March 2025
+- **Anthropic "[Planning in Poems](https://transformer-circuits.pub/2025/attribution-graphs/biology.html#dives-poems)"**: Anthropic Research, March 2025
 - **GTPyhop Documentation**: https://github.com/PCfVW/GTPyhop
 
 ---

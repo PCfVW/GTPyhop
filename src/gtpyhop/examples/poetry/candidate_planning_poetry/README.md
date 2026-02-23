@@ -4,7 +4,7 @@
 
 This example demonstrates **multi-candidate rhyme selection** for neuro-symbolic poetry generation using GTPyhop 1.9.0+. Instead of selecting a single rhyme target directly (as in the structured_poetry domain), this domain generates N candidate end-words, ranks them by rhyme quality and semantic fit, then commits the top-ranked candidate.
 
-This models Anthropic's "Planning in Poems" (March 2025) finding that Claude 3.5 Haiku **maintains multiple candidate end-of-line words simultaneously** before committing to one. Features at the newline token activate rhyming pattern detectors that propose candidates like "rabbit" and "habit", and the model selects the best fit.
+This models Anthropic's "[Planning in Poems](https://transformer-circuits.pub/2025/attribution-graphs/biology.html#dives-poems)" (March 2025) finding that Claude 3.5 Haiku **maintains multiple candidate end-of-line words simultaneously** before committing to one. Features at the newline token activate rhyming pattern detectors that propose candidates like "rabbit" and "habit", and the model selects the best fit.
 
 ## Difference from Structured Poetry
 
@@ -253,7 +253,7 @@ Comprehensive documentation of all state properties with:
 ## References
 
 - **GTPyhop Documentation**: https://github.com/PCfVW/GTPyhop
-- **Anthropic "Planning in Poems"**: Anthropic Research, March 2025
+- **Anthropic "[Planning in Poems](https://transformer-circuits.pub/2025/attribution-graphs/biology.html#dives-poems)"**: Anthropic Research, March 2025
 - **Structured Poetry Domain**: `examples/poetry/structured_poetry/`
 - **MCP Protocol**: https://modelcontextprotocol.io/
 

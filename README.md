@@ -1,4 +1,4 @@
-# GTPyhop version 1.9.1
+# GTPyhop version 1.9.2
 
 [![Python Version](https://img.shields.io/badge/python-3%2B-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-Clear%20BSD-green.svg)](https://github.com/PCfVW/GTPyhop/blob/pip/LICENSE.txt)
@@ -31,10 +31,10 @@ GTPyhop is an HTN planning system based on [Pyhop](https://bitbucket.org/dananau
 
 ### From PyPI (Recommended)
 
-**GTPyhop 1.9.1** is the latest version with iterative DFS backtracking, poetry generation examples, memory tracking, enhanced MCP orchestration examples, Opentrons Flex domains, and comprehensive style guides.
+**GTPyhop 1.9.2** is the latest version with iterative DFS backtracking, poetry generation examples, memory tracking, enhanced MCP orchestration examples, Opentrons Flex domains, and comprehensive style guides.
 
 ```bash
-pip install gtpyhop>=1.9.1
+pip install gtpyhop>=1.9.2
 ```
 
 For basic single-threaded planning, any version works:
@@ -75,7 +75,7 @@ import gtpyhop
 The following should be printed in your terminal:
 
 ```code
-Imported GTPyhop version 1.9.1
+Imported GTPyhop version 1.9.2
 Messages from find_plan will be prefixed with 'FP>'.
 Messages from run_lazy_lookahead will be prefixed with 'RLL>'.
 Using session-based architecture with structured logging.
@@ -334,7 +334,7 @@ python -m gtpyhop.examples.simple_htn --session
 
 ## Documentation
 
-GTPyhop 1.9.1 includes comprehensive documentation organized in the `docs/` folder:
+GTPyhop 1.9.2 includes comprehensive documentation organized in the `docs/` folder:
 
 ### Core Documentation
 - **[All Examples Guide](https://github.com/PCfVW/GTPyhop/blob/pip/docs/all_examples.md)** - Pedagogical details about all HTN planning examples
@@ -363,8 +363,8 @@ GTPyhop 1.9.1 includes comprehensive documentation organized in the `docs/` fold
 - **[Candidate Planning Poetry](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/poetry/candidate_planning_poetry/README.md)** - Multi-candidate rhyme selection pipeline (3 scenarios)
 - **[Bidirectional Planning Poetry](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/poetry/bidirectional_planning_poetry/README.md)** - Decomposed backward line construction (3 scenarios)
 - **[Replanning Poetry](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/poetry/replanning_poetry/README.md)** - Post-generation evaluation and steering/revision (3 scenarios)
-- **[Formal Mechanism Poetry](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/poetry/formal_mechanism_poetry/README.md)** - Three planning mechanisms from Anthropic's paper (3 scenarios)
-- **[Feature Space Poetry](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/poetry/feature_space_poetry/README.md)** - Feature-space interventions with measured Version D data (4 scenarios)
+- **[Formal Mechanism Poetry](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/poetry/formal_mechanism_poetry/README.md)** - Three planning mechanisms from Anthropic's "[Planning in Poems](https://transformer-circuits.pub/2025/attribution-graphs/biology.html#dives-poems)" paper (3 scenarios)
+- **[Feature Space Poetry](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/poetry/feature_space_poetry/README.md)** - Feature-space interventions with measured data: Gemma 2 2B 426K (Version D) + Llama 3.2 1B 524K (Version L) + Gemma 2 2B 2.5M (Version D 2.5M) (12 scenarios)
 
 #### IPC 2020 Total Order Domains
 - **[Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/ipc-2020-total-order/benchmarking_quickstart.md)** - Performance benchmarking guide

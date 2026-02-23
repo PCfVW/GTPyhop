@@ -2,7 +2,7 @@
 
 ## Background: How LLMs Plan Poems
 
-Anthropic's "Planning in Poems" research (March 2025) discovered that Claude 3.5 Haiku
+Anthropic's "[Planning in Poems](https://transformer-circuits.pub/2025/attribution-graphs/biology.html#dives-poems)" research (March 2025) discovered that Claude 3.5 Haiku
 **plans ahead** when writing rhyming poetry. Rather than improvising word-by-word, the
 model:
 
@@ -128,7 +128,7 @@ downstream plan.
 
 ## Reference
 
-Anthropic, "Circuit Tracing: Revealing Computational Graphs in Language Models",
+Anthropic, "[Circuit Tracing: Revealing Computational Graphs in Language Models](https://transformer-circuits.pub/2025/attribution-graphs/biology.html#dives-poems)",
 March 2025 — Section: *Planning in Poems*.
 
 ---

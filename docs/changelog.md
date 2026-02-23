@@ -1,6 +1,37 @@
 # GTPyhop Version History
 
-## 1.9.1 — Poetry Examples & Bug Fixes (Latest, Recommended)
+## 1.9.2 — Feature Space Poetry: Word-Level CLT 2.5M Scenarios (Latest, Recommended)
+
+**Feature Space Poetry** expanded from 8 to **12 scenarios** with the addition of 4 Gemma 2 2B + CLT 2.5M (Version D 2.5M) scenarios:
+
+| Scenario | Description | Actions | Backtracking | Greedy |
+|----------|-------------|---------|-------------|--------|
+| 8: 2.5M star result | Ground truth (out→an, "can" at 48.2%) | 34 | No | SUCCESS |
+| 9: 2.5M weakest first | "plan" before "can" | 34 | Yes (2 failures) | **FAIL** |
+| 10: 2.5M planning layer | Only L25 encoded | 9 | No | SUCCESS |
+| 11: 2.5M different group | oo→an, lower threshold | 10 | Yes (1 failure) | **FAIL** |
+
+**Key upgrade over 426K CLT:** 2.5M CLT provides 98,304 features/layer (vs 16,384), giving word-level resolution — 209/209 words ranked #1 in their own dedicated feature. The star result "can" (L25:82839) achieved 48.2% redirect probability with a 160-billion-fold spike. Same Gemma 2 2B model, finer CLT = word-level control.
+
+**Feature Space Poetry now covers three configurations:**
+
+| Configuration | Scenarios | Layers | CLT Resolution | Star Result |
+|---------------|-----------|--------|----------------|-------------|
+| Gemma 2 2B (Version D) | 0-3 | 26 | 426K | "around" at 48.3% |
+| Llama 3.2 1B (Version L) | 4-7 | 16 | 524K | "that" at 77.7% |
+| Gemma 2 2B (Version D 2.5M) | 8-11 | 26 | 2.5M | "can" at 48.2% |
+
+**Documentation updates:**
+- **[All Examples Guide](https://github.com/PCfVW/GTPyhop/blob/pip/docs/all_examples.md)** — Updated Feature Space Poetry section (8→12 scenarios, added 2.5M scenario table)
+- **[Poetry README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/poetry/README.md)** — Updated scenario counts, strategy table, directory structure; added 2.5M scenario table
+- **[Poetry Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/poetry/benchmarking_quickstart.md)** — Updated expected results with all 12 scenarios; updated troubleshooting
+- **[Feature Space Poetry README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/poetry/feature_space_poetry/README.md)** — Added 2.5M scenarios, empirical grounding, decomposition examples; updated domain statistics
+
+**Compatibility:** 100% backward compatible with GTPyhop 1.9.1. No API changes.
+
+---
+
+## 1.9.1 — Poetry Examples & Bug Fixes
 
 🚀 **Major Features:**
 - **🔀 Iterative DFS Backtracking** - Third planning strategy combining the iterative planner's explicit stack with full backtracking across methods
@@ -55,7 +86,7 @@ with gtpyhop.PlannerSession(
 
 **New Examples:**
 
-The seven poetry examples form a progression, each extending the baseline with a different aspect of Anthropic's "Planning in Poems" (March 2025) findings:
+The seven poetry examples form a progression, each extending the baseline with a different aspect of Anthropic's "[Planning in Poems](https://transformer-circuits.pub/2025/attribution-graphs/biology.html#dives-poems)" (March 2025) findings:
 
 | # | Example | Directory | Description | Strategy |
 |---|---------|-----------|-------------|----------|
@@ -64,8 +95,8 @@ The seven poetry examples form a progression, each extending the baseline with a
 | 3 | **Candidate Planning Poetry** | `poetry/candidate_planning_poetry/` | Multi-candidate rhyme selection pipeline (3 scenarios) | Any |
 | 4 | **Bidirectional Planning Poetry** | `poetry/bidirectional_planning_poetry/` | Decomposed backward line construction (3 scenarios) | Any |
 | 5 | **Replanning Poetry** | `poetry/replanning_poetry/` | Post-generation evaluation and steering/revision (3 scenarios) | Backtracking |
-| 6 | **Formal Mechanism Poetry** | `poetry/formal_mechanism_poetry/` | Three planning mechanisms from Anthropic's paper (3 scenarios) | Any |
-| 7 | **Feature Space Poetry** | `poetry/feature_space_poetry/` | Feature-space interventions with measured Version D data (4 scenarios) | Backtracking |
+| 6 | **Formal Mechanism Poetry** | `poetry/formal_mechanism_poetry/` | Three planning mechanisms from Anthropic's [paper](https://transformer-circuits.pub/2025/attribution-graphs/biology.html#dives-poems) (3 scenarios) | Any |
+| 7 | **Feature Space Poetry** | `poetry/feature_space_poetry/` | Feature-space interventions with measured data: Gemma 2 2B (Version D) + Llama 3.2 1B (Version L) (8 scenarios) | Backtracking |
 
 - **Backtracking Poetry** (example 2) — Tests action-level failure triggering method-level backtracking at the line composition level:
 
@@ -89,12 +120,12 @@ The seven poetry examples form a progression, each extending the baseline with a
 
 - **Formal Mechanism Poetry** (example 6) — Implements three planning mechanisms from the paper (full pipeline, commitment focus, three-stage). All 3 scenarios succeed with any strategy. Plan lengths: 19, 7, 13.
 
-- **Feature Space Poetry** (example 7) — Probability-based evaluation using measured data from Version D's `suppress_inject_sweep.json`. Four scenarios: ground truth replication (34 actions) plus three counterfactual what-ifs. Scenarios 1 and 3 require backtracking because weaker candidates are tried first:
+- **Feature Space Poetry** (example 7) — Probability-based evaluation using measured experimental data. Eight scenarios across two models: Gemma 2 2B (Version D, 4 scenarios) and Llama 3.2 1B (Version L, 4 scenarios). Each model has a ground truth replication plus counterfactual what-ifs. Scenarios requiring backtracking fail with the greedy strategy:
 
-| Strategy | Scenario 0 (34) | Scenario 1 (34) | Scenario 2 (9) | Scenario 3 (10) |
-|----------|:---:|:---:|:---:|:---:|
-| Iterative DFS BT | 34 actions | 34 actions | 9 actions | 10 actions |
-| Iterative greedy | 34 actions | **Fails** | 9 actions | **Fails** |
+| Strategy | Gemma S0 (34) | Gemma S1 (34) | Gemma S2 (9) | Gemma S3 (10) | Llama S4 (24) | Llama S5 (24) | Llama S6 (9) | Llama S7 (10) |
+|----------|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| Iterative DFS BT | 34 | 34 | 9 | 10 | 24 | 24 | 9 | 10 |
+| Iterative greedy | 34 | **Fails** | 9 | **Fails** | 24 | **Fails** | 9 | **Fails** |
 
 **Poetry benchmarking script** updated with `--strategy` option:
 ```bash
@@ -108,8 +139,9 @@ python benchmarking.py feature_space_poetry --strategy iterative_dfs_backtrackin
 
 **Documentation & Style Guides:**
 - **[All Examples Guide](https://github.com/PCfVW/GTPyhop/blob/pip/docs/all_examples.md)** — Updated with examples 6-7 (sections, summary table, benchmarking commands)
-- **[Poetry README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/poetry/README.md)** — Updated with examples 6-7 (tables, directory structure, server architectures); fixed example 6 strategy classification (Backtracking → Any)
+- **[Poetry README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/poetry/README.md)** — Updated with examples 6-7 (tables, directory structure, server architectures); fixed example 6 strategy classification (Backtracking → Any); added comprehensive MCP section (Why MCP?, server configurations, MCP reference summary)
 - **[Poetry Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/poetry/benchmarking_quickstart.md)** — Updated with examples 6-7 (expected results, troubleshooting, strategy tables)
+- **[Feature Space Poetry README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/poetry/feature_space_poetry/README.md)** — Added Llama 3.2 1B scenarios (4-7); fixed server architecture (suppress_group moved to clt_server); fixed method count (5, not 7); added Appendix on state restoration and backtrack with MI and AI planning implications
 - **[Problems Style Guide](https://github.com/PCfVW/GTPyhop/blob/pip/docs/gtpyhop_problems_style_guide.md)** — v2.2.0: added section 2.3 on doctests in `get_problems()` with template and conventions
 - **[Example Style Guide](https://github.com/PCfVW/GTPyhop/blob/pip/docs/gtpyhop_example_style_guide.md)** — v1.2.0: added section 7 on doctests for plan verification; updated checklist and quick start template
 

@@ -32,8 +32,8 @@ pip install psutil
 | 3 | `candidate_planning_poetry` | Multi-candidate rhyme selection pipeline | 3 (couplet, limerick, haiku) | 8-27 | Any |
 | 4 | `bidirectional_planning_poetry` | Decomposed backward line construction | 3 (couplet, limerick, haiku) | 8-22 | Any |
 | 5 | `replanning_poetry` | Post-generation evaluation and steering/revision | 3 (couplet, limerick, haiku) | 8-28 | Backtracking* |
-| 6 | `formal_mechanism_poetry` | Three planning mechanisms from Anthropic's paper | 3 (full, commitment, three-stage) | 7-19 | Any |
-| 7 | `feature_space_poetry` | Feature-space interventions with measured data | 4 (ground truth + 3 what-ifs) | 9-34 | Backtracking* |
+| 6 | `formal_mechanism_poetry` | Three planning mechanisms from Anthropic's [paper](https://transformer-circuits.pub/2025/attribution-graphs/biology.html#dives-poems) | 3 (full, commitment, three-stage) | 7-19 | Any |
+| 7 | `feature_space_poetry` | Feature-space interventions with measured data | 12 (3 models x 4 scenarios) | 9-34 | Backtracking* |
 
 \* Backtracking required: examples 2, 5 for rhymed forms; example 7 for scenarios with multiple candidates.
 
@@ -204,6 +204,8 @@ All scenarios succeed with any strategy. The domain registers three methods for 
 
 ### Example 7: Feature Space Poetry
 
+Gemma 2 2B (426K):
+
 | Scenario | Iterative DFS BT | Iterative Greedy |
 |----------|:---:|:---:|
 | `scenario_0_version_d_star_result` | 34 | 34 |
@@ -211,7 +213,25 @@ All scenarios succeed with any strategy. The domain registers three methods for 
 | `scenario_2_planning_layer_only` | 9 | 9 |
 | `scenario_3_different_group` | 10 | **False** |
 
-Scenarios 1 and 3 fail with iterative greedy because weaker candidates are tried first. Their measured probabilities (0.001-0.003) fall below the threshold, and the greedy planner cannot backtrack to try the stronger candidate (L22:10243 "around").
+Llama 3.2 1B (524K):
+
+| Scenario | Iterative DFS BT | Iterative Greedy |
+|----------|:---:|:---:|
+| `scenario_4_llama_star_result` | 24 | 24 |
+| `scenario_5_llama_sat_first` | 24 | **False** |
+| `scenario_6_llama_output_layer` | 9 | 9 |
+| `scenario_7_llama_different_group` | 10 | **False** |
+
+Gemma 2 2B (2.5M):
+
+| Scenario | Iterative DFS BT | Iterative Greedy |
+|----------|:---:|:---:|
+| `scenario_8_version_d_2_5m_star` | 34 | 34 |
+| `scenario_9_2_5m_weakest_first` | 34 | **False** |
+| `scenario_10_2_5m_planning_layer` | 9 | 9 |
+| `scenario_11_2_5m_different_group` | 10 | **False** |
+
+Scenarios 1, 3, 5, 7, 9, and 11 fail with iterative greedy because weaker candidates are tried first. Their measured probabilities fall below the threshold, and the greedy planner cannot backtrack to try the stronger candidate.
 
 ## Interpreting Results
 
@@ -310,7 +330,7 @@ pip install gtpyhop
 
 **This is expected behavior** with the default (iterative greedy) planner. These scenarios require backtracking because `a_evaluate_line` fails for lines requiring revision. Use `--strategy recursive_dfs` or `--strategy iterative_dfs_backtracking`. See the "Planning Strategies" section above.
 
-### "No plan found" for feature_space_poetry scenarios 1 or 3
+### "No plan found" for feature_space_poetry scenarios 1, 3, 5, 7, 9, or 11
 
 **This is expected behavior** with the default (iterative greedy) planner. These scenarios order candidates so that weaker ones are tried first, and `a_evaluate_threshold` fails when the measured probability is below the threshold. Use `--strategy iterative_dfs_backtracking`. See the "Planning Strategies" section above.
 
@@ -334,4 +354,4 @@ pip install gtpyhop
 - Add new poetry forms or domains following the style guides
 
 ---
-*Updated 2026-02-18*
+*Updated 2026-02-23*

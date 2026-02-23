@@ -4,7 +4,7 @@
 
 This example demonstrates **post-generation evaluation and steering/revision** for neuro-symbolic poetry generation using GTPyhop 1.9.0+. After initial line generation and verification, an evaluation step may determine that the line needs a better target word. This triggers replanning: the planner backtracks and tries a revision path that steers to a new target and completely regenerates the line.
 
-This models Anthropic's "Planning in Poems" (March 2025) finding that **injecting an alternative planned word causes the model to restructure the entire line** in 70% of test poems. The planned end-word acts as a "control knob" for the whole line — changing it doesn't just patch the ending, it cascades through the entire downstream text.
+This models Anthropic's "[Planning in Poems](https://transformer-circuits.pub/2025/attribution-graphs/biology.html#dives-poems)" (March 2025) finding that **injecting an alternative planned word causes the model to restructure the entire line** in 70% of test poems. The planned end-word acts as a "control knob" for the whole line — changing it doesn't just patch the ending, it cascades through the entire downstream text.
 
 ## Difference from Structured Poetry
 
@@ -336,7 +336,7 @@ Comprehensive documentation of all state properties with:
 ## References
 
 - **GTPyhop Documentation**: https://github.com/PCfVW/GTPyhop
-- **Anthropic "Planning in Poems"**: Anthropic Research, March 2025
+- **Anthropic "[Planning in Poems](https://transformer-circuits.pub/2025/attribution-graphs/biology.html#dives-poems)"**: Anthropic Research, March 2025
 - **Structured Poetry Domain**: `examples/poetry/structured_poetry/`
 - **Backtracking Poetry Domain**: `examples/poetry/backtracking_poetry/`
 - **MCP Protocol**: https://modelcontextprotocol.io/
