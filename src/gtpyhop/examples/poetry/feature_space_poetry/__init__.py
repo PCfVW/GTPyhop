@@ -12,12 +12,13 @@ Servers:
   - Server 1 (inference_server): Forward passes, probability measurement
   - Server 2 (clt_server): CLT encode/decode, feature injection
 
-Scenarios:
-  - Full redirect (26 layers, backtracking, 34 actions)
-  - Planning layer only (1 layer, no backtracking, 9 actions)
-  - Two-layer redirect (2 layers, backtracking, 10 actions)
+Scenarios (12 total):
+  Gemma 2 2B, CLT 426K (scenarios 0-3): forward planning model
+  Llama 3.2 1B, CLT 524K (scenarios 4-7): late selection model
+  Gemma 2 2B, CLT 2.5M (scenarios 8-11): word-level planning model
+  Each group: ground truth + 3 counterfactual what-ifs (9-34 actions)
 
--- Generated 2026-02-18
+-- Generated 2026-02-18, updated 2026-02-23
 """
 
 import sys

@@ -56,7 +56,7 @@
 #   - Constants (known models, rhyme groups, feature candidates)
 #   - State Property Map (Feature Space Intervention Workflow)
 #   - Actions (9)
-#   - Methods (6)
+#   - Methods (5)
 # ============================================================================
 
 # ============================================================================
@@ -97,35 +97,73 @@ KNOWN_MODELS = {
         "clt_resolution": "426K",
         "planning_features_identified": True,
     },
+    "Llama_3_2_1B": {
+        "num_layers": 16,
+        "clt_resolution": "524K",
+        "planning_features_identified": True,
+    },
 }
 
-# Experimentally validated rhyme groups from melometis Version D suppress+inject.
-# These 4 groups are the natural groups on the 4 Version D prompts.
+# Experimentally validated rhyme groups from melometis suppress+inject experiments.
+# Gemma 2 2B groups (Version D): 4 natural groups on the 4 Version D prompts.
+# Gemma 2 2B + CLT 2.5M (Version D 2.5M): 1 word-level injection target group.
+# Llama 3.2 1B groups (Version L): 4 groups from corpus/prompts_llama.json.
 RHYME_GROUPS = {
+    # --- Gemma 2 2B (Version D) ---
     "out": {
         "arpabet": "AW1-T",
         "words": ["about", "out", "shout"],
+        "model": "Gemma_2_2B",
         "description": "Primary suppression target on 2 of 4 Version D prompts",
     },
     "ound": {
         "arpabet": "AW1-N-D",
         "words": ["around", "found", "ground", "round"],
+        "model": "Gemma_2_2B",
         "description": "Target for cross-group injection; L22:10243 achieved 48.3% redirect",
     },
     "ow": {
         "arpabet": "OW1",
         "words": ["go", "grow", "know", "slow", "snow", "so", "though"],
+        "model": "Gemma_2_2B",
         "description": "Natural group on 1 Version D prompt; 7 words with CLT features",
     },
     "oo": {
         "arpabet": "UW1",
         "words": ["do", "new", "ou", "to", "too", "two", "who"],
+        "model": "Gemma_2_2B",
         "description": "Natural group on 1 Version D prompt; L25:ou achieved 157,000x ratio",
+    },
+    # --- Gemma 2 2B + CLT 2.5M (Version D 2.5M) ---
+    "an": {
+        "arpabet": "AE1-N",
+        "words": ["can", "man", "plan"],
+        "model": "Gemma_2_2B",
+        "description": "Word-level injection target (2.5M CLT); L25:82839 'can' achieved 48.2% redirect",
+    },
+    # --- Llama 3.2 1B (Version L) ---
+    "ee": {
+        "arpabet": "IY1",
+        "words": ["he", "be", "ne", "we"],
+        "model": "Llama_3_2_1B",
+        "description": "Natural group on -ee prompt; 4 words, 82% features at L15",
+    },
+    "at": {
+        "arpabet": "AE1-T",
+        "words": ["that", "sat"],
+        "model": "Llama_3_2_1B",
+        "description": "Injection target; L14:13043 'that' achieved 77.7% redirect",
+    },
+    "ore": {
+        "arpabet": "AO1-R",
+        "words": ["for", "or", "more"],
+        "model": "Llama_3_2_1B",
+        "description": "Injection target on -at prompt; L1:5297 'for' at 0.9%",
     },
 }
 
 # Ranked injection candidates per target group (strongest first).
-# Feature IDs from CLT 426K resolution on Gemma 2 2B.
+# Feature IDs from CLT 426K or 2.5M resolution on Gemma 2 2B, CLT 524K on Llama 3.2 1B.
 # Each candidate is a dict: feature_id, layer, top_token, planning_site_ratio, max_probability.
 FEATURE_CANDIDATES = {
     "ound": [
@@ -173,6 +211,44 @@ FEATURE_CANDIDATES = {
          "source": "estimated_clt"},
         {"feature_id": "L19:two", "layer": 19, "top_token": "two",
          "planning_site_ratio": "1,285 x", "max_probability": 0.003,
+         "source": "estimated_clt"},
+    ],
+    # --- Gemma 2 2B + CLT 2.5M (Version D 2.5M) ---
+    "an": [
+        # MEASURED: 48.20% on -out/about, 42.49% on -out/shout, 40.02% on -oo/who
+        {"feature_id": "L25:82839", "layer": 25, "top_token": "can",
+         "planning_site_ratio": "160B x", "max_probability": 0.48201,
+         "source": "measured_version_d_2_5m"},
+        # ESTIMATED from 2.5M CLT decoder vector analysis (not tested in sweep)
+        {"feature_id": "L25:45672", "layer": 25, "top_token": "man",
+         "planning_site_ratio": "~500 x", "max_probability": 0.002,
+         "source": "estimated_clt_2_5m"},
+        {"feature_id": "L25:71041", "layer": 25, "top_token": "plan",
+         "planning_site_ratio": "~200 x", "max_probability": 0.001,
+         "source": "estimated_clt_2_5m"},
+    ],
+    # --- Llama 3.2 1B (Version L) ---
+    "at": [
+        # MEASURED: 77.7% on -ee prompt, 45.2% on -oo prompt
+        {"feature_id": "L14:13043", "layer": 14, "top_token": "that",
+         "planning_site_ratio": "133,879 x", "max_probability": 0.777,
+         "source": "measured_version_l"},
+        # ESTIMATED from CLT decoder analysis (cosine 0.32, not tested in sweep)
+        {"feature_id": "L14:6132", "layer": 14, "top_token": "sat",
+         "planning_site_ratio": "~1,700 x", "max_probability": 0.01,
+         "source": "estimated_clt"},
+    ],
+    "ore": [
+        # MEASURED: 0.9% on -at prompt (suppress_inject_sweep_llama_v2.json)
+        {"feature_id": "L1:5297", "layer": 1, "top_token": "for",
+         "planning_site_ratio": "2,447 x", "max_probability": 0.009,
+         "source": "measured_version_l"},
+        # ESTIMATED from CLT decoder analysis
+        {"feature_id": "L3:22663", "layer": 3, "top_token": "or",
+         "planning_site_ratio": "~200 x", "max_probability": 0.001,
+         "source": "estimated_clt"},
+        {"feature_id": "L10:18203", "layer": 10, "top_token": "more",
+         "planning_site_ratio": "~400 x", "max_probability": 0.002,
          "source": "estimated_clt"},
     ],
 }
@@ -888,7 +964,7 @@ def a_compile_intervention_report(state: State) -> Union[State, bool]:
 
 
 # ============================================================================
-# METHODS (6)
+# METHODS (5)
 # ============================================================================
 
 # ============================================================================
