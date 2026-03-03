@@ -1,6 +1,6 @@
-# GTPyhop 1.9.2 HTN Planning Examples
+# GTPyhop 1.9.3 HTN Planning Examples
 
-This document provides pedagogical details about all HTN Planning examples included with GTPyhop 1.9.2. Each example demonstrates different aspects of hierarchical task network planning, from basic concepts to advanced techniques.
+This document provides pedagogical details about all HTN Planning examples included with GTPyhop 1.9.3. Each example demonstrates different aspects of hierarchical task network planning, from basic concepts to advanced techniques.
 
 ## Table of Contents
 

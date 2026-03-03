@@ -1,6 +1,43 @@
 # GTPyhop Version History
 
-## 1.9.2 — Feature Space Poetry: Word-Level CLT 2.5M Scenarios (Latest, Recommended)
+## 1.9.3 — Doctests for All Poetry Examples (Latest, Recommended)
+
+Added **doctests** to `get_problems()` in all 6 remaining poetry examples, matching the pattern established in `feature_space_poetry/problems.py`. Every poetry example now includes inline plan verification tests.
+
+**Files updated:**
+
+| Example | Scenarios tested | Key verifications |
+|---------|-----------------|-------------------|
+| `structured_poetry/problems.py` | 6 | Plan lengths: 8, 17, 8, 44, 8, 17 |
+| `backtracking_poetry/problems.py` | 3 + greedy failure | Relaxed rhyme on limerick line 4; greedy fails |
+| `bidirectional_planning_poetry/problems.py` | 3 | Plan lengths: 10, 22, 8 |
+| `candidate_planning_poetry/problems.py` | 3 | Plan lengths: 12, 27, 8 |
+| `formal_mechanism_poetry/problems.py` | 3 + stage inspection | Formulated stage names; plan lengths: 19, 7, 13 |
+| `replanning_poetry/problems.py` | 3 + greedy failures | `a_evaluate_line` / `a_steer_target` sequences; greedy fails on couplet and limerick |
+
+**Total:** 137 doctests across all 7 poetry examples (including the existing 31 in `feature_space_poetry`).
+
+**Running all doctests:**
+
+```bash
+python -m doctest -v src/gtpyhop/examples/poetry/structured_poetry/problems.py
+python -m doctest -v src/gtpyhop/examples/poetry/backtracking_poetry/problems.py
+python -m doctest -v src/gtpyhop/examples/poetry/bidirectional_planning_poetry/problems.py
+python -m doctest -v src/gtpyhop/examples/poetry/candidate_planning_poetry/problems.py
+python -m doctest -v src/gtpyhop/examples/poetry/formal_mechanism_poetry/problems.py
+python -m doctest -v src/gtpyhop/examples/poetry/replanning_poetry/problems.py
+python -m doctest -v src/gtpyhop/examples/poetry/feature_space_poetry/problems.py
+```
+
+**Style guide updates:**
+- **[Problems Style Guide](https://github.com/PCfVW/GTPyhop/blob/pip/docs/gtpyhop_problems_style_guide.md)** — Updated reference implementations section to note all 7 poetry examples include doctests
+- **[Example Style Guide](https://github.com/PCfVW/GTPyhop/blob/pip/docs/gtpyhop_example_style_guide.md)** — Updated section 7 to reference all 7 poetry examples as implementations
+
+**Compatibility:** 100% backward compatible with GTPyhop 1.9.2. No API changes.
+
+---
+
+## 1.9.2 — Feature Space Poetry: Word-Level CLT 2.5M Scenarios
 
 **Feature Space Poetry** expanded from 8 to **12 scenarios** with the addition of 4 Gemma 2 2B + CLT 2.5M (Version D 2.5M) scenarios:
 

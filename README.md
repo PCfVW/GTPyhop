@@ -1,8 +1,10 @@
-# GTPyhop version 1.9.2
+# GTPyhop version 1.9.3
 
 [![Python Version](https://img.shields.io/badge/python-3%2B-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-Clear%20BSD-green.svg)](https://github.com/PCfVW/GTPyhop/blob/pip/LICENSE.txt)
 [![PyPI](https://img.shields.io/pypi/v/gtpyhop)](https://pypi.org/project/gtpyhop/)
+<!-- UPDATE MANUALLY when doctests are added or removed -->
+[![Doctests](https://img.shields.io/badge/doctests-137%20passing-brightgreen)](docs/changelog.md)
 
 GTPyhop is an HTN planning system based on [Pyhop](https://bitbucket.org/dananau/pyhop/src/master/), but generalized to plan for both goals and tasks.
 
@@ -31,10 +33,10 @@ GTPyhop is an HTN planning system based on [Pyhop](https://bitbucket.org/dananau
 
 ### From PyPI (Recommended)
 
-**GTPyhop 1.9.2** is the latest version with iterative DFS backtracking, poetry generation examples, memory tracking, enhanced MCP orchestration examples, Opentrons Flex domains, and comprehensive style guides.
+**GTPyhop 1.9.3** is the latest version with iterative DFS backtracking, poetry generation examples, memory tracking, enhanced MCP orchestration examples, Opentrons Flex domains, and comprehensive style guides.
 
 ```bash
-pip install gtpyhop>=1.9.2
+pip install gtpyhop>=1.9.3
 ```
 
 For basic single-threaded planning, any version works:
@@ -75,7 +77,7 @@ import gtpyhop
 The following should be printed in your terminal:
 
 ```code
-Imported GTPyhop version 1.9.2
+Imported GTPyhop version 1.9.3
 Messages from find_plan will be prefixed with 'FP>'.
 Messages from run_lazy_lookahead will be prefixed with 'RLL>'.
 Using session-based architecture with structured logging.
@@ -334,7 +336,7 @@ python -m gtpyhop.examples.simple_htn --session
 
 ## Documentation
 
-GTPyhop 1.9.2 includes comprehensive documentation organized in the `docs/` folder:
+GTPyhop 1.9.3 includes comprehensive documentation organized in the `docs/` folder:
 
 ### Core Documentation
 - **[All Examples Guide](https://github.com/PCfVW/GTPyhop/blob/pip/docs/all_examples.md)** - Pedagogical details about all HTN planning examples
