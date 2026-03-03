@@ -180,6 +180,76 @@ def get_problems() -> Dict[str, Tuple[State, List[Tuple], str]]:
     """
     Return all problem definitions for benchmarking.
 
+    Setup: suppress GTPyhop import messages.
+
+    >>> import sys, io; _o = sys.stdout; sys.stdout = io.StringIO()
+    >>> import gtpyhop
+    >>> from gtpyhop.examples.poetry.structured_poetry import the_domain, problems
+    >>> sys.stdout = _o
+    >>> probs = problems.get_problems()
+    >>> len(probs)
+    6
+
+    Scenario 1 — Couplet about autumn (8 actions).
+    3-step pipeline per rhymed line: select + generate + verify.
+
+    >>> _o = sys.stdout; sys.stdout = io.StringIO()
+    >>> with gtpyhop.PlannerSession(domain=the_domain, verbose=0) as s:
+    ...     r1 = s.find_plan(*probs['scenario_1_couplet_autumn'][:2])
+    >>> sys.stdout = _o
+    >>> r1.success, len(r1.plan)
+    (True, 8)
+
+    Scenario 2 — Limerick about a cat (17 actions).
+    5 lines: AABBA rhyme scheme, 8-8-5-5-8 syllables.
+
+    >>> _o = sys.stdout; sys.stdout = io.StringIO()
+    >>> with gtpyhop.PlannerSession(domain=the_domain, verbose=0) as s:
+    ...     r2 = s.find_plan(*probs['scenario_2_limerick_cat'][:2])
+    >>> sys.stdout = _o
+    >>> r2.success, len(r2.plan)
+    (True, 17)
+
+    Scenario 3 — Haiku about the ocean (8 actions).
+    2-step pipeline per free line: generate + verify (no rhyme selection).
+
+    >>> _o = sys.stdout; sys.stdout = io.StringIO()
+    >>> with gtpyhop.PlannerSession(domain=the_domain, verbose=0) as s:
+    ...     r3 = s.find_plan(*probs['scenario_3_haiku_ocean'][:2])
+    >>> sys.stdout = _o
+    >>> r3.success, len(r3.plan)
+    (True, 8)
+
+    Scenario 4 — Shakespearean sonnet about time (44 actions).
+    14 lines: ABAB CDCD EFEF GG, iambic pentameter (10 syllables).
+
+    >>> _o = sys.stdout; sys.stdout = io.StringIO()
+    >>> with gtpyhop.PlannerSession(domain=the_domain, verbose=0) as s:
+    ...     r4 = s.find_plan(*probs['scenario_4_sonnet_time'][:2])
+    >>> sys.stdout = _o
+    >>> r4.success, len(r4.plan)
+    (True, 44)
+
+    Scenario 5 — Couplet about stars (8 actions).
+    Same form as scenario 1, different topic.
+
+    >>> _o = sys.stdout; sys.stdout = io.StringIO()
+    >>> with gtpyhop.PlannerSession(domain=the_domain, verbose=0) as s:
+    ...     r5 = s.find_plan(*probs['scenario_5_couplet_stars'][:2])
+    >>> sys.stdout = _o
+    >>> r5.success, len(r5.plan)
+    (True, 8)
+
+    Scenario 6 — Limerick about coding (17 actions).
+    Same form as scenario 2, different topic.
+
+    >>> _o = sys.stdout; sys.stdout = io.StringIO()
+    >>> with gtpyhop.PlannerSession(domain=the_domain, verbose=0) as s:
+    ...     r6 = s.find_plan(*probs['scenario_6_limerick_code'][:2])
+    >>> sys.stdout = _o
+    >>> r6.success, len(r6.plan)
+    (True, 17)
+
     Returns:
         Dictionary mapping problem IDs to (state, tasks, description) tuples.
     """

@@ -163,6 +163,50 @@ def get_problems() -> Dict[str, Tuple[State, List[Tuple], str]]:
     """
     Return all problem definitions for benchmarking.
 
+    Setup: suppress GTPyhop import messages.
+
+    >>> import sys, io; _o = sys.stdout; sys.stdout = io.StringIO()
+    >>> import gtpyhop
+    >>> from gtpyhop.examples.poetry.formal_mechanism_poetry import the_domain, problems
+    >>> sys.stdout = _o
+    >>> probs = problems.get_problems()
+    >>> len(probs)
+    3
+
+    Scenario 1 — Full mechanism analysis, all 5 stages (19 actions).
+    Plan length follows 4 + 3N: init + locate + baseline + N x (formulate + experiment + evaluate) + report.
+
+    >>> _o = sys.stdout; sys.stdout = io.StringIO()
+    >>> with gtpyhop.PlannerSession(domain=the_domain, verbose=0) as s:
+    ...     r1 = s.find_plan(*probs['scenario_1_full_mechanism'][:2])
+    >>> sys.stdout = _o
+    >>> r1.success, len(r1.plan)
+    (True, 19)
+    >>> [a[1] for a in r1.plan if a[0] == 'a_formulate_stage']
+    ['context_activation', 'expectation_propagation', 'group_commitment', 'attention_routing', 'vocabulary_projection']
+
+    Scenario 2 — Commitment focus, group_commitment only (7 actions).
+    4 + 3(1) = 7.
+
+    >>> _o = sys.stdout; sys.stdout = io.StringIO()
+    >>> with gtpyhop.PlannerSession(domain=the_domain, verbose=0) as s:
+    ...     r2 = s.find_plan(*probs['scenario_2_commitment_focus'][:2])
+    >>> sys.stdout = _o
+    >>> r2.success, len(r2.plan)
+    (True, 7)
+
+    Scenario 3 — Three-stage analysis (13 actions).
+    4 + 3(3) = 13. Different prompt to test generalization.
+
+    >>> _o = sys.stdout; sys.stdout = io.StringIO()
+    >>> with gtpyhop.PlannerSession(domain=the_domain, verbose=0) as s:
+    ...     r3 = s.find_plan(*probs['scenario_3_three_stage'][:2])
+    >>> sys.stdout = _o
+    >>> r3.success, len(r3.plan)
+    (True, 13)
+    >>> [a[1] for a in r3.plan if a[0] == 'a_formulate_stage']
+    ['context_activation', 'group_commitment', 'attention_routing']
+
     Returns:
         Dictionary mapping problem IDs to (state, tasks, description) tuples.
     """

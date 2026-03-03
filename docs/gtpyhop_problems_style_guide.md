@@ -226,7 +226,7 @@ def get_problems():
 python -m doctest -v src/gtpyhop/examples/poetry/feature_space_poetry/problems.py
 ```
 
-**Reference implementation:** See `feature_space_poetry/problems.py` for a complete example with 31 tests covering plan success, plan length, injected feature identity, and greedy planner failure.
+**Reference implementations:** All 7 poetry examples include doctests in `get_problems()`. See `feature_space_poetry/problems.py` for the most comprehensive example (31 tests covering plan success, plan length, injected feature identity, and greedy planner failure), and the other poetry examples (`structured_poetry`, `backtracking_poetry`, `replanning_poetry`, `bidirectional_planning_poetry`, `candidate_planning_poetry`, `formal_mechanism_poetry`) for additional patterns including backtracking verification and greedy failure tests.
 
 ---
 

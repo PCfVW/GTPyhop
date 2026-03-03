@@ -133,6 +133,66 @@ def get_problems() -> Dict[str, Tuple[State, List[Tuple], str]]:
     """
     Return all problem definitions for benchmarking.
 
+    Setup: suppress GTPyhop import messages.
+
+    >>> import sys, io; _o = sys.stdout; sys.stdout = io.StringIO()
+    >>> import gtpyhop
+    >>> from gtpyhop.examples.poetry.replanning_poetry import the_domain, problems
+    >>> sys.stdout = _o
+    >>> probs = problems.get_problems()
+    >>> len(probs)
+    3
+
+    Scenario 1 — Couplet about stars (12 actions, backtracking required).
+    Line 0 (first A) accepted; line 1 (second A) requires revision via steering.
+
+    >>> _o = sys.stdout; sys.stdout = io.StringIO()
+    >>> with gtpyhop.PlannerSession(domain=the_domain, verbose=0, strategy='iterative_dfs_backtracking') as s:
+    ...     r1 = s.find_plan(*probs['scenario_1_couplet_stars'][:2])
+    >>> sys.stdout = _o
+    >>> r1.success, len(r1.plan)
+    (True, 12)
+    >>> [a[0] for a in r1.plan if a[0] in ('a_evaluate_line', 'a_steer_target')]
+    ['a_evaluate_line', 'a_steer_target']
+
+    Scenario 2 — Limerick about a cat (28 actions, backtracking required).
+    Lines 0, 2 (first A, first B) accepted; lines 1, 3, 4 (second A, second B, third A) revised.
+
+    >>> _o = sys.stdout; sys.stdout = io.StringIO()
+    >>> with gtpyhop.PlannerSession(domain=the_domain, verbose=0, strategy='iterative_dfs_backtracking') as s:
+    ...     r2 = s.find_plan(*probs['scenario_2_limerick_cat'][:2])
+    >>> sys.stdout = _o
+    >>> r2.success, len(r2.plan)
+    (True, 28)
+    >>> [a[0] for a in r2.plan if a[0] in ('a_evaluate_line', 'a_steer_target')]
+    ['a_evaluate_line', 'a_steer_target', 'a_evaluate_line', 'a_steer_target', 'a_steer_target']
+
+    Scenario 3 — Haiku about the ocean (8 actions, no backtracking).
+    Free lines (no rhyme scheme) — no evaluation or steering needed.
+
+    >>> _o = sys.stdout; sys.stdout = io.StringIO()
+    >>> with gtpyhop.PlannerSession(domain=the_domain, verbose=0, strategy='iterative_dfs_backtracking') as s:
+    ...     r3 = s.find_plan(*probs['scenario_3_haiku_ocean'][:2])
+    >>> sys.stdout = _o
+    >>> r3.success, len(r3.plan)
+    (True, 8)
+
+    Greedy planner fails on couplet and limerick (backtracking required).
+
+    >>> _o = sys.stdout; sys.stdout = io.StringIO()
+    >>> with gtpyhop.PlannerSession(domain=the_domain, verbose=0) as s:
+    ...     g1 = s.find_plan(*probs['scenario_1_couplet_stars'][:2])
+    >>> sys.stdout = _o
+    >>> g1.success
+    False
+
+    >>> _o = sys.stdout; sys.stdout = io.StringIO()
+    >>> with gtpyhop.PlannerSession(domain=the_domain, verbose=0) as s:
+    ...     g2 = s.find_plan(*probs['scenario_2_limerick_cat'][:2])
+    >>> sys.stdout = _o
+    >>> g2.success
+    False
+
     Returns:
         Dictionary mapping problem IDs to (state, tasks, description) tuples.
     """

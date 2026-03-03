@@ -328,7 +328,7 @@ python -m doctest -v src/gtpyhop/examples/your_example/problems.py
 - Pass `*probs['key'][:2]` to `find_plan` (slices off the description string)
 - Add narrative text between test blocks explaining what each scenario verifies
 
-See the [problems style guide](gtpyhop_problems_style_guide.md) (section 2.3) for the full pattern, and `feature_space_poetry/problems.py` for a reference implementation.
+See the [problems style guide](gtpyhop_problems_style_guide.md) (section 2.3) for the full pattern. All 7 poetry examples include doctests in `get_problems()` and can serve as reference implementations — from simple greedy plans (`structured_poetry`) to backtracking verification (`backtracking_poetry`, `replanning_poetry`) to feature injection checks (`feature_space_poetry`).
 
 ---
 
