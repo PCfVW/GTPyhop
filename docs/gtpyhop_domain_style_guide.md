@@ -278,7 +278,7 @@ def m_method(state: State, ...) -> Union[List[Tuple], bool]:
 | Section | Required | Description |
 |---------|----------|-------------|
 | `Class:` | ✅ Yes | Always `Action` |
-| `MCP_Tool:` | ✅ Yes | MCP server:tool mapping |
+| `MCP_Tool:` | ✅ Yes | MCP server:tool mapping (or "None" if no external server) |
 | `Action signature:` | ✅ Yes | Function signature |
 | `Action parameters:` | ✅ Yes | Parameter descriptions |
 | `Action purpose:` | ✅ Yes | One-line purpose |
@@ -781,7 +781,9 @@ docstring           = '"""' NEWLINE
                       '"""' ;
 
 class_section       = "Class:" "Action" NEWLINE ;
-mcp_tool_section    = "MCP_Tool:" server_name ":" tool_name NEWLINE ;
+mcp_tool_section    = "MCP_Tool:" ( "None" | server_name ":" tool_name ) NEWLINE ;
+(* Use "None" when the action has no external MCP server binding
+   and operates purely on the planning state. *)
 signature_section   = "Action signature:" NEWLINE action_signature NEWLINE ;
 parameters_section  = "Action parameters:" NEWLINE {param_desc NEWLINE} ;
 purpose_section     = "Action purpose:" NEWLINE purpose_text NEWLINE ;

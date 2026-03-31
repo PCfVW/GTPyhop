@@ -98,7 +98,7 @@ def a_initialize_recursion(state: State) -> Union[State, bool]:
     """
     Class: Action
 
-    MCP_Tool: memory_server:initialize
+    MCP_Tool: None
 
     Action signature:
         a_initialize_recursion(state)
@@ -150,7 +150,7 @@ def a_execute_leaf_task(state: State) -> Union[State, bool]:
     """
     Class: Action
 
-    MCP_Tool: memory_server:execute
+    MCP_Tool: None
 
     Action signature:
         a_execute_leaf_task(state)
@@ -209,7 +209,7 @@ def a_finalize_recursion(state: State) -> Union[State, bool]:
     """
     Class: Action
 
-    MCP_Tool: memory_server:finalize
+    MCP_Tool: None
 
     Action signature:
         a_finalize_recursion(state)

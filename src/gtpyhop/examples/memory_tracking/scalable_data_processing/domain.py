@@ -181,7 +181,7 @@ def a_initialize_memory_demo(state: State, data_size: int) -> Union[State, bool]
     """
     Class: Action
 
-    MCP_Tool: memory_server:initialize
+    MCP_Tool: None
 
     Action signature:
         a_initialize_memory_demo(state, data_size)
@@ -225,7 +225,7 @@ def a_allocate_large_dataset(state: State, data_size: int) -> Union[State, bool]
     """
     Class: Action
 
-    MCP_Tool: memory_server:allocate
+    MCP_Tool: None
 
     Action signature:
         a_allocate_large_dataset(state, data_size)
@@ -277,7 +277,7 @@ def a_process_dataset_chunk(state: State, chunk_size: int) -> Union[State, bool]
     """
     Class: Action
 
-    MCP_Tool: memory_server:process
+    MCP_Tool: None
 
     Action signature:
         a_process_dataset_chunk(state, chunk_size)
@@ -340,7 +340,7 @@ def a_create_memory_intensive_structure(state: State) -> Union[State, bool]:
     """
     Class: Action
 
-    MCP_Tool: memory_server:create_structure
+    MCP_Tool: None
 
     Action signature:
         a_create_memory_intensive_structure(state)
@@ -405,7 +405,7 @@ def a_perform_memory_operations(state: State) -> Union[State, bool]:
     """
     Class: Action
 
-    MCP_Tool: memory_server:operations
+    MCP_Tool: None
 
     Action signature:
         a_perform_memory_operations(state)
@@ -473,7 +473,7 @@ def a_cleanup_memory(state: State) -> Union[State, bool]:
     """
     Class: Action
 
-    MCP_Tool: memory_server:cleanup
+    MCP_Tool: None
 
     Action signature:
         a_cleanup_memory(state)

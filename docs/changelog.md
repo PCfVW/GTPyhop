@@ -1,6 +1,30 @@
 # GTPyhop Version History
 
-## 1.9.3 — Doctests for All Poetry Examples (Latest, Recommended)
+## 1.9.4 — MCP_Tool: None for Non-MCP Domains (Latest, Recommended)
+
+The domain style guide now allows `MCP_Tool: None` for actions that have no external MCP server binding and operate purely on the planning state. Previously, non-MCP examples were forced to invent fictitious server names (e.g., `memory_server:initialize`) to satisfy the mandatory `MCP_Tool:` docstring field.
+
+**Style guide changes:**
+
+| File | Change |
+|------|--------|
+| `docs/gtpyhop_domain_style_guide.md` (line 281) | Table: `MCP server:tool mapping` → `MCP server:tool mapping (or "None" if no external server)` |
+| `docs/gtpyhop_domain_style_guide.md` (line 784) | BNF: `"MCP_Tool:" server_name ":" tool_name` → `"MCP_Tool:" ( "None" \| server_name ":" tool_name )` with explanatory comment |
+
+**Memory tracking examples updated:**
+
+| File | Lines changed | Before | After |
+|------|--------------|--------|-------|
+| `memory_tracking/scalable_data_processing/domain.py` | 6 actions | `MCP_Tool: memory_server:*` | `MCP_Tool: None` |
+| `memory_tracking/scalable_recursive_decomposition/domain.py` | 3 actions | `MCP_Tool: memory_server:*` | `MCP_Tool: None` |
+
+**Verified:** All 12 recursive decomposition scenarios, data processing scenarios, and all 7 poetry example doctests (137 tests) pass after the change.
+
+**Compatibility:** 100% backward compatible with GTPyhop 1.9.3. No API changes. Existing `MCP_Tool: server:tool` values remain valid.
+
+---
+
+## 1.9.3 — Doctests for All Poetry Examples
 
 Added **doctests** to `get_problems()` in all 6 remaining poetry examples, matching the pattern established in `feature_space_poetry/problems.py`. Every poetry example now includes inline plan verification tests.
 
