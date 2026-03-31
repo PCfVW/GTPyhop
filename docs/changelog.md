@@ -1,6 +1,24 @@
 # GTPyhop Version History
 
-## 1.9.4 — MCP_Tool: None for Non-MCP Domains (Latest, Recommended)
+## 1.9.4 — Control Arena Protocol Examples & MCP_Tool: None (Latest, Recommended)
+
+### Control Arena Protocol Examples (new)
+
+Added **3 new example domains** under `control_arena_protocols/` that formalize AI safety micro-protocols from the [Control Arena](https://github.com/UKGovernmentBEIS/control-arena) framework (Greenblatt et al. 2024) using HTN planning with backtracking. All use `MCP_Tool: None`.
+
+| Example | Actions | Methods | Scenarios | Key feature |
+|---------|---------|---------|-----------|-------------|
+| `defer_to_trusted_protocol/` | 6 | 4 | 6 | Backtracking on routing (accept vs. defer) |
+| `defer_to_resample_protocol/` | 6 | 5 | 6 | Recursive resampling + backtracking |
+| `adversarial_protocol/` | 7 | 7 | 8 | Adversarial analysis + vulnerability detection |
+
+**Total:** 19 actions, 16 methods, 20 scenarios, 144 doctests.
+
+**Files added (15):**
+- Collection: `control_arena_protocols/{__init__.py, benchmarking.py, README.md}`
+- Per example: `{__init__.py, domain.py, problems.py, README.md}` (x3)
+
+### MCP_Tool: None for non-MCP domains
 
 The domain style guide now allows `MCP_Tool: None` for actions that have no external MCP server binding and operate purely on the planning state. Previously, non-MCP examples were forced to invent fictitious server names (e.g., `memory_server:initialize`) to satisfy the mandatory `MCP_Tool:` docstring field.
 
@@ -18,7 +36,11 @@ The domain style guide now allows `MCP_Tool: None` for actions that have no exte
 | `memory_tracking/scalable_data_processing/domain.py` | 6 actions | `MCP_Tool: memory_server:*` | `MCP_Tool: None` |
 | `memory_tracking/scalable_recursive_decomposition/domain.py` | 3 actions | `MCP_Tool: memory_server:*` | `MCP_Tool: None` |
 
-**Verified:** All 12 recursive decomposition scenarios, data processing scenarios, and all 7 poetry example doctests (137 tests) pass after the change.
+### Documentation updates
+
+- **[All Examples Guide](https://github.com/PCfVW/GTPyhop/blob/pip/docs/all_examples.md)** — Added Control Arena Protocol Examples section (3 examples, scenario tables, educational value, benchmarking commands)
+
+**Verified:** All 20 control arena scenarios, all 12 memory tracking scenarios, and all 7 poetry example doctests (137 tests) pass.
 
 **Compatibility:** 100% backward compatible with GTPyhop 1.9.3. No API changes. Existing `MCP_Tool: server:tool` values remain valid.
 

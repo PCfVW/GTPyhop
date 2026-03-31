@@ -11,8 +11,9 @@ This document provides pedagogical details about all HTN Planning examples inclu
 5. [MCP Orchestration Examples](#-mcp-orchestration-examples)
 6. [Memory Tracking Examples](#-memory-tracking-examples-180)
 7. [Poetry Examples](#-poetry-examples-190)
-8. [Running the Examples](#-running-the-examples)
-9. [Pedagogical Recommendations](#-pedagogical-recommendations)
+8. [Control Arena Protocol Examples](#-control-arena-protocol-examples-194)
+9. [Running the Examples](#-running-the-examples)
+10. [Pedagogical Recommendations](#-pedagogical-recommendations)
 
 ---
 
@@ -603,6 +604,99 @@ python benchmarking.py feature_space_poetry --strategy iterative_dfs_backtrackin
 ```
 
 **Documentation:** [Poetry Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/poetry/benchmarking_quickstart.md)
+
+---
+
+## Control Arena Protocol Examples (1.9.4+)
+
+These examples formalize **AI safety micro-protocols** from the [Control Arena](https://github.com/UKGovernmentBEIS/control-arena) framework (Greenblatt et al. 2024) using GTPyhop HTN planning. Control Arena designs protocols that prevent unsafe actions by AI systems, even if those systems are misaligned. A micro-protocol orchestrates an untrusted model, a monitor, and routing logic (accept vs. defer) — mapped to GTPyhop actions, methods, and backtracking.
+
+All three examples use `MCP_Tool: None` (purely symbolic, no external MCP servers).
+
+**Overview:** [Control Arena Protocols README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/control_arena_protocols/README.md)
+
+### 1. Defer to Trusted Protocol
+
+**Purpose:** Model the simplest micro-protocol: propose output, monitor suspiciousness, accept if low or defer to trusted model if high.
+
+**Key Mechanism:** Backtracking at the routing decision. Two methods compete for `m_route_output`: `m_accept_if_low_suspicion` decomposes to `a_accept_output` (which fails if suspicion > threshold), and `m_defer_to_trusted_fallback` always succeeds as the backtracking fallback.
+
+| Scenario | Suspicion | Threshold | Outcome | Actions | Greedy |
+|----------|-----------|-----------|---------|---------|--------|
+| 1: low suspicion | 0.2 | 0.7 | Accept | 5 | SUCCESS |
+| 2: high suspicion | 0.9 | 0.7 | Defer | 5 | **FAIL** |
+| 3: at threshold | 0.7 | 0.7 | Accept | 5 | SUCCESS |
+| 4: just above | 0.71 | 0.7 | Defer | 5 | **FAIL** |
+| 5: tight threshold | 0.4 | 0.3 | Defer | 5 | **FAIL** |
+| 6: loose threshold | 0.4 | 0.9 | Accept | 5 | SUCCESS |
+
+**Domain:** 6 actions, 4 methods (2 for `m_route_output`), 6 scenarios, 48 doctests.
+
+**Educational Value:** Demonstrates how HTN backtracking naturally models protocol routing decisions. The greedy planner fails on defer scenarios because it commits to the accept method and cannot recover — illustrating why backtracking is essential for protocols with conditional gates.
+
+### 2. Defer to Resample Protocol
+
+**Purpose:** Extend Defer to Trusted with recursive multi-sample generation. When suspicion is high, generate additional samples instead of immediately deferring. Accept the first low-suspicion sample, or defer after exhausting the sample budget.
+
+**Key Mechanism:** Recursive method decomposition combined with backtracking. `m_resample_loop` returns a decomposition containing `m_route_or_resample` with an incremented sample counter (recursive self-reference). Three methods compete for `m_route_or_resample`: accept, resample (recursive), defer (fallback).
+
+| Scenario | Scores | Max | Threshold | Outcome | Actions | Greedy |
+|----------|--------|-----|-----------|---------|---------|--------|
+| 1: first accepted | [0.2] | 3 | 0.7 | Accept sample 0 | 5 | SUCCESS |
+| 2: second accepted | [0.9, 0.3] | 3 | 0.7 | Accept sample 1 | 7 | **FAIL** |
+| 3: third accepted | [0.9, 0.8, 0.4] | 3 | 0.7 | Accept sample 2 | 9 | **FAIL** |
+| 4: all high defer | [0.9, 0.8, 0.85] | 3 | 0.7 | Defer | 9 | **FAIL** |
+| 5: single sample | [0.9] | 1 | 0.7 | Defer | 5 | **FAIL** |
+| 6: five samples | [0.9, 0.8, 0.85, 0.75, 0.3] | 5 | 0.7 | Accept sample 4 | 13 | **FAIL** |
+
+**Domain:** 6 actions, 5 methods (3 for `m_route_or_resample`), 6 scenarios, 40 doctests.
+
+**Educational Value:** Demonstrates recursive HTN decomposition for variable-length plans, mirroring the Bio-Opentrons pattern where loop counts depend on configuration. The plan length formula `2*S + 3` (S = samples tried) shows how recursive depth maps to plan size.
+
+### 3. Adversarial Protocol
+
+**Purpose:** Extend Defer to Trusted with adversarial analysis. The untrusted model may operate honestly or embed a side task with varying subtlety. A monitor maps attack subtlety to suspicion via calibrated detection rates. Analysis identifies whether the protocol catches attacks.
+
+**Key Mechanism:** Method alternatives for output generation (`m_honest_output` vs. `m_attack_output`, deterministic per scenario) combined with backtracking at routing. The monitor's `detection_rates` dictionary is the symbolic model's calibration point.
+
+| Scenario | Mode | Subtlety | Suspicion | Threshold | Outcome | Security |
+|----------|------|----------|-----------|-----------|---------|----------|
+| 1: honest accepted | Honest | - | 0.10 | 0.7 | Accept | SAFE |
+| 2: obvious caught | Attack | obvious | 0.95 | 0.7 | Defer | SAFE |
+| 3: subtle evades | Attack | subtle | 0.25 | 0.7 | Accept | **VULNERABILITY** |
+| 4: subtle caught tight | Attack | subtle | 0.25 | 0.2 | Defer | SAFE |
+| 5: moderate caught | Attack | moderate | 0.60 | 0.5 | Defer | SAFE |
+| 6: moderate evades | Attack | moderate | 0.60 | 0.7 | Accept | **VULNERABILITY** |
+| 7: honest tight | Honest | - | 0.10 | 0.05 | Defer | OVER-SENSITIVE |
+| 8: obvious loose | Attack | obvious | 0.95 | 0.99 | Accept | **VULNERABILITY** |
+
+**Domain:** 7 actions, 7 methods (2 for `m_generate_output`, 2 for `m_route_output`), 8 scenarios, 56 doctests.
+
+**Educational Value:** Demonstrates how HTN planning can formalize adversarial analysis of safety protocols. Scenarios 3 vs. 4 show the safety-usefulness tradeoff: tightening the threshold catches subtle attacks but scenario 7 shows overly tight thresholds cause false positives on honest output.
+
+### Running the Control Arena Benchmarks
+
+```bash
+cd src/gtpyhop/examples/control_arena_protocols
+
+# Run all scenarios for each example
+python benchmarking.py --example defer
+python benchmarking.py --example resample
+python benchmarking.py --example adversarial
+
+# Run specific scenario
+python benchmarking.py --example adversarial --scenario scenario_3_subtle_evades
+
+# List available scenarios
+python benchmarking.py --list-scenarios --example adversarial
+
+# Run doctests
+python -m doctest -v src/gtpyhop/examples/control_arena_protocols/defer_to_trusted_protocol/problems.py
+python -m doctest -v src/gtpyhop/examples/control_arena_protocols/defer_to_resample_protocol/problems.py
+python -m doctest -v src/gtpyhop/examples/control_arena_protocols/adversarial_protocol/problems.py
+```
+
+**Documentation:** [Control Arena Protocols README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/control_arena_protocols/README.md)
 
 ---
 
