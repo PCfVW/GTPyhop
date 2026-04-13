@@ -1795,9 +1795,9 @@ def run_lazy_lookahead(state, todo_list, max_tries=10):
         plan = find_plan(state, todo_list)
         if plan == False or plan == None:
             if verbose >= 1:
-                raise Exception(
-                        f"run_lazy_lookahead: find_plan has failed")
-            return state
+                print("RLL> find_plan has failed")
+            raise Exception(
+                    f"run_lazy_lookahead: find_plan has failed")
         if plan == []:
             if verbose >= 1: 
                 print(f'RLL> Empty plan => success',
@@ -1816,9 +1816,9 @@ def run_lazy_lookahead(state, todo_list, max_tries=10):
                 print('RLL> Command:', [command_name] + list(action[1:]))
             new_state = _apply_command_and_continue_rll(state, command_func, action[1:])
             if new_state == False:
-                if verbose >= 1: 
+                if verbose >= 1:
                     print(f'RLL> WARNING: command {command_name} failed; will call find_plan.')
-                    break
+                break
             else:
                 if verbose >= 2: 
                     new_state.display()
