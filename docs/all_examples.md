@@ -14,7 +14,7 @@ This document provides pedagogical details about all HTN Planning examples inclu
 8. [Control Arena Protocol Examples](#-control-arena-protocol-examples-194)
 9. [Cybersecurity Attack Planning Example](#-cybersecurity-attack-planning-example-195)
 10. [Running the Examples](#-running-the-examples)
-10. [Pedagogical Recommendations](#-pedagogical-recommendations)
+11. [Pedagogical Recommendations](#-pedagogical-recommendations)
 
 ---
 

@@ -1,10 +1,10 @@
-# GTPyhop version 1.9.4
+# GTPyhop version 1.9.5
 
 [![Python Version](https://img.shields.io/badge/python-3%2B-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-Clear%20BSD-green.svg)](https://github.com/PCfVW/GTPyhop/blob/pip/LICENSE.txt)
 [![PyPI](https://img.shields.io/pypi/v/gtpyhop)](https://pypi.org/project/gtpyhop/)
 <!-- UPDATE MANUALLY when doctests are added or removed -->
-[![Doctests](https://img.shields.io/badge/doctests-137%20passing-brightgreen)](docs/changelog.md)
+[![Doctests](https://img.shields.io/badge/doctests-208%20passing-brightgreen)](docs/changelog.md)
 
 GTPyhop is an HTN planning system based on [Pyhop](https://bitbucket.org/dananau/pyhop/src/master/), but generalized to plan for both goals and tasks.
 
@@ -33,10 +33,10 @@ GTPyhop is an HTN planning system based on [Pyhop](https://bitbucket.org/dananau
 
 ### From PyPI (Recommended)
 
-**GTPyhop 1.9.4** is the latest version with iterative DFS backtracking, poetry generation examples, control arena protocol examples, memory tracking, enhanced MCP orchestration examples, Opentrons Flex domains, and comprehensive style guides.
+**GTPyhop 1.9.5** is the latest version with cybersecurity attack planning, iterative DFS backtracking, poetry generation examples, control arena protocol examples, memory tracking, enhanced MCP orchestration examples, Opentrons Flex domains, and comprehensive style guides.
 
 ```bash
-pip install gtpyhop>=1.9.4
+pip install gtpyhop>=1.9.5
 ```
 
 For basic single-threaded planning, any version works:
@@ -77,7 +77,7 @@ import gtpyhop
 The following should be printed in your terminal:
 
 ```code
-Imported GTPyhop version 1.9.4
+Imported GTPyhop version 1.9.5
 Messages from find_plan will be prefixed with 'FP>'.
 Messages from run_lazy_lookahead will be prefixed with 'RLL>'.
 Using session-based architecture with structured logging.
@@ -336,7 +336,7 @@ python -m gtpyhop.examples.simple_htn --session
 
 ## Documentation
 
-GTPyhop 1.9.4 includes comprehensive documentation organized in the `docs/` folder:
+GTPyhop 1.9.5 includes comprehensive documentation organized in the `docs/` folder:
 
 ### Core Documentation
 - **[All Examples Guide](https://github.com/PCfVW/GTPyhop/blob/pip/docs/all_examples.md)** - Pedagogical details about all HTN planning examples
@@ -387,6 +387,8 @@ GTPyhop 1.9.4 includes comprehensive documentation organized in the `docs/` fold
 - **[Defer to Resample](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/control_arena_protocols/defer_to_resample_protocol/README.md)** - Recursive multi-sample resampling (6 scenarios)
 - **[Adversarial Protocol](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/control_arena_protocols/adversarial_protocol/README.md)** - Honest vs. attack with vulnerability detection (8 scenarios)
 
+#### Cybersecurity Attack Planning Example (1.9.5+)
+- **[Cybersecurity Attack Planning](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/cybersecurity_attack_planning/README.md)** - BAMS-based insider threat planning: physical, network, DMS, and malware attacks with 5 backtracking points (9 scenarios)
 
 ### External Resources
 - **[Dana's Additional Information](https://github.com/dananau/GTPyhop/blob/main/additional_information.md)** - Core GTPyhop concepts
@@ -475,7 +477,8 @@ GTPyhop/
     │   │   └── bio_opentrons/, cross_server/, drug_target_discovery/, omega_hdq_dna_bacteria_flex_96_channel/, tnf_cancer_modelling/
     │   ├── memory_tracking/
     │   │   └── scalable_data_processing/, scalable_recursive_decomposition/
-    │   └── poetry/
-    │       └── structured_poetry/, backtracking_poetry/, candidate_planning_poetry/, bidirectional_planning_poetry/, replanning_poetry/, formal_mechanism_poetry/, feature_space_poetry/
+    │   ├── poetry/
+    │   │   └── structured_poetry/, backtracking_poetry/, candidate_planning_poetry/, bidirectional_planning_poetry/, replanning_poetry/, formal_mechanism_poetry/, feature_space_poetry/
+    │   └── cybersecurity_attack_planning/
     └── test_harness/
 ```
