@@ -1793,7 +1793,7 @@ def run_lazy_lookahead(state, todo_list, max_tries=10):
             else:
                 print(f"RLL> {tries}th call to find_plan:\n")
         plan = find_plan(state, todo_list)
-        if plan == False or plan == None:
+        if plan is False or plan is None:
             if verbose >= 1:
                 print("RLL> find_plan has failed")
             raise Exception(
@@ -1807,7 +1807,7 @@ def run_lazy_lookahead(state, todo_list, max_tries=10):
         for action in plan:
             command_name = 'c_' + action[0]
             command_func = current_domain._command_dict.get(command_name)
-            if command_func == None:
+            if command_func is None:
                 if verbose >= 1: 
                     print(f'RLL> {command_name} not defined, using {action[0]} instead\n')
                 command_func = current_domain._action_dict.get(action[0])
@@ -1815,7 +1815,7 @@ def run_lazy_lookahead(state, todo_list, max_tries=10):
             if verbose >= 1:
                 print('RLL> Command:', [command_name] + list(action[1:]))
             new_state = _apply_command_and_continue_rll(state, command_func, action[1:])
-            if new_state == False:
+            if new_state is False:
                 if verbose >= 1:
                     print(f'RLL> WARNING: command {command_name} failed; will call find_plan.')
                 break
