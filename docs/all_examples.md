@@ -1,6 +1,6 @@
-# GTPyhop 1.9.4 HTN Planning Examples
+# GTPyhop 1.9.5 HTN Planning Examples
 
-This document provides pedagogical details about all HTN Planning examples included with GTPyhop 1.9.4. Each example demonstrates different aspects of hierarchical task network planning, from basic concepts to advanced techniques.
+This document provides pedagogical details about all HTN Planning examples included with GTPyhop 1.9.5. Each example demonstrates different aspects of hierarchical task network planning, from basic concepts to advanced techniques.
 
 ## Table of Contents
 
@@ -12,7 +12,8 @@ This document provides pedagogical details about all HTN Planning examples inclu
 6. [Memory Tracking Examples](#-memory-tracking-examples-180)
 7. [Poetry Examples](#-poetry-examples-190)
 8. [Control Arena Protocol Examples](#-control-arena-protocol-examples-194)
-9. [Running the Examples](#-running-the-examples)
+9. [Cybersecurity Attack Planning Example](#-cybersecurity-attack-planning-example-195)
+10. [Running the Examples](#-running-the-examples)
 10. [Pedagogical Recommendations](#-pedagogical-recommendations)
 
 ---
@@ -697,6 +698,45 @@ python -m doctest -v src/gtpyhop/examples/control_arena_protocols/adversarial_pr
 ```
 
 **Documentation:** [Control Arena Protocols README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/control_arena_protocols/README.md)
+
+---
+
+## Cybersecurity Attack Planning Example (1.9.5+)
+
+Models insider attacks against a network Document Management System, based on the BAMS (Behavioral Adversary Modeling System) domain. Together with the Control Arena Protocol examples, this covers **both sides** of AI safety/security: attacker (this example) and defender (Control Arena).
+
+**Purpose:** Generate attack plans that help network administrators identify vulnerabilities in their systems.
+
+**Core concepts demonstrated:**
+- Multi-phase attack decomposition (credentials, system access, document access, exfiltration)
+- Backtracking across alternative attack strategies (physical vs. cyber, DMS vs. malware)
+- Greedy planner failure when countermeasures block the first-choice path
+- Two top-level strategies: legitimate DMS access vs. covert malware relay
+
+### `cybersecurity_attack_planning/`
+
+| Aspect | Value |
+|--------|-------|
+| Actions | 21 (Physical: 5, Process: 4, Network: 2, DMS: 6, Malware: 4) |
+| Methods | 16 (5 backtracking points) |
+| Scenarios | 9 (4 require backtracking, 5 greedy-OK) |
+| Doctests | 71 |
+| `MCP_Tool:` | `None` |
+
+**Scenarios:**
+- **S1-S3**: Three credential paths (direct, shoulder surfing, network sniffing)
+- **S4**: Locked door blocks shoulder surfing, planner backtracks to sniffing
+- **S5**: Firewall would block sniffing, but surfing succeeds first
+- **S6**: Admin ACL change via sniffed admin password
+- **S7-S9**: Malware relay attacks when legitimate DMS access is blocked
+
+**Run doctests:**
+
+```bash
+python -m doctest -v src/gtpyhop/examples/cybersecurity_attack_planning/problems.py
+```
+
+**Documentation:** [Cybersecurity Attack Planning README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/cybersecurity_attack_planning/README.md)
 
 ---
 

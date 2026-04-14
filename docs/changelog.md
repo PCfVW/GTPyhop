@@ -1,6 +1,36 @@
 # GTPyhop Version History
 
-## 1.9.4 — Control Arena Protocol Examples & MCP_Tool: None (Latest, Recommended)
+## 1.9.5 — Cybersecurity Attack Planning Example (Latest, Recommended)
+
+### Cybersecurity Attack Planning Example (new)
+
+Added a new example domain under `cybersecurity_attack_planning/` that models insider attacks against a network Document Management System, based on the BAMS (Behavioral Adversary Modeling System) domain from Boddy et al. (ICAPS 2005) and the hierarchy design by Pragst (2013/2014).
+
+| Aspect | Value |
+|--------|-------|
+| Actions | 21 (5 Physical, 4 Process, 2 Network, 6 DMS, 4 Malware) |
+| Methods | 16 (5 backtracking points) |
+| Scenarios | 9 |
+| Doctests | 71 |
+| `MCP_Tool:` | `None` (purely symbolic) |
+
+**Key features:**
+- Two top-level attack strategies: legitimate DMS access vs. covert malware relay
+- 5 backtracking points across credential acquisition, document access, exfiltration, DMS authentication, and malware deployment
+- 4 scenarios demonstrating greedy planner failure and backtracking recovery (S4, S7, S8, S9)
+- Covers both sides of AI safety/security together with the control arena protocol examples (attacker vs. defender)
+
+**Files added (4):** `cybersecurity_attack_planning/{__init__.py, domain.py, problems.py, README.md}`
+
+**References:**
+1. Boddy, M. et al. (2005). "Course of Action Generation for Cyber Security Using Classical Planning." ICAPS 2005.
+2. Boddy, M., Shackleton, H. (2007). "The BAMS — Console Based Generator." ICKEPS 2007.
+3. Pragst, L. (2013). "Hybrid Planning in Cyber Security Applications." BSc thesis, Ulm University.
+4. Pragst, L. et al. (2014). "Introducing Hierarchy to Non-Hierarchical Planning Models." PuK 2014.
+
+---
+
+## 1.9.4 — Control Arena Protocol Examples & MCP_Tool: None
 
 ### Control Arena Protocol Examples (new)
 
