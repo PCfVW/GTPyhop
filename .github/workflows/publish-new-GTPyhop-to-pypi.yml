@@ -2,10 +2,25 @@ name: Build and Publish to PyPI
 
 on:
   push:
-    branches:
-      - pip
-    paths:
-      - 'pyproject.toml'
+    # Publish to PyPI only on release tags of the form vMAJOR.MINOR.PATCH
+    # (e.g. v1.9.6, v2.0.0, v1.10.25).
+    #
+    # Milestone and pre-release tags that carry a hyphenated suffix are
+    # git-level checkpoints ONLY -- they do NOT publish to PyPI:
+    #   v1.9.6-rc1          (release candidate, if ever adopted)
+    #   v1.9.6-staging      (staging checkpoint before publish)
+    #   v2.0.0-beta.1       (beta tag)
+    #
+    # NOTE: GitHub Actions does not allow `tags` and `tags-ignore` on the same
+    # event. Use a single `tags:` list with `!`-prefixed exclusions instead.
+    # See https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#onpushbranchestagsbranches-ignoretags-ignore
+    #
+    # To publish a hyphenated tag intentionally (or to re-trigger a publish),
+    # use the `workflow_dispatch` trigger below (manual run from the Actions tab).
+    tags:
+      - "v*"
+      - "!v*-*"
+  workflow_dispatch:
 
 jobs:
   check-and-publish:
@@ -25,6 +40,22 @@ jobs:
 
       - name: Install dependencies
         run: python -m pip install --upgrade pip build packaging requests toml
+
+      - name: Extract version from tag
+        id: tag_version
+        # Strips the leading "v" from the tag (e.g. refs/tags/v1.9.6 -> 1.9.6).
+        # For workflow_dispatch runs (no tag), GITHUB_REF is a branch ref and
+        # this step yields an empty value; the tag/toml consistency check below
+        # tolerates that case by falling back to pyproject.toml's version.
+        run: |
+          ref="${GITHUB_REF}"
+          if [[ "$ref" == refs/tags/v* ]]; then
+            tag_version="${ref#refs/tags/v}"
+          else
+            tag_version=""
+          fi
+          echo "Resolved tag version: '${tag_version}' (from ref: ${ref})"
+          echo "version=${tag_version}" >> $GITHUB_OUTPUT
 
       - name: Get current version from pyproject.toml
         id: current_version
@@ -62,6 +93,27 @@ jobs:
               sys.exit(1)
           ")
           echo "version=$current_version" >> $GITHUB_OUTPUT
+
+      - name: Verify tag version matches pyproject.toml version
+        # Sanity guard: if someone pushes a tag like v1.9.7 but forgot to bump
+        # pyproject.toml to 1.9.7, fail loudly here rather than silently
+        # publishing a mismatched build. Skipped for workflow_dispatch runs
+        # (when tag_version is empty), which fall back to pyproject.toml's
+        # version unchanged.
+        run: |
+          tag_v="${{ steps.tag_version.outputs.version }}"
+          toml_v="${{ steps.current_version.outputs.version }}"
+          if [ -z "$tag_v" ]; then
+            echo "No tag context (workflow_dispatch run). Using pyproject.toml version: $toml_v"
+          else
+            echo "Tag version:           $tag_v"
+            echo "pyproject.toml version: $toml_v"
+            if [ "$tag_v" != "$toml_v" ]; then
+              echo "::error::Tag version ($tag_v) does not match pyproject.toml version ($toml_v). Bump pyproject.toml before pushing the tag."
+              exit 1
+            fi
+            echo "✓ Tag and pyproject.toml versions match."
+          fi
 
       - name: Get latest published version from PyPI
         id: pypi_version
