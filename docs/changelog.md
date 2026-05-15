@@ -1,6 +1,84 @@
 # GTPyhop Version History
 
-## 1.9.5 — Cybersecurity Attack Planning Example (Latest, Recommended)
+## 1.9.6 — Android: Netrunner + Trunk Thumper Game-AI Examples (Latest, Recommended)
+
+This version adds two new example domains: Android: Netrunner (one-shot card-game run planning) and Trunk Thumper (progressive game-AI tutorial based on Troy Humphreys' canonical *Game AI Pro* chapter).
+
+### Trunk Thumper Game-AI Example Collection (new)
+
+Added a new example collection under `trunk_thumper/` that translates **Troy Humphreys' "Exploring HTN Planners through Example"** (*Game AI Pro 1*, Steve Rabin, ed., CRC Press, 2015, pp. 149–167) into self-contained GTPyhop examples — one sub-folder per chapter section. The chapter is the canonical pedagogical reference for HTN planning in game NPC behavior selection, based on the production system used in *Transformers: Fall of Cybertron* (HighMoon Studios / Activision, 2012). This collection fills a real gap: GTPyhop now has a first-class example targeting the **game AI developer** audience that has historically been HTN's largest user base.
+
+| Aspect | Value |
+|--------|-------|
+| Sub-folders | 6 (one per chapter section) |
+| Total actions across sub-folders | 33 |
+| Total scenarios | 18 (incl. 1 designed-failure negative control) |
+| Doctests | ~85 (sub-folder by sub-folder) |
+| `MCP_Tool:` | `None` (purely symbolic) |
+
+**Sub-folder layout** (naming `sNN_<topic>` maps to chapter section §12.NN):
+
+| Folder | Chapter | Topic |
+|---|---|---|
+| `s03_basic_attack_or_patrol/` | §12.3 | Baseline BeTrunkThumper domain (attack or patrol) |
+| `s06_recursive_trunk_replacement/` | §12.6 | Recursion: m_attack_enemy recurses via FindTrunk → UprootTrunk → AttackEnemy |
+| `s07_expected_effects_chase/` | §12.7 | The new `[EXPECTED_EFFECT]` tag, demonstrated with a negative-control scenario |
+| `s08_priority_methods/` | §12.8 | Multi-method m_attack_enemy with WsPowerUp / WsIsTired / boulder fallback |
+| `s09_simultaneous_navigation_and_guard/` | §12.9 | Single-planner non-blocking navigation with simultaneous guard |
+| `s10_partial_plans/` | §12.10 | Manual method-split partial plans for reactivity |
+
+**Key features:**
+- Sub-folder names match chapter section numbers — readers of the book can match code to text by §
+- Self-contained sub-folders: each has its own `__init__.py / domain.py / problems.py / README.md`
+- `[EXPECTED_EFFECT]` tag introduced for the chapter's "expected effects" concept (semantically identical to `[DATA]` in GTPyhop; pedagogical/documentary)
+- s07 includes a deliberate negative-control scenario that uses a teaching-variant action omitting the `[EXPECTED_EFFECT]` — the plan correctly fails, empirically demonstrating *why* the tag is needed
+- s08 implements both sub-stories from §12.8 together (boulder fallback + WsIsTired-gated whirlwind combo)
+- Collection-level `benchmarking.py` and `benchmarking_quickstart.md` mirror the `poetry/` infrastructure for batch-running sub-folder scenarios
+- MTR (runtime priority comparison from §12.8) and plan runner / sensors (§12.5) are documented as out of scope — GTPyhop's planning-time method ordering captures the chapter's underlying priority concept
+
+**Files added (28):**
+- Collection: `trunk_thumper/{__init__.py, README.md, benchmarking.py, benchmarking_quickstart.md}`
+- Per sub-folder (×6): `{__init__.py, domain.py, problems.py, README.md}`
+
+**Style guide update:** `docs/gtpyhop_domain_style_guide.md` Section 8 was renamed "Metadata Tags: DATA, ENABLER, and EXPECTED_EFFECT" and gained a new subsection 8.4 with definition, usage guidelines, and reference to s07.
+
+**Reference:**
+Humphreys, T. (2015). "Exploring HTN Planners through Example." In *Game AI Pro* (Steve Rabin, ed.). Boca Raton, FL: CRC Press, pp. 149–167.
+
+**Acknowledgment:** With warm thanks to Troy Humphreys, whose chapter is the structural blueprint for this entire collection. The Trunk Thumper is his.
+
+---
+
+### Android: Netrunner Run Planning Example (new)
+
+Added a new example domain under `android_netrunner/` that models a single Runner-side **run** against a configured Corporation server stack, using the published mechanics of Fantasy Flight Games' *Android: Netrunner* (2012 core set rulebook). The flagship scenario faithfully replicates the worked run example on **page 19 of the core rulebook**: Bart's run against Olivia's remote server with Enigma, Wall of Thorns, Akitaro Watanabe, and a Nisei MK II agenda — Jinteki Personal Evolution identity included.
+
+| Aspect | Value |
+|--------|-------|
+| Actions | 24 (Setup: 3, Run flow: 4, Encounter: 5, Sub resolution: 5, Cleanup: 3, Access: 4) |
+| Methods | 31 method functions across 17 task names (6 backtracking points) |
+| Scenarios | 8 (5 require backtracking, 2 designed greedy failures) |
+| Doctests | 64 |
+| `MCP_Tool:` | `None` (purely symbolic) |
+| Card subset | 14 named cards from the core set (full per-card fidelity) |
+
+**Key features:**
+- Per-card fidelity for the 14 cards used in the rulebook's run example: Ice Wall, Wall of Thorns, Enigma, Data Raven, AstroScript Pilot Program, Nisei MK II, Aggressive Secretary, Akitaro Watanabe, Corroder, Gordian Blade, Wyrm, Crypsis, The Toolbox, Sacrificial Construct
+- Three state scopes distinguished: encounter (Corroder/Crypsis pumps, Wyrm drain), run (Gordian pump), persistent (virus counters)
+- 6 backtracking points: icebreaker selection (8 alternatives), Crypsis end-of-encounter cleanup (4), Data Raven on-encounter ability (2), ambush firing (2), asset/upgrade trash decisions (2 each)
+- Greedy planner failure on scenarios 3 (rulebook replication) and 6 (accept net damage), demonstrating deep credit-management backtracking
+- Per-scenario Corp policy configuration: rez plan, ambush firing, trace budget, ambush trash priorities — Corp is configured environmental state rather than a planning agent
+
+**Files added (4):** `android_netrunner/{__init__.py, domain.py, problems.py, README.md}`
+
+**Style guide update:** `docs/gtpyhop_example_style_guide.md` gained a new section 8 ("Debugging Tips") documenting `verbose=3` and GTPyhop's idempotent-action elision — actions that produce no state change are processed but omitted from `result.plan`. This was discovered while building scenario 3, where `a_pass_ice` and `a_resolve_lose_click` are both idempotent in context (Ice Wall not rezzed; Runner has 0 clicks remaining).
+
+**Reference:**
+Garfield, R. (designer), and Litzsinger, L. (developer). *Android: Netrunner — The Card Game, Rules of Play* (Fantasy Flight Games, 2012). The page-19 worked example drives the flagship scenario.
+
+---
+
+## 1.9.5 — Cybersecurity Attack Planning Example
 
 ### Cybersecurity Attack Planning Example (new)
 

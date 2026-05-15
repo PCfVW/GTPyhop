@@ -1,6 +1,6 @@
-# GTPyhop 1.9.5 HTN Planning Examples
+# GTPyhop 1.9.6 HTN Planning Examples
 
-This document provides pedagogical details about all HTN Planning examples included with GTPyhop 1.9.5. Each example demonstrates different aspects of hierarchical task network planning, from basic concepts to advanced techniques.
+This document provides pedagogical details about all HTN Planning examples included with GTPyhop 1.9.6. Each example demonstrates different aspects of hierarchical task network planning, from basic concepts to advanced techniques.
 
 ## Table of Contents
 
@@ -13,8 +13,10 @@ This document provides pedagogical details about all HTN Planning examples inclu
 7. [Poetry Examples](#-poetry-examples-190)
 8. [Control Arena Protocol Examples](#-control-arena-protocol-examples-194)
 9. [Cybersecurity Attack Planning Example](#-cybersecurity-attack-planning-example-195)
-10. [Running the Examples](#-running-the-examples)
-11. [Pedagogical Recommendations](#-pedagogical-recommendations)
+10. [Android: Netrunner Run Planning Example](#-android-netrunner-run-planning-example-196)
+11. [Trunk Thumper Game-AI Examples](#-trunk-thumper-game-ai-examples-196)
+12. [Running the Examples](#-running-the-examples)
+13. [Pedagogical Recommendations](#-pedagogical-recommendations)
 
 ---
 
@@ -737,6 +739,139 @@ python -m doctest -v src/gtpyhop/examples/cybersecurity_attack_planning/problems
 ```
 
 **Documentation:** [Cybersecurity Attack Planning README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/cybersecurity_attack_planning/README.md)
+
+---
+
+## Android: Netrunner Run Planning Example (1.9.6+)
+
+Models a single Runner-side **run** against a configured Corporation server stack, using the published mechanics of Fantasy Flight Games' *Android: Netrunner* (2012 core set rulebook). The flagship scenario faithfully replicates the worked run example on **page 19 of the core rulebook**.
+
+**Purpose:** Demonstrate that HTN planning can faithfully encode the mechanics of a published Living Card Game, with per-card fidelity for 14 named cards from the core set.
+
+**Core concepts demonstrated:**
+- Per-card fidelity: each card's distinctive mechanic is preserved (Crypsis end-of-encounter clause, Gordian Blade's run-scoped pump, Wyrm's `ice_strength_le_zero` break predicate, Akitaro Watanabe's rez-cost discount, Jinteki Personal Evolution's on-steal net damage)
+- Three coexisting state scopes: encounter (resets after each ice), run (resets after the run), persistent
+- 6 backtracking points: icebreaker selection (matched vs. AI × full vs. partial = 8 alternatives), Crypsis end-of-encounter cleanup (4 alternatives), Data Raven on-encounter ability (2), ambush firing (2), asset/upgrade trash decisions (2 each)
+- Per-scenario Corp policy as configured environmental state: rez plan, ambush firing, trace budget, ambush trash priorities
+
+### `android_netrunner/`
+
+| Aspect | Value |
+|--------|-------|
+| Actions | 24 (Setup: 3, Run flow: 4, Encounter: 5, Sub resolution: 5, Cleanup: 3, Access: 4) |
+| Methods | 31 method functions across 17 task names |
+| Backtracking points | 6 |
+| Scenarios | 8 (5 require backtracking, 2 designed greedy failures) |
+| Doctests | 64 |
+| `MCP_Tool:` | `None` |
+| Card subset | 14 named cards from the core set |
+
+**Card subset:**
+- **Corp ice (4):** Ice Wall, Wall of Thorns, Enigma, Data Raven
+- **Corp non-ice (4):** AstroScript Pilot Program, Nisei MK II, Aggressive Secretary, Akitaro Watanabe
+- **Corp identity:** Jinteki Personal Evolution
+- **Runner icebreakers (4):** Corroder, Gordian Blade, Wyrm, Crypsis
+- **Runner hardware/resources (2):** The Toolbox, Sacrificial Construct
+
+**Scenarios:**
+- **S1-S2:** Baseline run mechanics (empty server, single barrier)
+- **S3** (**flagship, greedy fails**): Rulebook p.19 replication. Partial-break Enigma with Gordian, pass Ice Wall, pump-and-partial Wall of Thorns with Crypsis, save Crypsis with Sacrificial Construct, steal Nisei MK II (Jinteki PE does 1 net damage on steal). Plan length 13 — `a_pass_ice` and `a_resolve_lose_click` are idempotent in context and elided
+- **S4:** Sentry needs AI fallback — Corroder/Gordian fail subtype match, Crypsis (AI) succeeds against Data Raven
+- **S5:** Wyrm drain path — pump + drain + breaks on Wall of Thorns
+- **S6** (**greedy fails**): Accept net damage to save credits — greedy full-breaks Wall of Thorns and runs out for Enigma; backtracking takes 2 net damage
+- **S7:** Crypsis cleanup chain falls through to trash (no virus counter, no SC)
+- **S8:** Aggressive Secretary ambush trashes Corroder on access
+
+**Run doctests:**
+
+```bash
+python -m doctest -v src/gtpyhop/examples/android_netrunner/problems.py
+```
+
+**Tip:** When investigating shorter-than-expected plans, run with `verbose=3` to see actions annotated as `applied` or `idempotent`. GTPyhop elides idempotent actions from `result.plan` even though it processes them.
+
+**Reference:** Garfield, R. (designer), and Litzsinger, L. (developer). *Android: Netrunner — The Card Game, Rules of Play* (Fantasy Flight Games, 2012).
+
+**Documentation:** [Android: Netrunner README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/android_netrunner/README.md)
+
+---
+
+## Trunk Thumper Game-AI Examples (1.9.6+)
+
+A progressive collection of HTN planning examples based on **Troy Humphreys' chapter "Exploring HTN Planners through Example"** in *Game AI Pro 1* (Steve Rabin, ed., CRC Press, 2015, pp. 149–167). The chapter is the canonical pedagogical reference for HTN in game NPC behavior selection, based on the production system used in *Transformers: Fall of Cybertron* (HighMoon Studios / Activision, 2012). It describes a **total-order forward-decomposition planner with DFS backtracking** — i.e., GTPyhop's exact architecture; the pseudocode on pp.155–156 reads almost line-for-line like GTPyhop's `iterative_dfs_backtracking` strategy.
+
+**Purpose:** Fill a real gap in GTPyhop's example library by providing a first-class **game AI developer** example. HTN planning's historical industrial home is game NPC behavior; this collection translates the canonical chapter into runnable code.
+
+**Core concepts demonstrated:**
+- Baseline domain construction (§12.3)
+- Recursion via compound-task self-reference (§12.6)
+- The new `[EXPECTED_EFFECT]` tag for sensor-driven state changes (§12.7), with an empirical negative-control scenario
+- Multi-method priority via method ordering (§12.8) plus the chapter's WsIsTired fix for premature whirlwind combos
+- Single-planner simultaneous behaviors via non-blocking navigation (§12.9)
+- Manual method-split partial plans for reactivity (§12.10)
+- How `MTR` (runtime priority comparison) and plan-runner concerns are *out of scope* and why
+
+### Collection structure
+
+Sub-folder names map to chapter section numbers (`sNN_<topic>` ↔ §12.NN) so readers of the book can find the matching code instantly:
+
+| Folder | Chapter | Actions | Methods | Scenarios |
+|---|---|---|---|---|
+| `s03_basic_attack_or_patrol/` | §12.3 | 5 | 2 | 2 |
+| `s06_recursive_trunk_replacement/` | §12.6 | 8 | 4 | 3 |
+| `s07_expected_effects_chase/` | §12.7 | 11 | 5 | 3 (incl. 1 negative control) |
+| `s08_priority_methods/` | §12.8 | 9 | 5 | 4 |
+| `s09_simultaneous_navigation_and_guard/` | §12.9 | 4 | 4 | 3 |
+| `s10_partial_plans/` | §12.10 | 2 | 3 | 3 |
+
+**Totals:** 33 actions across 6 sub-folders, 18 scenarios, ~85 doctests, plus collection-level `benchmarking.py` and `benchmarking_quickstart.md`.
+
+**Scenarios highlight:**
+- s07's `scenario_3_expected_effects_negative_control` deliberately **fails**: it uses a teaching-variant action that omits the `[EXPECTED_EFFECT]` on `can_see_enemy`, and the plan correctly cannot satisfy the downstream `a_regain_los_roar` precondition. This is the empirical demonstration of *why* the tag is needed.
+- s08's `scenario_4_tired_blocks_whirlwind_combo` exercises the chapter's recommended `WsIsTired` fix that prevents whirlwind combos from chaining directly off a slam.
+
+### Running scenarios
+
+**Per-sub-folder:**
+
+```bash
+# Doctests for a single sub-folder
+python -m doctest -v src/gtpyhop/examples/trunk_thumper/s07_expected_effects_chase/problems.py
+
+# Programmatic execution
+python -c "
+import copy, gtpyhop
+from gtpyhop.examples.trunk_thumper.s06_recursive_trunk_replacement import the_domain, get_problems
+for name, (state, tasks, _) in get_problems().items():
+    state_copy = copy.deepcopy(state)
+    with gtpyhop.PlannerSession(domain=the_domain, verbose=0,
+            strategy='iterative_dfs_backtracking') as s:
+        r = s.find_plan(state_copy, tasks)
+    print(f'{name}: success={r.success}, len={len(r.plan)}')
+"
+```
+
+**Across all sub-folders (via the collection-level benchmarking script):**
+
+```bash
+cd src/gtpyhop/examples/trunk_thumper
+python benchmarking.py --list-domains
+python benchmarking.py s03_basic_attack_or_patrol
+python benchmarking.py s07_expected_effects_chase
+python benchmarking.py s08_priority_methods --strategy iterative_dfs_backtracking
+```
+
+See `src/gtpyhop/examples/trunk_thumper/benchmarking_quickstart.md` for the full guide.
+
+### Style guide update
+
+Section 8 of `docs/gtpyhop_domain_style_guide.md` was renamed "Metadata Tags: DATA, ENABLER, and EXPECTED_EFFECT" and gained a new subsection 8.4 documenting the `[EXPECTED_EFFECT]` tag introduced by this collection.
+
+### Reference
+
+[Humphreys 15] Humphreys, T. (2015). "Exploring HTN Planners through Example." In *Game AI Pro* (Steve Rabin, ed.). Boca Raton, FL: CRC Press, pp. 149–167.
+
+**Documentation:** [Trunk Thumper Collection README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/trunk_thumper/README.md)
 
 ---
 

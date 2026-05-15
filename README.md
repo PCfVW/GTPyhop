@@ -1,4 +1,4 @@
-# GTPyhop version 1.9.5
+# GTPyhop version 1.9.6
 
 [![Python Version](https://img.shields.io/badge/python-3%2B-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-Clear%20BSD-green.svg)](https://github.com/PCfVW/GTPyhop/blob/pip/LICENSE.txt)
@@ -33,10 +33,10 @@ GTPyhop is an HTN planning system based on [Pyhop](https://bitbucket.org/dananau
 
 ### From PyPI (Recommended)
 
-**GTPyhop 1.9.5** is the latest version with cybersecurity attack planning, iterative DFS backtracking, poetry generation examples, control arena protocol examples, memory tracking, enhanced MCP orchestration examples, Opentrons Flex domains, and comprehensive style guides.
+**GTPyhop 1.9.6** is the latest version with Trunk Thumper game-AI examples, Android: Netrunner run planning, cybersecurity attack planning, iterative DFS backtracking, poetry generation examples, control arena protocol examples, memory tracking, enhanced MCP orchestration examples, Opentrons Flex domains, and comprehensive style guides.
 
 ```bash
-pip install gtpyhop>=1.9.5
+pip install gtpyhop>=1.9.6
 ```
 
 For basic single-threaded planning, any version works:
@@ -77,7 +77,7 @@ import gtpyhop
 The following should be printed in your terminal:
 
 ```code
-Imported GTPyhop version 1.9.5
+Imported GTPyhop version 1.9.6
 Messages from find_plan will be prefixed with 'FP>'.
 Messages from run_lazy_lookahead will be prefixed with 'RLL>'.
 Using session-based architecture with structured logging.
@@ -336,7 +336,7 @@ python -m gtpyhop.examples.simple_htn --session
 
 ## Documentation
 
-GTPyhop 1.9.5 includes comprehensive documentation organized in the `docs/` folder:
+GTPyhop 1.9.6 includes comprehensive documentation organized in the `docs/` folder:
 
 ### Core Documentation
 - **[All Examples Guide](https://github.com/PCfVW/GTPyhop/blob/pip/docs/all_examples.md)** - Pedagogical details about all HTN planning examples
@@ -389,6 +389,19 @@ GTPyhop 1.9.5 includes comprehensive documentation organized in the `docs/` fold
 
 #### Cybersecurity Attack Planning Example (1.9.5+)
 - **[Cybersecurity Attack Planning](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/cybersecurity_attack_planning/README.md)** - BAMS-based insider threat planning: physical, network, DMS, and malware attacks with 5 backtracking points (9 scenarios)
+
+#### Android: Netrunner Run Planning Example (1.9.6+)
+- **[Android: Netrunner Run Planning](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/android_netrunner/README.md)** - Per-card-fidelity run planning based on the published Android: Netrunner rules (2012 core set); 14 named cards, 24 actions, 6 backtracking points, 8 scenarios — flagship scenario replicates the worked example on page 19 of the core rulebook
+
+#### Trunk Thumper Game-AI Examples (1.9.6+)
+- **[Trunk Thumper Collection Overview](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/trunk_thumper/README.md)** - Progressive game-AI tutorial collection based on Troy Humphreys' canonical *Game AI Pro* chapter (2015); sub-folder naming `sNN_<topic>` matches chapter section §12.NN
+- **[s03 Basic Attack or Patrol](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/trunk_thumper/s03_basic_attack_or_patrol/README.md)** - §12.3 baseline BeTrunkThumper domain (2 scenarios)
+- **[s06 Recursive Trunk Replacement](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/trunk_thumper/s06_recursive_trunk_replacement/README.md)** - §12.6 recursion via m_attack_enemy self-call (3 scenarios)
+- **[s07 Expected Effects Chase](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/trunk_thumper/s07_expected_effects_chase/README.md)** - §12.7 the new `[EXPECTED_EFFECT]` tag with a negative-control scenario (3 scenarios)
+- **[s08 Priority Methods](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/trunk_thumper/s08_priority_methods/README.md)** - §12.8 multi-method m_attack_enemy with WsPowerUp/WsIsTired/boulder-fallback (4 scenarios)
+- **[s09 Simultaneous Navigation and Guard](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/trunk_thumper/s09_simultaneous_navigation_and_guard/README.md)** - §12.9 single-planner non-blocking navigation with guard (3 scenarios)
+- **[s10 Partial Plans](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/trunk_thumper/s10_partial_plans/README.md)** - §12.10 manual method-split partial plans (3 scenarios)
+- **[Trunk Thumper Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/trunk_thumper/benchmarking_quickstart.md)** - Batch-running scenarios across all sub-folders
 
 ### External Resources
 - **[Dana's Additional Information](https://github.com/dananau/GTPyhop/blob/main/additional_information.md)** - Core GTPyhop concepts
@@ -479,6 +492,9 @@ GTPyhop/
     │   │   └── scalable_data_processing/, scalable_recursive_decomposition/
     │   ├── poetry/
     │   │   └── structured_poetry/, backtracking_poetry/, candidate_planning_poetry/, bidirectional_planning_poetry/, replanning_poetry/, formal_mechanism_poetry/, feature_space_poetry/
-    │   └── cybersecurity_attack_planning/
+    │   ├── cybersecurity_attack_planning/
+    │   ├── android_netrunner/
+    │   └── trunk_thumper/
+    │       ├── s03_basic_attack_or_patrol/, s06_recursive_trunk_replacement/, s07_expected_effects_chase/, s08_priority_methods/, s09_simultaneous_navigation_and_guard/, s10_partial_plans/
     └── test_harness/
 ```
