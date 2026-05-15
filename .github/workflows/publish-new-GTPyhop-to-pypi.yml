@@ -21,6 +21,11 @@ on:
       - "v*"
       - "!v*-*"
   workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run: build, validate, and run all checks, but do NOT upload to PyPI'
+        type: boolean
+        default: true
 
 jobs:
   check-and-publish:
@@ -39,7 +44,7 @@ jobs:
           python-version: '3.x'
 
       - name: Install dependencies
-        run: python -m pip install --upgrade pip build packaging requests toml
+        run: python -m pip install --upgrade pip build packaging requests toml twine
 
       - name: Extract version from tag
         id: tag_version
@@ -218,5 +223,35 @@ jobs:
       - name: Build package
         run: python -m build
 
+      - name: List built artifacts
+        # Helpful inspection before publishing - shows wheel + sdist sizes.
+        run: ls -la dist/
+
+      - name: Validate artifacts with twine
+        # Closest Python equivalent to part of `cargo publish --dry-run`:
+        # validates wheel/sdist metadata (long_description rendering,
+        # classifiers, version format) before uploading. PyPI would reject
+        # invalid metadata anyway; this catches it earlier with a clear
+        # error message. Always runs, even on dry-run runs.
+        run: twine check dist/*
+
       - name: Publish to PyPI
+        # Skipped on workflow_dispatch runs with dry_run = true. For tag-
+        # triggered runs github.event.inputs.dry_run is null (not the
+        # string 'true'), so the comparison evaluates to true and the
+        # publish proceeds normally.
+        if: github.event.inputs.dry_run != 'true'
         uses: pypa/gh-action-pypi-publish@release/v1
+
+      - name: Dry-run summary
+        # Final breadcrumb when running in dry-run mode so it's obvious
+        # nothing was uploaded.
+        if: github.event.inputs.dry_run == 'true'
+        run: |
+          echo "================================================================"
+          echo "  DRY RUN COMPLETE - no artifacts were uploaded to PyPI"
+          echo "================================================================"
+          echo "  Version:        ${{ steps.current_version.outputs.version }}"
+          echo "  Latest on PyPI: ${{ steps.pypi_version.outputs.version }}"
+          echo "  Artifacts in dist/ (would be uploaded on a real publish):"
+          ls -1 dist/
