@@ -332,5 +332,34 @@ See the [problems style guide](gtpyhop_problems_style_guide.md) (section 2.3) fo
 
 ---
 
-*Document Version: 1.2.0*
-*Updated: 2026-02-18*
+## 8. Debugging Tips
+
+When a scenario produces a shorter plan than expected, or you suspect actions are being silently elided, **set `verbose=3` on the `PlannerSession`**. This reveals which actions the planner is applying and — crucially — annotates **idempotent actions** that are processed but not added to the returned plan.
+
+```python
+with gtpyhop.PlannerSession(domain=the_domain, verbose=3,
+        strategy='iterative_dfs_backtracking') as s:
+    r = s.find_plan(state, tasks)
+```
+
+At verbose=3 you'll see lines like:
+
+```
+depth N action ('a_pass_ice',): applied
+depth N action ('a_resolve_lose_click',): idempotent
+```
+
+**"idempotent"** means the action returned the state unchanged — GTPyhop elides such actions from `result.plan` even though it correctly processes them. This is normal and matches the principle that *the plan represents state transitions*. If your action is unexpectedly idempotent, check whether the action's effects only fire conditionally (e.g., `if state.foo >= 1: state.foo -= 1`) and whether those conditions are met in the test scenario.
+
+Other verbose level uses:
+- `verbose=0`: silent (use in doctests and benchmarks)
+- `verbose=1`: high-level progress; default for normal runs
+- `verbose=2`: shows todo-list evolution at each depth — useful for following decomposition order and spotting where backtracking occurs
+- `verbose=3`: shows action application and state dumps after each action — useful for understanding why a precondition fails
+
+When backtracking-failure scenarios fail unexpectedly under `iterative_dfs_backtracking`, run with `verbose=2` and look for `trying m_X: not applicable` messages — those reveal which alternative methods the planner rejected at each choice point.
+
+---
+
+*Document Version: 1.3.0*
+*Updated: 2026-05-15*
