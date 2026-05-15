@@ -1,5 +1,16 @@
 name: Build and Publish to PyPI
 
+# Dynamic per-run title for the Actions UI. Prepends "[DRY RUN]" when the
+# workflow was dispatched manually with dry_run=true (the default), so a
+# successful run does NOT visually claim a publish actually happened.
+# Tag-triggered runs and explicit dry_run=false runs render as "Publish to
+# PyPI <ref>". github.ref_name is the tag for tag pushes (e.g. v1.9.6) and
+# the branch name for manual runs (e.g. pip).
+run-name: >-
+  ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run == 'true')
+      && format('[DRY RUN] Build and validate {0}', github.ref_name)
+      || format('Publish to PyPI {0}', github.ref_name) }}
+
 on:
   push:
     # Publish to PyPI only on release tags of the form vMAJOR.MINOR.PATCH
@@ -245,9 +256,31 @@ jobs:
 
       - name: Dry-run summary
         # Final breadcrumb when running in dry-run mode so it's obvious
-        # nothing was uploaded.
+        # nothing was uploaded. Writes to both the step log (for the live
+        # job view) and $GITHUB_STEP_SUMMARY (renders as a markdown banner
+        # at the top of the run's overview page).
         if: github.event.inputs.dry_run == 'true'
         run: |
+          # Markdown summary at the top of the run page
+          {
+            echo "## ⚠ DRY RUN"
+            echo ""
+            echo "**No artifacts were uploaded to PyPI.**"
+            echo ""
+            echo "| Field | Value |"
+            echo "|---|---|"
+            echo "| Version (pyproject.toml) | \`${{ steps.current_version.outputs.version }}\` |"
+            echo "| Latest on PyPI           | \`${{ steps.pypi_version.outputs.version }}\` |"
+            echo ""
+            echo "### Artifacts built (would be uploaded on a real publish)"
+            echo ""
+            echo '```'
+            ls -1 dist/
+            echo '```'
+            echo ""
+            echo "To publish for real: push a tag matching \`vMAJOR.MINOR.PATCH\` (e.g. \`v${{ steps.current_version.outputs.version }}\`)."
+          } >> "$GITHUB_STEP_SUMMARY"
+          # Plain-text echo for the live step log
           echo "================================================================"
           echo "  DRY RUN COMPLETE - no artifacts were uploaded to PyPI"
           echo "================================================================"
