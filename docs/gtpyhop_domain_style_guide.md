@@ -17,7 +17,7 @@
 5. [Type Hint Requirements](#5-type-hint-requirements)
 6. [Docstring Format Specification](#6-docstring-format-specification)
 7. [Comment Marker Conventions for LibCST](#7-comment-marker-conventions-for-libcst)
-8. [Metadata Tags: DATA and ENABLER](#8-metadata-tags-data-and-enabler)
+8. [Metadata Tags: DATA, ENABLER, and EXPECTED_EFFECT](#8-metadata-tags-data-enabler-and-expected_effect)
 9. [Complete Working Examples](#9-complete-working-examples)
 10. [Common Mistakes and How to Avoid Them](#10-common-mistakes-and-how-to-avoid-them)
 11. [Validation Checklist](#11-validation-checklist)
@@ -356,7 +356,7 @@ If a block has no content, include a comment explaining why:
 
 ---
 
-## 8. Metadata Tags: DATA and ENABLER
+## 8. Metadata Tags: DATA, ENABLER, and EXPECTED_EFFECT
 
 ### 8.1 Tag Definitions
 
@@ -364,6 +364,7 @@ If a block has no content, include a comment explaining why:
 |-----|---------|-------|
 | `[DATA]` | Informational property | Stores computed values, file paths, configurations |
 | `[ENABLER]` | Workflow gate property | Controls whether subsequent actions can execute |
+| `[EXPECTED_EFFECT]` | Sensor-driven state change | A state change the operator does not *directly* cause, but which a sensor or external system will produce after execution. Pedagogical/documentary; semantically identical to `[DATA]` at the planner level. |
 
 ### 8.2 ENABLER Tag Guidelines
 
@@ -392,7 +393,43 @@ state.raw_network_file = f"tnf_network_{organism}.sif"
 state.network_components = ["TNF_sensing", "apoptosis", "proliferation"]
 ```
 
-### 8.4 Tag Placement in State Property Map
+### 8.4 EXPECTED_EFFECT Tag Guidelines
+
+**EXPECTED_EFFECT** marks state changes that are *not* directly caused by the action's operator at execution time, but which a sensor or external system will produce as a consequence of the operator running. The tag is borrowed from Troy Humphreys' Game AI Pro chapter (Chapter 12, Section 12.7), which introduces the concept under the name "expected effects":
+
+> "Expected effects are effects that get applied to the world state only during planning and plan validation. The idea here is that you can express changes in the world state that should happen based on tasks being executed. This allows the planner to keep planning farther into the future based on what it believes will be accomplished along the way."
+>
+> — *Game AI Pro 1*, p. 159
+
+**GTPyhop semantics**: GTPyhop does not distinguish runtime effects from planning-time effects. `[EXPECTED_EFFECT]` is **semantically identical to `[DATA]`** — the planner applies both to the working world state during decomposition. The tag is purely informational: it communicates *why* the action sets the property, namely that it's modeling a sensor-driven change rather than a direct operator output.
+
+**When to use**:
+- The action represents an operator that runs in a real system (game, robot, etc.)
+- After the operator completes, some external observer/sensor will update the world state
+- A downstream task needs to consume that updated state as a precondition
+
+**Example** (from `trunk_thumper/s07_expected_effects_chase/`):
+
+```python
+# BEGIN: Effects
+# [DATA] Troll's location updated by the navigation operator itself
+state.location = state.last_enemy_location
+
+# [EXPECTED_EFFECT] The vision sensor will set can_see_enemy True once we
+# arrive at the destination. Without this annotation, the downstream
+# a_regain_los_roar's precondition would fail at planning time.
+state.can_see_enemy = True
+# END: Effects
+```
+
+**When NOT to use**:
+- The state change is a direct result of the operator (use `[DATA]` or `[ENABLER]`)
+- The state property is a configuration constant or a counter (use `[DATA]`)
+- The state change gates a workflow step (use `[ENABLER]`)
+
+**Pedagogical reference**: `src/gtpyhop/examples/trunk_thumper/s07_expected_effects_chase/` includes both the canonical action and a teaching-variant action *without* the `[EXPECTED_EFFECT]`, plus a negative-control scenario that demonstrates the plan failing when the tag's effect is omitted. This is the recommended entry point for learning the tag.
+
+### 8.5 Tag Placement in State Property Map
 
 Document all state properties at the file level:
 
@@ -403,13 +440,18 @@ Document all state properties at the file level:
 # Legend:
 #  - (E) Created/modified by the action (Effects)
 #  - (P) Consumed/checked by the action (Preconditions/State checks)
-#  - [ENABLER] Property acts as a workflow gate for subsequent steps
-#  - [DATA]    Informational/data container
+#  - [ENABLER]         Property acts as a workflow gate for subsequent steps
+#  - [DATA]            Informational/data container
+#  - [EXPECTED_EFFECT] Sensor-driven state change applied during planning
 #
 # Step 1: a_create_network
 #  (P) gene_list [ENABLER]
 #  (E) network_file: str [DATA]
 #  (E) network_created: True [ENABLER]
+#
+# Step 2: a_nav_to_destination
+#  (E) location: str [DATA]
+#  (E) can_see_target: bool [EXPECTED_EFFECT]  # vision sensor sets this after arrival
 # ============================================================================
 ```
 
