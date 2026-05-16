@@ -1,10 +1,10 @@
-# GTPyhop version 1.9.6
+# GTPyhop version 1.9.7
 
 [![Python Version](https://img.shields.io/badge/python-3%2B-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-Clear%20BSD-green.svg)](https://github.com/PCfVW/GTPyhop/blob/pip/LICENSE.txt)
 [![PyPI](https://img.shields.io/pypi/v/gtpyhop)](https://pypi.org/project/gtpyhop/)
 <!-- UPDATE MANUALLY when doctests are added or removed -->
-[![Doctests](https://img.shields.io/badge/doctests-208%20passing-brightgreen)](docs/changelog.md)
+[![Doctests](https://img.shields.io/badge/doctests-789%20passing-brightgreen)](docs/changelog.md)
 
 GTPyhop is an HTN planning system based on [Pyhop](https://bitbucket.org/dananau/pyhop/src/master/), but generalized to plan for both goals and tasks.
 
@@ -33,10 +33,10 @@ GTPyhop is an HTN planning system based on [Pyhop](https://bitbucket.org/dananau
 
 ### From PyPI (Recommended)
 
-**GTPyhop 1.9.6** is the latest version with Trunk Thumper game-AI examples, Android: Netrunner run planning, cybersecurity attack planning, iterative DFS backtracking, poetry generation examples, control arena protocol examples, memory tracking, enhanced MCP orchestration examples, Opentrons Flex domains, and comprehensive style guides.
+**GTPyhop 1.9.7** is the latest version. It closes the 1.9 minor on the "examples" theme by adding the Colt Express collection (5 sub-folders mirroring the trunk_thumper pattern catalog applied to the published board game) and extending the existing `adversarial_protocol/` sub-folder of `control_arena_protocols/` with threat-model variety, the `[EXPECTED_EFFECT]` marker (first use in this collection), and a negative-control scenario. Builds on 1.9.6's Trunk Thumper game-AI examples, Android: Netrunner run planning, cybersecurity attack planning, iterative DFS backtracking, poetry generation examples, control arena protocol examples, memory tracking, enhanced MCP orchestration examples, Opentrons Flex domains, and comprehensive style guides.
 
 ```bash
-pip install gtpyhop>=1.9.6
+pip install gtpyhop>=1.9.7
 ```
 
 For basic single-threaded planning, any version works:
@@ -77,7 +77,7 @@ import gtpyhop
 The following should be printed in your terminal:
 
 ```code
-Imported GTPyhop version 1.9.6
+Imported GTPyhop version 1.9.7
 Messages from find_plan will be prefixed with 'FP>'.
 Messages from run_lazy_lookahead will be prefixed with 'RLL>'.
 Using session-based architecture with structured logging.
@@ -336,7 +336,7 @@ python -m gtpyhop.examples.simple_htn --session
 
 ## Documentation
 
-GTPyhop 1.9.6 includes comprehensive documentation organized in the `docs/` folder:
+GTPyhop 1.9.7 includes comprehensive documentation organized in the `docs/` folder:
 
 ### Core Documentation
 - **[All Examples Guide](https://github.com/PCfVW/GTPyhop/blob/pip/docs/all_examples.md)** - Pedagogical details about all HTN planning examples
@@ -391,7 +391,7 @@ Baseline collection introduced in 1.9.4; the Adversarial Protocol sub-folder was
 - **[Defer to Resample](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/control_arena_protocols/defer_to_resample_protocol/README.md)** - Recursive multi-sample resampling (6 scenarios)
 - **[Adversarial Protocol](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/control_arena_protocols/adversarial_protocol/README.md)** - Honest vs. attack with vulnerability detection (8 scenarios, 7 actions, 7 methods)
 
-**1.9.7 extension (Adversarial Protocol sub-folder only):**
+**1.9.7 extension ([Adversarial Protocol](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/control_arena_protocols/adversarial_protocol/README.md) sub-folder only):**
 - **Threat-model variety**: nested `detection_rates` schema indexed by `(threat_model, subtlety)`; 6 new scenarios across code sabotage / data poisoning / research sabotage
 - **`[EXPECTED_EFFECT]` marker**: first use of the tag (introduced in `trunk_thumper/s07`, used in `colt_express/s3`) in this collection; `a_accept_output` now records downstream side-task firing via `state.side_task_observed`
 - **Negative-control scenario**: 1 new scenario using teaching-variant action `a_accept_output_demo_no_expected_effect` (omits the `[EXPECTED_EFFECT]` block) to empirically demonstrate why the tag is load-bearing

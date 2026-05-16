@@ -6,7 +6,7 @@ The benchmarking script (`benchmarking.py`) runs all scenarios in any Colt Expre
 
 ## Prerequisites
 
-- **GTPyhop 1.9.6+** installed
+- **GTPyhop 1.9.7+** installed
 - **psutil** package (for resource tracking)
 - Python 3.8 or later
 

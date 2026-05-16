@@ -3,14 +3,14 @@
 
 ################################################################################
 #                                                                              #
-#                              GTPyhop 1.9.6                                   #
+#                              GTPyhop 1.9.7                                   #
 #                                                                              #
 #                    Goal-Task-Network Planning System                         #
 #                                                                              #
 ################################################################################
 
 """
-GTPyhop 1.9.6: A Goal-Task-Network planning system with session-based architecture
+GTPyhop 1.9.7: A Goal-Task-Network planning system with session-based architecture
 
 GTPyhop is an automated planning system that can plan for both tasks and goals.
 Version 1.3.0 introduces session-based planning for better isolation, structured
@@ -1955,7 +1955,7 @@ class SessionSerializer:
                     'last_used': session._last_used,
                     'stats': session._stats.copy(),
                     'domain_name': session.domain.__name__ if session.domain else None,
-                    'version': '1.9.6',
+                    'version': '1.9.7',
                     'timestamp': time.time()
                 }
 
@@ -3223,7 +3223,7 @@ def list_sessions() -> List[str]:
 
 ################################################################################
 #                                                                              #
-#                            END OF GTPYHOP 1.9.6                              #
+#                            END OF GTPYHOP 1.9.7                              #
 #                                                                              #
 ################################################################################
 

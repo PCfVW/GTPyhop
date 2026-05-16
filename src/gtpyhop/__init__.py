@@ -1,6 +1,6 @@
 """
 GTPyhop: A Goal-Task-Network planning system
-Version 1.9.6 with
+Version 1.9.7 with
 - session-based architecture (1.3),
 - structured logging (1.3),
 - plan validation (1.4),
@@ -12,6 +12,8 @@ Version 1.9.6 with
 - cybersecurity attack planning example based on BAMS domain (1.9.5)
 - Android: Netrunner run planning example based on the 2012 core set rulebook (1.9.6)
 - Trunk Thumper game-AI tutorial collection based on Troy Humphreys' Game AI Pro chapter (1.9.6)
+- Colt Express example collection mirroring trunk_thumper's pattern catalog (1.9.7)
+- Control Arena adversarial_protocol extended with threat-model variety and [EXPECTED_EFFECT] marker (1.9.7)
 
 This module provides hierarchical task network (HTN) planning capabilities
 with support for both goals and tasks.
@@ -41,7 +43,7 @@ import os
 import warnings
 
 # Version information
-__version__ = "1.9.6"
+__version__ = "1.9.7"
 __author__ = "Dana Nau, Eric Jacopin"
 __license__ = "Clear BSD License"
 __description__ = "A Goal-Task-Network planning package written in Python"

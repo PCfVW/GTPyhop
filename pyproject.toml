@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "gtpyhop"
-version = "1.9.6"
+version = "1.9.7"
 description = "A Goal-Task-Network planning package written in Python"
 readme = "README.md"
 authors = [
@@ -16,7 +16,9 @@ authors = [
     #   - session-based architecture
     #   - structured logging
     #   - plan validation
-    #   - new examples (IPC 2020 Total Order, MCP orchestration, memory tracking, and poetry)
+    #   - new examples (IPC 2020 Total Order, MCP orchestration, memory tracking, poetry,
+    #     Control Arena protocols + threat-model variety extension, cybersecurity attack planning,
+    #     Android: Netrunner, Trunk Thumper game-AI, and Colt Express board-game)
     #   - documentation style guides for domains, problems, actions, methods, and new examples
     { name = "Eric Jacopin", email = "eric.jacopin@protonmail.com" },
 

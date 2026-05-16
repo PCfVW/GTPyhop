@@ -1,6 +1,91 @@
 # GTPyhop Version History
 
-## 1.9.6 — Android: Netrunner + Trunk Thumper Game-AI Examples (Latest, Recommended)
+## 1.9.7 — Colt Express Collection + Control Arena adversarial_protocol Extension (Latest, Recommended)
+
+This version closes the 1.9 minor on the "examples" theme. It adds the **Colt Express** example collection (a 5-sub-folder pedagogical collection mirroring `trunk_thumper`'s pattern catalog applied to the published board game) and **extends the existing `adversarial_protocol/`** sub-folder of `control_arena_protocols/` with three additive features. No planner changes; pure additions to the example library.
+
+### Colt Express Example Collection (new)
+
+Added a new example collection under `colt_express/` modeled on the [Colt Express board game](http://www.coltexpress.ludonaute.fr) (Christophe Raimbault / Jordi Valbuena, Ludonaute 2014). The collection mirrors the structural template of the `trunk_thumper` collection — each sub-folder demonstrates one HTN concept with a direct lineage to a `trunk_thumper` sub-folder, but applied to a richer multi-bandit / Marshal-driven domain.
+
+| Aspect | Value |
+|--------|-------|
+| Sub-folders | 5 |
+| Total actions across sub-folders | 26 |
+| Total scenarios | 16 (incl. 1 designed-failure negative control) |
+| Doctests | 124 |
+| `MCP_Tool:` | `None` (purely symbolic) |
+| LOC | ~6,600 |
+
+**Sub-folder layout** (numeric prefix reflects **build order**, not pattern depth):
+
+| Folder | Pattern source | Topic |
+|---|---|---|
+| `s1_minimal_turn/` | trunk_thumper `s03` | Priority methods: rob-if-loot vs. move-forward baseline |
+| `s3_marshal_expected_effects/` | trunk_thumper `s07` | `[EXPECTED_EFFECT]` tag for Marshal forced-escape + negative control |
+| `s2_recursive_round/` | trunk_thumper `s06` | Recursive deck resolution (head-pop termination) + hostage-taking event |
+| `s4_character_priorities/` | trunk_thumper `s08` | Priority-method ladder for Belle / Tuco / Django / Cheyenne abilities |
+| `s5_partial_plan_movement/` | trunk_thumper `s10` | Method-split partial plans for movement strategy |
+
+**Scope:** Stealin'-phase only. The programmed deck is pre-encoded in `state.deck` and the planner resolves it action-by-action, filling in parameter choices (Move direction, Fire target, Robbery pick). The Schemin' phase (strategic card selection under imperfect information) is out of scope for classical HTN.
+
+**Key features:**
+- Canonical state schema shared **byte-identically** across all 5 sub-folders (`h_create_base_state`, `h_sample_car_loot`, `COLT_EXPRESS_LOOT_DISTRIBUTION`)
+- Documented physical loot distribution + deterministic `h_sample_car_loot(seed, num_jewels, num_purses)` sampler
+- 4 of 6 characters modeled (Belle, Tuco, Django, Cheyenne); Ghost and Doc deferred
+- s3 includes a negative-control scenario demonstrating why `[EXPECTED_EFFECT]` is needed (mirrors trunk_thumper s07 scenario 3)
+- s5 demonstrates the partial-plan reactivity argument via same-state contrast between full-plan and partial-plan task names
+
+**Files added (24):**
+- Collection: `colt_express/{__init__.py, README.md, benchmarking.py, benchmarking_quickstart.md}`
+- Per sub-folder (×5): `{__init__.py, domain.py, problems.py, README.md}`
+
+**Reference:** Raimbault, C., and Valbuena, J. *Colt Express*. Ludonaute / Asmodee, 2014.
+
+---
+
+### Control Arena `adversarial_protocol/` Extension
+
+Extended the existing `adversarial_protocol/` sub-folder (1.9.4 baseline) with three additive changes. No new sub-folders; all changes within the sub-folder.
+
+**Threat-model variety:**
+- New state field `config_threat_model: str` — `'none' | 'generic' | 'code_sabotage' | 'data_poisoning' | 'research_sabotage'`
+- `config_detection_rates` schema migrated from flat `Dict[subtlety, float]` to nested `Dict[threat_model, Dict[subtlety, float]]`
+- 6 new scenarios — one VULNERABILITY + one SAFE per threat type. Detection rates encode the empirical pattern that generic monitors are systematically weaker against data-distribution and research-output attacks than against code-level sabotage at the same subtlety
+- Existing 8 scenarios migrated to `threat_model='generic'` or `'none'`, preserving exact numerics
+
+**`[EXPECTED_EFFECT]` marker — first use in this collection:**
+- `a_accept_output` gains an `[EXPECTED_EFFECT]` block: when the accepted output embeds a side task, `state.side_task_observed = True`. This models the deployment executor's downstream side-task firing — a sensor-driven effect, not directly produced by the acceptance operator. Pattern source: `trunk_thumper/s07` and `colt_express/s3`.
+
+**Negative-control variant action:**
+- `a_accept_output_demo_no_expected_effect` — byte-identical to `a_accept_output` except the `[EXPECTED_EFFECT]` block is omitted. Used only in scenario_15 (manual task list bypassing routing methods). The plan succeeds with 5 actions, but `state.side_task_observed` is never set — empirically demonstrating why the tag is load-bearing.
+
+**Benchmark classifier:**
+- `benchmarking.py` adds a new `accept_no_ee` outcome label (in addition to `accept`, `defer`, `unknown`) so the negative-control scenario is visually distinguishable from canonical accept paths in the summary table.
+
+**Aggregate (1.9.4 → 1.9.7):** actions 7 → 8, methods 7 → 7 (unchanged), scenarios 8 → 15, doctests 56 → 92.
+
+**Files modified (4):** `adversarial_protocol/{domain.py, problems.py, README.md}`, `control_arena_protocols/{README.md, benchmarking.py}`.
+
+---
+
+### Doctest count
+
+Current total: **789 doctests** across all `problems.py` files. Verified during 1.9.7 prep by running `python -m doctest -v` on every example's `problems.py`. The 1.9.7 release adds **+160 doctests** (+124 from the Colt Express collection, +36 from the `adversarial_protocol/` extension); the pre-1.9.7 baseline is therefore 789 − 160 = 629.
+
+Note: the previous Doctests badge value of `208` (used on `pip`-branch READMEs since 1.9.x) was a stale incremental estimate, not an audited total. The 1.9.7 badge update reflects the audited count.
+
+---
+
+### Documentation
+
+- `docs/all_examples.md` gets a new top-level "Colt Express Game-AI Examples (1.9.7+)" section and an extended "Adversarial Protocol (1.9.4 baseline, extended in 1.9.7)" subsection
+- `README.md` (main) restructures the Control Arena Protocol Examples list into "1.9.4 baseline" and "1.9.7 extension" subsections so readers can see at a glance which content shipped in which version
+- All version-context references in user-facing READMEs use **1.9.4 / 1.9.7** language (date stamps in source files like `# Generated 2026-05-16` kept as historical metadata)
+
+---
+
+## 1.9.6 — Android: Netrunner + Trunk Thumper Game-AI Examples
 
 This version adds two new example domains: Android: Netrunner (one-shot card-game run planning) and Trunk Thumper (progressive game-AI tutorial based on Troy Humphreys' canonical *Game AI Pro* chapter).
 
@@ -53,7 +138,7 @@ Humphreys, T. (2015). "Exploring HTN Planners through Example." In *Game AI Pro*
 
 The PyPI publish workflow (`.github/workflows/publish-new-GTPyhop-to-pypi.yml`) was reworked. None of these changes affect the runtime API; they change how releases are produced and observed.
 
-- **Tag-triggered** instead of `pyproject.toml`-touch-triggered. Pushes to `pip` no longer publish; only pushes of tags matching `vMAJOR.MINOR.PATCH` do (e.g. `v1.9.6`). Hyphenated tags (e.g. `v1.9.6-rc1`) are git-only checkpoints and never publish. A new consistency step verifies the pushed tag matches `pyproject.toml`'s version and fails loudly if they diverge.
+- **Tag-triggered** instead of `pyproject.toml`-touch-triggered. Pushes to `pip` no longer publish; only pushes of tags matching `vMAJOR.MINOR.PATCH` do (e.g. `v1.9.7`). Hyphenated tags (e.g. `v1.9.7-rc1`) are git-only checkpoints and never publish. A new consistency step verifies the pushed tag matches `pyproject.toml`'s version and fails loudly if they diverge.
 - **Dry-run mode** via `workflow_dispatch` with a `dry_run` boolean input (default `true`). Manual runs build, validate, and run every check *except* the upload, then print a `⚠ DRY RUN` markdown banner to `$GITHUB_STEP_SUMMARY` listing the artifacts that would have been published. The Actions UI also prefixes dry-runs with `[DRY RUN]` via a dynamic `run-name:`, so a successful dry-run is visually distinguishable from a real publish in the run list.
 - **`twine check dist/*`** validates wheel/sdist metadata after build, before publish. Catches metadata problems (`long_description` rendering, classifiers, version format) that PyPI would otherwise reject post-upload.
 - **`actions/checkout` and `actions/setup-python` bumped to `@v6`** for Node 24 compatibility (Node 20 deprecated on GitHub Actions runners; full removal scheduled September 2026).
