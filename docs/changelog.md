@@ -49,6 +49,19 @@ Humphreys, T. (2015). "Exploring HTN Planners through Example." In *Game AI Pro*
 
 ---
 
+### Release-infrastructure improvements
+
+The PyPI publish workflow (`.github/workflows/publish-new-GTPyhop-to-pypi.yml`) was reworked. None of these changes affect the runtime API; they change how releases are produced and observed.
+
+- **Tag-triggered** instead of `pyproject.toml`-touch-triggered. Pushes to `pip` no longer publish; only pushes of tags matching `vMAJOR.MINOR.PATCH` do (e.g. `v1.9.6`). Hyphenated tags (e.g. `v1.9.6-rc1`) are git-only checkpoints and never publish. A new consistency step verifies the pushed tag matches `pyproject.toml`'s version and fails loudly if they diverge.
+- **Dry-run mode** via `workflow_dispatch` with a `dry_run` boolean input (default `true`). Manual runs build, validate, and run every check *except* the upload, then print a `⚠ DRY RUN` markdown banner to `$GITHUB_STEP_SUMMARY` listing the artifacts that would have been published. The Actions UI also prefixes dry-runs with `[DRY RUN]` via a dynamic `run-name:`, so a successful dry-run is visually distinguishable from a real publish in the run list.
+- **`twine check dist/*`** validates wheel/sdist metadata after build, before publish. Catches metadata problems (`long_description` rendering, classifiers, version format) that PyPI would otherwise reject post-upload.
+- **`actions/checkout` and `actions/setup-python` bumped to `@v6`** for Node 24 compatibility (Node 20 deprecated on GitHub Actions runners; full removal scheduled September 2026).
+
+**Pattern source:** Trigger conventions adapted from sibling Rust-crate publish workflows (`candle-mi/`, `hf-fetch-model/`, `anamnesis/`).
+
+---
+
 ### Android: Netrunner Run Planning Example (new)
 
 Added a new example domain under `android_netrunner/` that models a single Runner-side **run** against a configured Corporation server stack, using the published mechanics of Fantasy Flight Games' *Android: Netrunner* (2012 core set rulebook). The flagship scenario faithfully replicates the worked run example on **page 19 of the core rulebook**: Bart's run against Olivia's remote server with Enigma, Wall of Thorns, Akitaro Watanabe, and a Nisei MK II agenda — Jinteki Personal Evolution identity included.
