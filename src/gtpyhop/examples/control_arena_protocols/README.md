@@ -45,6 +45,8 @@ Control Arena's protocol logic — what gates what, what must happen before what
 | Monitor invocation | Primitive action | `a_run_monitor` (reads config, sets suspicion score) |
 | Workflow gate | `[ENABLER]` property | `monitor_evaluation_complete` gates `a_accept_output` |
 | Suspicion score | `[DATA]` property | `suspicion_score` read by routing methods |
+| Side-task firing on accept | `[EXPECTED_EFFECT]` property | `state.side_task_observed` set by `a_accept_output` when `side_task_embedded` (deployment executor's downstream effect, modeled at planning time) — first use of the `[EXPECTED_EFFECT]` tag in this collection (introduced in `adversarial_protocol/` in **1.9.7**) |
+| Threat model | `[CONFIG]` property | `state.config_threat_model` ('none' / 'generic' / 'code_sabotage' / 'data_poisoning' / 'research_sabotage'); used by `a_run_monitor` to look up the nested detection-rate dict (added in **1.9.7**) |
 | EvalMode (HONEST/ATTACK) | Scenario config | Different `problems.py` scenarios model each mode |
 
 ## Available Examples
@@ -53,9 +55,9 @@ Control Arena's protocol logic — what gates what, what must happen before what
 |---------|-----------|---------|---------|-----------|-------------|
 | **Defer to Trusted** | `defer_to_trusted_protocol/` | 6 | 4 | 6 | Backtracking on routing |
 | **Defer to Resample** | `defer_to_resample_protocol/` | 6 | 5 | 6 | Recursive resampling + backtracking |
-| **Adversarial** | `adversarial_protocol/` | 7 | 7 | 8 | Adversarial analysis + vulnerability detection |
+| **Adversarial** | `adversarial_protocol/` | 8 | 7 | 15 | Adversarial analysis + vulnerability detection + threat-model variety + `[EXPECTED_EFFECT]` |
 
-**Total**: 19 actions, 16 methods, 20 scenarios, 144 doctests.
+**Total**: 20 actions, 16 methods, 27 scenarios, ~200 doctests.
 
 ## Planning Strategy Requirements
 
@@ -65,6 +67,17 @@ All three examples require the **iterative DFS backtracking** strategy for scena
 |----------|-----------------|-----------------|
 | Greedy (`iterative_greedy`) | SUCCESS | **FAIL** |
 | Backtracking (`iterative_dfs_backtracking`) | SUCCESS | SUCCESS |
+
+## Benchmark Outcome Labels
+
+`benchmarking.py` classifies each completed plan via the actions it contains:
+
+| Label | Plan contains | Meaning |
+|---|---|---|
+| `accept` | `a_accept_output` | Output accepted; `[EXPECTED_EFFECT]` block fires if `side_task_embedded` |
+| `defer` | `a_defer_to_trusted` | Output deferred to trusted model |
+| `accept_no_ee` | `a_accept_output_demo_no_expected_effect` | Adversarial protocol scenario 15 only: negative-control teaching variant. Plan is an accept-trajectory but the `[EXPECTED_EFFECT]` block is omitted, so `state.side_task_observed` is never set |
+| `unknown` | none of the above | Should never appear under normal use; indicates a custom task list that bypasses both canonical and demo routing actions |
 
 ## Quick Start
 

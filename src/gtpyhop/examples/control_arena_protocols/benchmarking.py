@@ -126,7 +126,18 @@ def run_protocol_demo(
                     # Determine routing outcome
                     has_accept = any(a[0] == 'a_accept_output' for a in result.plan)
                     has_defer = any(a[0] == 'a_defer_to_trusted' for a in result.plan)
-                    outcome = 'accept' if has_accept else 'defer' if has_defer else 'unknown'
+                    # accept_no_ee: scenario uses a_accept_output_demo_no_expected_effect
+                    # (the negative-control teaching variant from adversarial_protocol,
+                    # added 2026-05-16). Plan is an accept-trajectory but the
+                    # [EXPECTED_EFFECT] block is omitted, so safety-critical state
+                    # like side_task_observed is never set.
+                    has_accept_demo = any(
+                        a[0] == 'a_accept_output_demo_no_expected_effect' for a in result.plan
+                    )
+                    outcome = ('accept' if has_accept
+                               else 'accept_no_ee' if has_accept_demo
+                               else 'defer' if has_defer
+                               else 'unknown')
 
                     print(f"  Success: {len(result.plan)} actions, outcome: {outcome}")
                     print(f"  Time: {execution_time:.3f}s")
