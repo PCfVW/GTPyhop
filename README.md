@@ -382,10 +382,21 @@ GTPyhop 1.9.6 includes comprehensive documentation organized in the `docs/` fold
 - **[Feature Space Poetry](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/poetry/feature_space_poetry/README.md)** - Feature-space interventions with measured data: Gemma 2 2B 426K (Version D) + Llama 3.2 1B 524K (Version L) + Gemma 2 2B 2.5M (Version D 2.5M) (12 scenarios)
 
 #### Control Arena Protocol Examples (1.9.4+)
+
+Baseline collection introduced in 1.9.4; the Adversarial Protocol sub-folder was extended in 1.9.7 (see below).
+
+**1.9.4 baseline:**
 - **[Control Arena Protocols Overview](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/control_arena_protocols/README.md)** - AI safety micro-protocols with backtracking and adversarial analysis
 - **[Defer to Trusted](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/control_arena_protocols/defer_to_trusted_protocol/README.md)** - Accept or defer based on suspicion threshold (6 scenarios)
 - **[Defer to Resample](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/control_arena_protocols/defer_to_resample_protocol/README.md)** - Recursive multi-sample resampling (6 scenarios)
-- **[Adversarial Protocol](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/control_arena_protocols/adversarial_protocol/README.md)** - Honest vs. attack with vulnerability detection (8 scenarios)
+- **[Adversarial Protocol](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/control_arena_protocols/adversarial_protocol/README.md)** - Honest vs. attack with vulnerability detection (8 scenarios, 7 actions, 7 methods)
+
+**1.9.7 extension (Adversarial Protocol sub-folder only):**
+- **Threat-model variety**: nested `detection_rates` schema indexed by `(threat_model, subtlety)`; 6 new scenarios across code sabotage / data poisoning / research sabotage
+- **`[EXPECTED_EFFECT]` marker**: first use of the tag (introduced in `trunk_thumper/s07`, used in `colt_express/s3`) in this collection; `a_accept_output` now records downstream side-task firing via `state.side_task_observed`
+- **Negative-control scenario**: 1 new scenario using teaching-variant action `a_accept_output_demo_no_expected_effect` (omits the `[EXPECTED_EFFECT]` block) to empirically demonstrate why the tag is load-bearing
+- **Aggregate after extension**: Adversarial Protocol now has 8 actions, 7 methods, 15 scenarios, 92 doctests
+- New `accept_no_ee` outcome label in `benchmarking.py` for the negative-control scenario (see collection README's "Benchmark Outcome Labels" section)
 
 #### Cybersecurity Attack Planning Example (1.9.5+)
 - **[Cybersecurity Attack Planning](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/cybersecurity_attack_planning/README.md)** - BAMS-based insider threat planning: physical, network, DMS, and malware attacks with 5 backtracking points (9 scenarios)
