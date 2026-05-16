@@ -726,7 +726,9 @@ python -m doctest -v src/gtpyhop/examples/control_arena_protocols/defer_to_resam
 python -m doctest -v src/gtpyhop/examples/control_arena_protocols/adversarial_protocol/problems.py
 ```
 
-**Documentation:** [Control Arena Protocols README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/control_arena_protocols/README.md)
+**Documentation:**
+- [Control Arena Protocols README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/control_arena_protocols/README.md) — architectural overview, Concept Mapping, Benchmark Outcome Labels, Three Levels of Integration framing
+- [Control Arena Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/control_arena_protocols/benchmarking_quickstart.md) — batch-running scenarios across all three protocol examples, with per-scenario expected-plan-length tables (added in 1.9.7)
 
 ---
 

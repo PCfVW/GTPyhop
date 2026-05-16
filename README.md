@@ -358,7 +358,7 @@ GTPyhop 1.9.7 includes comprehensive documentation organized in the `docs/` fold
 - **[Childsnack](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/ipc-2020-total-order/Childsnack/ipc-2020-to-cs-gtohp-readme.md)** - IPC 2020 Childsnack domain
 
 #### MCP Orchestration Examples (1.5.0+)
-- **[MCP Benchmarking](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/benchmarking_quickstart.md)** - MCP orchestration benchmarking guide
+- **[MCP Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/benchmarking_quickstart.md)** - MCP orchestration benchmarking guide
 - **[Bio-Opentrons PCR Workflow](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/bio_opentrons/README.md)** - PCR workflow automation (6 scenarios)
 - **[Cross-Server Orchestration](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/cross_server/README.md)** - Multi-server coordination (2 scenarios)
 - **[Drug Target Discovery](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/drug_target_discovery/README.md)** - OpenTargets platform integration (3 scenarios)
@@ -366,12 +366,13 @@ GTPyhop 1.9.7 includes comprehensive documentation organized in the `docs/` fold
 - **[TNF Cancer Modelling](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/tnf_cancer_modelling/README.md)** - Multiscale cancer modeling (1 scenario)
 
 #### Memory Tracking Examples (1.8.0+)
+- **[Memory Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/memory_tracking/benchmarking_quickstart.md)** - How to run memory benchmarks
 - **[Memory Tracking Overview](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/memory_tracking/README.md)** - Memory tracking capabilities with psutil
 - **[Scalable Data Processing](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/memory_tracking/scalable_data_processing/README.md)** - Memory scaling via data size (10K-1M items)
 - **[Scalable Recursive Decomposition](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/memory_tracking/scalable_recursive_decomposition/README.md)** - Memory scaling via recursion depth (2^k tasks)
-- **[Memory Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/memory_tracking/benchmarking_quickstart.md)** - How to run memory benchmarks
 
 #### Poetry Examples (1.9.0+)
+- **[Poetry Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/poetry/benchmarking_quickstart.md)** - Batch-running scenarios across all 7 poetry sub-folders, with strategy notes for backtracking-required examples
 - **[Poetry Overview](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/poetry/README.md)** - HTN-planned poetry generation with MCP delegation
 - **[Structured Poetry](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/poetry/structured_poetry/README.md)** - Baseline: couplet, limerick, haiku, sonnet (6 scenarios)
 - **[Backtracking Poetry](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/poetry/backtracking_poetry/README.md)** - Strict/relaxed rhyme methods with backtracking (3 scenarios)
@@ -386,6 +387,7 @@ GTPyhop 1.9.7 includes comprehensive documentation organized in the `docs/` fold
 Baseline collection introduced in 1.9.4; the Adversarial Protocol sub-folder was extended in 1.9.7 (see below).
 
 **1.9.4 baseline:**
+- **[Control Arena Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/control_arena_protocols/benchmarking_quickstart.md)** - Batch-running scenarios across all three protocol examples, with outcome-label catalog and per-scenario expected-plan-length tables (added in 1.9.7)
 - **[Control Arena Protocols Overview](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/control_arena_protocols/README.md)** - AI safety micro-protocols with backtracking and adversarial analysis
 - **[Defer to Trusted](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/control_arena_protocols/defer_to_trusted_protocol/README.md)** - Accept or defer based on suspicion threshold (6 scenarios)
 - **[Defer to Resample](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/control_arena_protocols/defer_to_resample_protocol/README.md)** - Recursive multi-sample resampling (6 scenarios)
@@ -405,6 +407,7 @@ Baseline collection introduced in 1.9.4; the Adversarial Protocol sub-folder was
 - **[Android: Netrunner Run Planning](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/android_netrunner/README.md)** - Per-card-fidelity run planning based on the published Android: Netrunner rules (2012 core set); 14 named cards, 24 actions, 6 backtracking points, 8 scenarios — flagship scenario replicates the worked example on page 19 of the core rulebook
 
 #### Trunk Thumper Game-AI Examples (1.9.6+)
+- **[Trunk Thumper Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/trunk_thumper/benchmarking_quickstart.md)** - Batch-running scenarios across all sub-folders
 - **[Trunk Thumper Collection Overview](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/trunk_thumper/README.md)** - Progressive game-AI tutorial collection based on Troy Humphreys' canonical *Game AI Pro* chapter (2015); sub-folder naming `sNN_<topic>` matches chapter section §12.NN
 - **[s03 Basic Attack or Patrol](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/trunk_thumper/s03_basic_attack_or_patrol/README.md)** - §12.3 baseline BeTrunkThumper domain (2 scenarios)
 - **[s06 Recursive Trunk Replacement](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/trunk_thumper/s06_recursive_trunk_replacement/README.md)** - §12.6 recursion via m_attack_enemy self-call (3 scenarios)
@@ -412,16 +415,15 @@ Baseline collection introduced in 1.9.4; the Adversarial Protocol sub-folder was
 - **[s08 Priority Methods](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/trunk_thumper/s08_priority_methods/README.md)** - §12.8 multi-method m_attack_enemy with WsPowerUp/WsIsTired/boulder-fallback (4 scenarios)
 - **[s09 Simultaneous Navigation and Guard](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/trunk_thumper/s09_simultaneous_navigation_and_guard/README.md)** - §12.9 single-planner non-blocking navigation with guard (3 scenarios)
 - **[s10 Partial Plans](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/trunk_thumper/s10_partial_plans/README.md)** - §12.10 manual method-split partial plans (3 scenarios)
-- **[Trunk Thumper Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/trunk_thumper/benchmarking_quickstart.md)** - Batch-running scenarios across all sub-folders
 
 #### Colt Express Game-AI Examples (1.9.7+)
+- **[Colt Express Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/colt_express/benchmarking_quickstart.md)** - Batch-running scenarios across all sub-folders with per-scenario expected-plan-length table
 - **[Colt Express Collection Overview](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/colt_express/README.md)** - Colt Express board game (Raimbault/Valbuena, Ludonaute 2014) as a multi-bandit / Marshal-driven Stealin'-only HTN example; mirrors trunk_thumper's pattern catalog at higher fidelity (5 sub-folders, 26 actions, 16 scenarios, 124 doctests)
 - **[s1 Minimal Turn](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/colt_express/s1_minimal_turn/README.md)** - Baseline priority methods: rob-if-loot vs. move-forward (3 scenarios) — pattern source: trunk_thumper s03
 - **[s3 Marshal Expected Effects](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/colt_express/s3_marshal_expected_effects/README.md)** - Marshal forced-escape via `[EXPECTED_EFFECT]` tag with negative-control scenario (3 scenarios incl. 1 intentional fail) — pattern source: trunk_thumper s07
 - **[s2 Recursive Round](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/colt_express/s2_recursive_round/README.md)** - Recursive deck resolution via `state.deck` head-pop, plus hostage-taking event (3 scenarios) — pattern source: trunk_thumper s06
 - **[s4 Character Priorities](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/colt_express/s4_character_priorities/README.md)** - Priority-method ladder for Belle / Tuco / Django / Cheyenne abilities (4 scenarios) — pattern source: trunk_thumper s08
 - **[s5 Partial Plan Movement](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/colt_express/s5_partial_plan_movement/README.md)** - Manual method-split partial plans for movement strategy (3 scenarios) — pattern source: trunk_thumper s10
-- **[Colt Express Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/colt_express/benchmarking_quickstart.md)** - Batch-running scenarios across all sub-folders with per-scenario expected-plan-length table
 
 ### External Resources
 - **[Dana's Additional Information](https://github.com/dananau/GTPyhop/blob/main/additional_information.md)** - Core GTPyhop concepts
