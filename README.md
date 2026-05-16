@@ -403,6 +403,15 @@ GTPyhop 1.9.6 includes comprehensive documentation organized in the `docs/` fold
 - **[s10 Partial Plans](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/trunk_thumper/s10_partial_plans/README.md)** - §12.10 manual method-split partial plans (3 scenarios)
 - **[Trunk Thumper Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/trunk_thumper/benchmarking_quickstart.md)** - Batch-running scenarios across all sub-folders
 
+#### Colt Express Game-AI Examples (1.9.7+)
+- **[Colt Express Collection Overview](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/colt_express/README.md)** - Colt Express board game (Raimbault/Valbuena, Ludonaute 2014) as a multi-bandit / Marshal-driven Stealin'-only HTN example; mirrors trunk_thumper's pattern catalog at higher fidelity (5 sub-folders, 26 actions, 16 scenarios, 124 doctests)
+- **[s1 Minimal Turn](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/colt_express/s1_minimal_turn/README.md)** - Baseline priority methods: rob-if-loot vs. move-forward (3 scenarios) — pattern source: trunk_thumper s03
+- **[s3 Marshal Expected Effects](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/colt_express/s3_marshal_expected_effects/README.md)** - Marshal forced-escape via `[EXPECTED_EFFECT]` tag with negative-control scenario (3 scenarios incl. 1 intentional fail) — pattern source: trunk_thumper s07
+- **[s2 Recursive Round](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/colt_express/s2_recursive_round/README.md)** - Recursive deck resolution via `state.deck` head-pop, plus hostage-taking event (3 scenarios) — pattern source: trunk_thumper s06
+- **[s4 Character Priorities](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/colt_express/s4_character_priorities/README.md)** - Priority-method ladder for Belle / Tuco / Django / Cheyenne abilities (4 scenarios) — pattern source: trunk_thumper s08
+- **[s5 Partial Plan Movement](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/colt_express/s5_partial_plan_movement/README.md)** - Manual method-split partial plans for movement strategy (3 scenarios) — pattern source: trunk_thumper s10
+- **[Colt Express Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/colt_express/benchmarking_quickstart.md)** - Batch-running scenarios across all sub-folders with per-scenario expected-plan-length table
+
 ### External Resources
 - **[Dana's Additional Information](https://github.com/dananau/GTPyhop/blob/main/additional_information.md)** - Core GTPyhop concepts
 
@@ -494,7 +503,9 @@ GTPyhop/
     │   │   └── structured_poetry/, backtracking_poetry/, candidate_planning_poetry/, bidirectional_planning_poetry/, replanning_poetry/, formal_mechanism_poetry/, feature_space_poetry/
     │   ├── cybersecurity_attack_planning/
     │   ├── android_netrunner/
-    │   └── trunk_thumper/
-    │       ├── s03_basic_attack_or_patrol/, s06_recursive_trunk_replacement/, s07_expected_effects_chase/, s08_priority_methods/, s09_simultaneous_navigation_and_guard/, s10_partial_plans/
+    │   ├── trunk_thumper/
+    │   │   ├── s03_basic_attack_or_patrol/, s06_recursive_trunk_replacement/, s07_expected_effects_chase/, s08_priority_methods/, s09_simultaneous_navigation_and_guard/, s10_partial_plans/
+    │   └── colt_express/
+    │       ├── s1_minimal_turn/, s3_marshal_expected_effects/, s2_recursive_round/, s4_character_priorities/, s5_partial_plan_movement/
     └── test_harness/
 ```

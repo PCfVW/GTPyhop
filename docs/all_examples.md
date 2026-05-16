@@ -15,8 +15,9 @@ This document provides pedagogical details about all HTN Planning examples inclu
 9. [Cybersecurity Attack Planning Example](#-cybersecurity-attack-planning-example-195)
 10. [Android: Netrunner Run Planning Example](#-android-netrunner-run-planning-example-196)
 11. [Trunk Thumper Game-AI Examples](#-trunk-thumper-game-ai-examples-196)
-12. [Running the Examples](#-running-the-examples)
-13. [Pedagogical Recommendations](#-pedagogical-recommendations)
+12. [Colt Express Game-AI Examples](#-colt-express-game-ai-examples-197)
+13. [Running the Examples](#-running-the-examples)
+14. [Pedagogical Recommendations](#-pedagogical-recommendations)
 
 ---
 
@@ -872,6 +873,84 @@ Section 8 of `docs/gtpyhop_domain_style_guide.md` was renamed "Metadata Tags: DA
 [Humphreys 15] Humphreys, T. (2015). "Exploring HTN Planners through Example." In *Game AI Pro* (Steve Rabin, ed.). Boca Raton, FL: CRC Press, pp. 149–167.
 
 **Documentation:** [Trunk Thumper Collection README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/trunk_thumper/README.md)
+
+---
+
+## Colt Express Game-AI Examples (1.9.7+)
+
+A progressive collection of HTN planning examples applied to the **Colt Express** board game (Christophe Raimbault / Jordi Valbuena, Ludonaute 2014). The collection mirrors the structural template of the trunk_thumper collection — each sub-folder demonstrates one HTN concept with a direct lineage to a trunk_thumper sub-folder, but applied to a richer multi-bandit / Marshal-driven domain. Together with trunk_thumper, it forms a two-tier teaching arc: trunk_thumper introduces each HTN pattern in a toy game-AI scenario; colt_express shows the same pattern operating in a more complex published board game.
+
+**Purpose:** Pair with trunk_thumper to demonstrate that the HTN pattern catalog scales from toy game-AI to published board games, with character-specific abilities, sensor-driven world reactions (the Marshal forced-escape), and end-of-round events.
+
+**Scope:** Only the **Stealin' phase** is modeled. The programmed deck is pre-encoded in `state.deck` and the planner resolves it action-by-action, filling in the parameter choices the rules leave open (Move direction, Fire target, Robbery pick). The Schemin' phase (strategic card selection under imperfect information) is out of scope for classical HTN.
+
+**Core concepts demonstrated:**
+- Canonical state schema shared byte-identically across all 5 sub-folders (`h_create_base_state`, `h_sample_car_loot`, `COLT_EXPRESS_LOOT_DISTRIBUTION`)
+- Priority methods baseline (s1)
+- Recursion via `state.deck` head-pop with hostage-taking event resolution (s2)
+- The `[EXPECTED_EFFECT]` tag for the Marshal forced-escape rule, with an empirical negative-control scenario (s3)
+- Priority-method ladder for 4 of 6 character abilities — Belle / Tuco / Django / Cheyenne (s4)
+- Manual method-split partial plans for movement strategy (s5)
+
+### Collection structure
+
+Sub-folder names `sN_<topic>` reflect **build order** (`s1 → s3 → s2 → s4 → s5`, with `s3` built second to lock the Marshal-aware state shape early). See the **Pattern source** column for each sub-folder's trunk_thumper lineage:
+
+| Folder | Pattern source | Actions | Methods | Scenarios |
+|---|---|---|---|---|
+| `s1_minimal_turn/` | trunk_thumper s03 (priority methods) | 3 | 2 | 3 |
+| `s3_marshal_expected_effects/` | trunk_thumper s07 (`[EXPECTED_EFFECT]`) | 6 | 2 | 3 (incl. 1 negative control) |
+| `s2_recursive_round/` | trunk_thumper s06 (recursion) | 4 | 4 | 3 |
+| `s4_character_priorities/` | trunk_thumper s08 (priority ladder) | 8 | 6 | 4 |
+| `s5_partial_plan_movement/` | trunk_thumper s10 (method-split) | 5 | 5 | 3 |
+
+**Totals:** 26 actions across 5 sub-folders, 16 scenarios, 124 doctests, plus collection-level `benchmarking.py` and `benchmarking_quickstart.md`.
+
+trunk_thumper's `s09` (simultaneous behaviors via non-blocking navigation) has no Colt Express analog — bandits play exactly one card per turn — so the pattern is not represented in this collection.
+
+**Scenarios highlight:**
+- s3's `scenario_3_expected_effects_negative_control` deliberately **fails**: it uses a teaching-variant action `a_move_demo_no_marshal_trigger` that omits the `[EXPECTED_EFFECT]` block on the Marshal forced-escape, and the downstream `a_fire` action's precondition (shooter on roof) cannot be satisfied. This is the empirical demonstration of *why* the `[EXPECTED_EFFECT]` tag is needed — structurally identical to trunk_thumper s07 scenario 3.
+- s4's `scenario_1_belle_immunity_redirects_fire` demonstrates the Belle-immunity priority method: when Tuco fires at Belle and an alternative target exists, the higher-priority method redirects the shot. Structural twin of trunk_thumper s08's WsIsTired fix (a higher-priority precondition guard preventing a generic action from firing in a rule-defined situation).
+- s5's scenarios 1 and 2 use the **same initial state** but different task names (`m_resolve_move_full_plan` vs. `m_resolve_move_partial_plan`), producing plan lengths 2 and 1 respectively — exactly the trunk_thumper s10 idiom for demonstrating the partial-plan reactivity argument.
+
+### Running scenarios
+
+**Per-sub-folder:**
+
+```bash
+# Doctests for a single sub-folder
+python -m doctest -v src/gtpyhop/examples/colt_express/s3_marshal_expected_effects/problems.py
+
+# Programmatic execution
+python -c "
+import copy, gtpyhop
+from gtpyhop.examples.colt_express.s2_recursive_round import the_domain, get_problems
+for name, (state, tasks, _) in get_problems().items():
+    state_copy = copy.deepcopy(state)
+    with gtpyhop.PlannerSession(domain=the_domain, verbose=0,
+            strategy='iterative_dfs_backtracking') as s:
+        r = s.find_plan(state_copy, tasks)
+    print(f'{name}: success={r.success}, len={len(r.plan) if r.plan else 0}')
+"
+```
+
+**Across all sub-folders (via the collection-level benchmarking script):**
+
+```bash
+cd src/gtpyhop/examples/colt_express
+python benchmarking.py --list-domains
+python benchmarking.py s1_minimal_turn
+python benchmarking.py s3_marshal_expected_effects --strategy iterative_dfs_backtracking
+python benchmarking.py s4_character_priorities
+```
+
+See `src/gtpyhop/examples/colt_express/benchmarking_quickstart.md` for the full guide (including a per-scenario expected-plan-length table).
+
+### Reference
+
+Raimbault, C., and Valbuena, J. *Colt Express*. Ludonaute / Asmodee, 2014. <http://www.coltexpress.ludonaute.fr>
+
+**Documentation:** [Colt Express Collection README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/colt_express/README.md)
 
 ---
 
