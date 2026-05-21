@@ -82,6 +82,20 @@ Note: the previous Doctests badge value of `208` (used on `pip`-branch READMEs s
 - `docs/all_examples.md` gets a new top-level "Colt Express Game-AI Examples (1.9.7+)" section and an extended "Adversarial Protocol (1.9.4 baseline, extended in 1.9.7)" subsection
 - `README.md` (main) restructures the Control Arena Protocol Examples list into "1.9.4 baseline" and "1.9.7 extension" subsections so readers can see at a glance which content shipped in which version
 - All version-context references in user-facing READMEs use **1.9.4 / 1.9.7** language (date stamps in source files like `# Generated 2026-05-16` kept as historical metadata)
+- New `src/gtpyhop/examples/control_arena_protocols/benchmarking_quickstart.md` (~150 LOC), matching the quickstart pattern used by the other 5 multi-folder example collections. Outcome-label catalog (`accept` / `defer` / `accept_no_ee` / `unknown`) and per-scenario expected-plan-length tables for all 27 scenarios across the three sub-folders
+- Missing main-README link to `poetry/benchmarking_quickstart.md` added; "MCP Benchmarking" link relabeled to "MCP Benchmarking Quickstart" for naming consistency across all 7 quickstart links
+
+### Style guide update
+
+`docs/gtpyhop_domain_style_guide.md` §8.4 (EXPECTED_EFFECT Tag Guidelines) was expanded to reflect the tag's new in-repo usages:
+
+- The "When to use" criteria now distinguish **two flavors of load-bearing role**:
+  - **Workflow-gating flavor** — omitting the tag breaks a downstream action's precondition; the plan *fails* (trunk_thumper s07, colt_express s3)
+  - **Observability flavor** — omitting the tag leaves a state property unset that downstream inspection or scoring reads; the plan *succeeds* but a safety/correctness invariant is silently broken (adversarial_protocol — new in 1.9.7)
+- The "Pedagogical reference" paragraph was replaced with a **3-row table** covering all three in-repo example implementations: `trunk_thumper/s07_expected_effects_chase/` (1.9.6, workflow-gating), `colt_express/s3_marshal_expected_effects/` (1.9.7, workflow-gating), and `control_arena_protocols/adversarial_protocol/` (1.9.7, observability)
+- New "Note on the two flavors" paragraph after the table elaborates why the observability flavor is subtler: the tag's value comes from making implicit external-system side effects auditably present in the planner's state, even when no downstream precondition reads them
+
+The observability-flavor distinction is new to 1.9.7 because it's a property of the `adversarial_protocol` extension. trunk_thumper's §8.4 introduction (1.9.6) implicitly assumed the workflow-gating flavor; 1.9.7's `adversarial_protocol` is the first example whose negative-control scenario *succeeds* rather than failing.
 
 ---
 

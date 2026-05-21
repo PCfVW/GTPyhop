@@ -404,9 +404,11 @@ state.network_components = ["TNF_sensing", "apoptosis", "proliferation"]
 **GTPyhop semantics**: GTPyhop does not distinguish runtime effects from planning-time effects. `[EXPECTED_EFFECT]` is **semantically identical to `[DATA]`** — the planner applies both to the working world state during decomposition. The tag is purely informational: it communicates *why* the action sets the property, namely that it's modeling a sensor-driven change rather than a direct operator output.
 
 **When to use**:
-- The action represents an operator that runs in a real system (game, robot, etc.)
-- After the operator completes, some external observer/sensor will update the world state
-- A downstream task needs to consume that updated state as a precondition
+- The action represents an operator that runs in a real system (game, robot, deployment executor, etc.)
+- After the operator completes, some external observer / sensor / system will update the world state
+- Either:
+  - **(a) workflow-gating flavor**: a downstream task needs to consume the updated state as a precondition. Without the tag's effect, the plan *fails*.
+  - **(b) observability flavor**: a downstream observer or scoring step needs to read the state to detect a property. Without the tag's effect, the plan *succeeds* but the property is silently absent — a safety/correctness invariant is broken without any planning-level signal.
 
 **Example** (from `trunk_thumper/s07_expected_effects_chase/`):
 
@@ -427,7 +429,17 @@ state.can_see_enemy = True
 - The state property is a configuration constant or a counter (use `[DATA]`)
 - The state change gates a workflow step (use `[ENABLER]`)
 
-**Pedagogical reference**: `src/gtpyhop/examples/trunk_thumper/s07_expected_effects_chase/` includes both the canonical action and a teaching-variant action *without* the `[EXPECTED_EFFECT]`, plus a negative-control scenario that demonstrates the plan failing when the tag's effect is omitted. This is the recommended entry point for learning the tag.
+**Pedagogical references**: Three in-repo example implementations of the tag, in order of increasing complexity. Each ships both the canonical action and a byte-identical teaching variant (suffixed `_demo_no_ee` or `_demo_no_expected_effect`) that deliberately omits the `[EXPECTED_EFFECT]` block, accompanied by a negative-control scenario that demonstrates the empirical consequence of the omission.
+
+| Sub-folder | Canonical action | Sensor / system effect | Flavor | Negative-control behavior |
+|---|---|---|---|---|
+| `src/gtpyhop/examples/trunk_thumper/s07_expected_effects_chase/` (1.9.6) | `a_nav_to_last_enemy_loc` | Vision sensor sets `can_see_enemy = True` once the troll arrives at the destination | Workflow-gating | Plan **fails** — downstream `a_regain_los_roar` precondition unsatisfied |
+| `src/gtpyhop/examples/colt_express/s3_marshal_expected_effects/` (1.9.7) | `a_move` | Game system pushes bandit to roof + issues neutral bullet when destination car contains the Marshal | Workflow-gating | Plan **fails** — downstream `a_fire`'s "shooter on roof" precondition unsatisfied |
+| `src/gtpyhop/examples/control_arena_protocols/adversarial_protocol/` (1.9.7) | `a_accept_output` | Deployment executor fires the embedded side task when `side_task_embedded` is True | Observability | Plan **succeeds** — but `state.side_task_observed` stays False; the safety-inspection invariant is silently broken |
+
+**Recommended entry point**: `trunk_thumper/s07_expected_effects_chase/` (simplest of the three; the canonical introduction of the tag).
+
+**Note on the two flavors**: the *workflow-gating* flavor (the first two examples) makes the tag's load-bearing role visible at planning time — omit it and planning fails outright. The *observability* flavor (the third example) is subtler: the plan still succeeds, but a state property that downstream auditing reads is silently left unset. The observability flavor's value comes from making implicit external-system side effects *auditably present* in the planner's state — even when no downstream precondition reads them.
 
 ### 8.5 Tag Placement in State Property Map
 
