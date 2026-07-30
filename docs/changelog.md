@@ -1,6 +1,32 @@
 # GTPyhop Version History
 
-## 1.9.7 — Colt Express Collection + Control Arena adversarial_protocol Extension (Latest, Recommended)
+## 2.0.0 — gtpyhop-core / gtpyhop-examples / gtpyhop Package Split (Latest, Recommended)
+
+This is a packaging-only major release: no planner algorithm changes. GTPyhop is now published as three coordinated PyPI distributions instead of one. `pip install gtpyhop` is unaffected and remains a full install, byte-identical to pre-2.0 installs; `pip install gtpyhop-core` is new and gives a lean, examples-free install.
+
+### Package Split (breaking, packaging only)
+
+| Distribution | Contents | Import surface |
+|---|---|---|
+| `gtpyhop-core` | Planner, structured logging, test_harness, memory_tracking — no bundled examples | `gtpyhop` |
+| `gtpyhop-examples` | Bundled example domains; merges into `gtpyhop.examples` as a namespace subpackage; depends on `gtpyhop-core==2.0.0` | `gtpyhop.examples` |
+| `gtpyhop` | Meta-package, ships no source of its own; depends on `gtpyhop-core==2.0.0` and `gtpyhop-examples==2.0.0` | `gtpyhop` + `gtpyhop.examples` |
+
+Motivated by two independent concerns: install footprint for production/CI/embedded use, and eliminating the bundled example domains (many files named exactly `domain.py`/`problems.py`) as an unintended "crib channel" reachable by AI agents being evaluated on authoring GTPyhop-format domains.
+
+Repo restructured into `packages/gtpyhop-core/`, `packages/gtpyhop-examples/`, and `packages/gtpyhop/`, each with its own `pyproject.toml`; the old root `src/gtpyhop/` layout and root `pyproject.toml` are gone. `gtpyhop-core`'s `__init__.py` now also carries a mutual-exclusivity guard that detects a pre-2.0 `gtpyhop` install colliding with `gtpyhop-core` in the same environment and raises a clear `ImportError` instead of letting their files silently overwrite each other under `site-packages/gtpyhop/`.
+
+### Bug Fixes (found while moving files; unrelated to the split itself)
+
+- **`ipc-2020-total-order/benchmarking.py`**: `run_multiple()` unpacked each problem as a `(state, goal)` 2-tuple, but both `Blocksworld-GTOHP` and `Childsnack`'s `get_problems()` return `(state, goal, description)` 3-tuples — every batch run of either domain crashed with `ValueError: too many values to unpack (expected 2, got 3)`. Confirmed pre-existing and unrelated to the 2.0 restructuring (the failing path-depth arithmetic is identical against both the old and new directory layout); surfaced while re-running every example collection's benchmarking script after the split. Fixed by unpacking the description and discarding it, since `run_single()` never used it.
+- **`backtracking_htn.py`, `regression_tests.py`**: both imported `get_recursive_planning` via `from src.gtpyhop.main import ...`, which only ever worked from this specific repo's own dev checkout layout, never from an installed package. Collapsed a 3-tier try/except fallback to `from gtpyhop import get_recursive_planning`, already re-exported publicly.
+- **`gtpyhop-examples`** now declares `numpy` as a dependency — used by the `omega_hdq_dna_bacteria_flex_96_channel` MCP-orchestration example, previously undeclared anywhere.
+
+### Verification
+
+Built all three wheels and, in fresh venvs, confirmed: `gtpyhop-core` alone has no `gtpyhop.examples` module; `gtpyhop-core` + `gtpyhop-examples` together pass the full `regression_tests` suite; the `gtpyhop` meta-package transitively installs both with an identical import surface to a pre-2.0 install; and the mutual-exclusivity guard fires correctly against a simulated legacy install. Additionally ran every example collection's benchmarking script (`colt_express`, `ipc-2020-total-order`, `mcp-orchestration`, `poetry`, `trunk_thumper`, `control_arena_protocols` — all three protocol types, `memory_tracking` — light and moderate scenarios) with no regressions beyond the one bug fixed above.
+
+## 1.9.7 — Colt Express Collection + Control Arena adversarial_protocol Extension
 
 This version closes the 1.9 minor on the "examples" theme. It adds the **Colt Express** example collection (a 5-sub-folder pedagogical collection mirroring `trunk_thumper`'s pattern catalog applied to the published board game) and **extends the existing `adversarial_protocol/`** sub-folder of `control_arena_protocols/` with three additive features. No planner changes; pure additions to the example library.
 

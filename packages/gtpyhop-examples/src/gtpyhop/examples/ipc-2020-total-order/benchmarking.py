@@ -481,7 +481,7 @@ class PlannerBenchmark:
 
         return result
 
-    def run_multiple(self, problems: Dict[str, Tuple[Any, Any]], benchmarking_verbose: int = 0) -> List[BenchmarkResult]:
+    def run_multiple(self, problems: Dict[str, Tuple[Any, Any, str]], benchmarking_verbose: int = 0) -> List[BenchmarkResult]:
         """
         Execute multiple planning problems in batch mode with consistent verbosity.
 
@@ -489,7 +489,7 @@ class PlannerBenchmark:
         consistent verbosity settings and providing batch execution optimizations.
 
         Args:
-            problems: Dictionary mapping problem names to (state, goal) tuples
+            problems: Dictionary mapping problem names to (state, goal, description) tuples
             benchmarking_verbose: Verbosity level for all planning executions
 
         Returns:
@@ -499,8 +499,10 @@ class PlannerBenchmark:
         current_verbose_level = get_verbose_level()
         set_verbose_level(benchmarking_verbose)
 
-        # Execute all problems with batch optimization flag
-        for name, (state, goal) in problems.items():
+        # Execute all problems with batch optimization flag. get_problems()
+        # for this collection's domains returns (state, goal, description)
+        # triples; the description is informational only and unused here.
+        for name, (state, goal, _description) in problems.items():
             self.run_single(name, state, goal, benchmarking_verbose, multiple_problems=True)
 
         # Restore original verbosity level
