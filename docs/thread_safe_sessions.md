@@ -111,6 +111,48 @@ When `strategy` is provided, `recursive` is ignored. The `session.recursive` pro
 
 The strategy name is reported in `result.stats["strategy"]` (e.g. `"iterative_dfs_backtracking"`).
 
+## Execution Diagnostics with PlanTrace (2.0.0+)
+
+GTPyhop 2.0.0 adds opt-in structured tracing of `find_plan`'s search: pass `trace=True` to record every action-application and method-refinement attempt, so you can see *why* a scenario failed to plan, not just that it did. Default `False`; costs nothing when not requested.
+
+```python
+with gtpyhop.PlannerSession(domain=my_domain, verbose=0) as session:
+    result = session.find_plan(state, tasks, trace=True)
+
+if not result.success:
+    dead_end = result.trace.dead_end
+    print(f"Failed at depth {dead_end.depth}: {dead_end.item} ({dead_end.status})")
+    print(f"{result.trace.applied_before_dead_end} actions applied before the dead end")
+    if result.trace.malformed_returns:
+        print("Malformed returns found:", result.trace.malformed_returns)
+```
+
+`result.trace` is a `PlanTrace` recording every attempt in depth-first order:
+
+| API | Description |
+|-----|-------------|
+| `result.trace.events` | Ordered list of `TraceEvent(depth, item, status, detail)` |
+| `result.trace.dead_end` | First terminal event (see statuses below), or `None` if every recorded item succeeded |
+| `result.trace.applied_before_dead_end` | Count of applied/idempotent actions recorded strictly before `dead_end` |
+| `result.trace.malformed_returns` | All events where an action or method violated its return contract |
+
+`TraceEvent.item` holds whatever todo-list entry the event concerns: an action tuple for the action-level statuses, or a task/unigoal/`Multigoal` for the refinement-level ones.
+
+| Status | Terminal? | Meaning |
+|--------|:---------:|---------|
+| `applied` | No | Action returned a changed `State`; recorded in the plan |
+| `idempotent` | No | Action returned an unchanged `State`; not recorded, search continued |
+| `not_applicable` | Yes | Action returned exactly `False` — a legitimate precondition failure |
+| `malformed_return` | Yes | Action returned neither `State` nor `False` (e.g. `True`) — a domain-authoring bug, previously indistinguishable from `not_applicable` |
+| `method_applicable` | No | A candidate method for a task/unigoal/multigoal returned a subtask/subgoal list |
+| `method_not_applicable` | No | A candidate method returned `False`/`None`; the loop moves to the next candidate |
+| `method_malformed_return` | Yes | A candidate method returned something that is neither a list, `False`, nor `None` — terminal because the value is used immediately afterward and raises `TypeError`, so the enclosing `*_exhausted` event is never reached |
+| `task_exhausted` / `goal_exhausted` / `multigoal_exhausted` | Yes | Every candidate method was tried and none succeeded |
+
+`PlanTrace` is a mechanical primitive only: it reports *which* action or method, at what depth, with what status — it does not attribute failure to a specific precondition or state variable. That remains a source-level analysis for the caller.
+
+`PlanResult` and `ExecutionResult` also correctly support `bool(result)` as of 2.0.0 (equivalent to `result.success`) — previously both were plain dataclasses and therefore always truthy regardless of outcome, so `if result:` silently ignored failures. Always check `.success` explicitly if you're on an earlier version.
+
 ## Concurrent Planning Example
 
 Two sessions plan in parallel, each with its own Domain and verbosity. Before 1.3.0, mutating globals concurrently risked races and cross-talk between runs.
@@ -184,7 +226,7 @@ Concurrent use of the classic global API is effectively unsafe:
 | `PlannerSession(domain, verbose, ...)` | Isolated planning context |
 | `PlannerSession(strategy=...)` | Strategy selection: `"recursive_dfs"`, `"iterative_greedy"`, `"iterative_dfs_backtracking"` (1.9.0+) |
 | `session.isolated_execution()` | Context manager for safe execution |
-| `session.find_plan(state, tasks, timeout_ms)` | Plan with optional timeout |
+| `session.find_plan(state, tasks, timeout_ms, trace)` | Plan with optional timeout and execution tracing (2.0.0+) |
 | `create_session(session_id, **kwargs)` | Create and register a session |
 | `get_session(session_id)` | Fetch existing session |
 | `destroy_session(session_id)` | Cleanup and remove session |
@@ -209,6 +251,19 @@ Concurrent use of the classic global API is effectively unsafe:
 | `memory_sampling_interval` | Sampling interval: 0.1s default, use 0.001s for fast scenarios (<100ms) |
 | `result.stats['memory_mb']` | Memory used during planning |
 | `result.stats['peak_memory_mb']` | Peak memory observed |
+
+### Execution Diagnostics APIs (2.0.0+)
+
+| API | Description |
+|-----|-------------|
+| `session.find_plan(..., trace=True)` | Opt in to recording a `PlanTrace` of the search (default `False`, no cost when unused) |
+| `result.trace` | `PlanTrace`, or `None` if `trace=False` |
+| `result.trace.events` | Ordered `TraceEvent(depth, item, status, detail)` list |
+| `result.trace.dead_end` | First terminal event, or `None` |
+| `result.trace.applied_before_dead_end` | Actions applied before the dead end |
+| `result.trace.malformed_returns` | Events where an action/method violated its return contract |
+
+See [Execution Diagnostics with PlanTrace](#execution-diagnostics-with-plantrace-200) above for the full status table and a worked example.
 
 ## Dual-Mode Interface
 
@@ -237,6 +292,7 @@ Use sessions when:
 - Needing per-run settings (verbosity, planning strategy) without affecting others
 - Requiring timeouts/cancellation, structured logs, or persistence per run
 - Tracking memory usage during planning (1.8.0+)
+- Diagnosing *why* a scenario failed to plan, not just that it did (2.0.0+)
 
 ## Related Documentation
 
