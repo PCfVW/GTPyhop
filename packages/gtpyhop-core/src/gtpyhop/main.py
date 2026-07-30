@@ -1015,22 +1015,21 @@ Design Notes:
 # Recursive Planning Implementation
 
 
-def _record_trace_event(depth, task1, status, newstate=None):
+def _record_trace_event(depth, item, status, returned_value=None):
     """
-    Record one action-application attempt into the active PlanTrace, if
-    find_plan(..., trace=True) is in effect for the current call
-    (_trace_collector is None otherwise, in which case this is a no-op).
-    Shared by both the recursive and iterative action-application paths
-    (and, transitively, by iterative DFS backtracking, which reuses the
-    iterative path for actions) so all three planning strategies produce
-    traces through one code path.
+    Record one action-application or method-refinement attempt into the
+    active PlanTrace, if find_plan(..., trace=True) is in effect for the
+    current call (_trace_collector is None otherwise, in which case this is
+    a no-op). Shared by the recursive, iterative, and iterative-backtracking
+    action-application and refinement paths, so all three planning
+    strategies produce traces through the same code path.
     """
     if _trace_collector is None:
         return
     detail = None
-    if status == "malformed_return":
-        detail = f"returned {type(newstate).__name__}: {newstate!r:.200}"
-    _trace_collector.record(depth=depth, action=task1, status=status, detail=detail)
+    if status in ("malformed_return", "method_malformed_return"):
+        detail = f"returned {type(returned_value).__name__}: {returned_value!r:.200}"
+    _trace_collector.record(depth=depth, item=item, status=status, detail=detail)
 
 
 def _apply_action_and_continue_recursive(state, task1, todo_list, plan, depth):
@@ -1084,7 +1083,7 @@ def _refine_task_and_continue_recursive(state, task1, todo_list, plan, depth):
     if verbose >= 3:
         print(f'depth {depth} task {task1} methods {[m.__name__ for m in relevant]}')
     for method in relevant:
-        if verbose >= 3: 
+        if verbose >= 3:
             print(f'depth {depth} trying {method.__name__}: ', end='')
         subtasks = method(state, *task1[1:])
         # Can't just say "if subtasks:", because that's wrong if subtasks == []
@@ -1092,14 +1091,19 @@ def _refine_task_and_continue_recursive(state, task1, todo_list, plan, depth):
             if verbose >= 3:
                 print('applicable')
                 print(f'depth {depth} subtasks: {subtasks}')
+            _record_trace_event(depth, task1,
+                "method_applicable" if isinstance(subtasks, list) else "method_malformed_return",
+                subtasks)
             result = seek_plan_recursive(state, subtasks+todo_list, plan, depth+1)
             if result != False and result != None:
                 return result
         else:
             if verbose >= 3:
                 print(f'not applicable')
+            _record_trace_event(depth, task1, "method_not_applicable")
     if verbose >= 3:
-        print(f'depth {depth} could not accomplish task {task1}')        
+        print(f'depth {depth} could not accomplish task {task1}')
+    _record_trace_event(depth, task1, "task_exhausted")
     return False
 
 
@@ -1124,7 +1128,7 @@ def _refine_unigoal_and_continue_recursive(state, goal1, todo_list, plan, depth)
     if verbose >= 3:
         print(f'methods {[m.__name__ for m in relevant]}')
     for method in relevant:
-        if verbose >= 3: 
+        if verbose >= 3:
             print(f'depth {depth} trying method {method.__name__}: ', end='')
         subgoals = method(state,arg,val)
         # Can't just say "if subgoals:", because that's wrong if subgoals == []
@@ -1132,6 +1136,9 @@ def _refine_unigoal_and_continue_recursive(state, goal1, todo_list, plan, depth)
             if verbose >= 3:
                 print('applicable')
                 print(f'depth {depth} subgoals: {subgoals}')
+            _record_trace_event(depth, goal1,
+                "method_applicable" if isinstance(subgoals, list) else "method_malformed_return",
+                subgoals)
             if verify_goals:
                 verification = [('_verify_g', method.__name__, \
                                  state_var_name, arg, val, depth)]
@@ -1143,9 +1150,11 @@ def _refine_unigoal_and_continue_recursive(state, goal1, todo_list, plan, depth)
                 return result
         else:
             if verbose >= 3:
-                print(f'not applicable')        
+                print(f'not applicable')
+            _record_trace_event(depth, goal1, "method_not_applicable")
     if verbose >= 3:
-        print(f'depth {depth} could not achieve goal {goal1}')        
+        print(f'depth {depth} could not achieve goal {goal1}')
+    _record_trace_event(depth, goal1, "goal_exhausted")
     return False
 
 
@@ -1165,7 +1174,7 @@ def _refine_multigoal_and_continue_recursive(state, goal1, todo_list, plan, dept
     if verbose >= 3:
         print(f'methods {[m.__name__ for m in relevant]}')
     for method in relevant:
-        if verbose >= 3: 
+        if verbose >= 3:
             print(f'depth {depth} trying method {method.__name__}: ', end='')
         subgoals = method(state,goal1)
         # Can't just say "if subgoals:", because that's wrong if subgoals == []
@@ -1173,6 +1182,9 @@ def _refine_multigoal_and_continue_recursive(state, goal1, todo_list, plan, dept
             if verbose >= 3:
                 print('applicable')
                 print(f'depth {depth} subgoals: {subgoals}')
+            _record_trace_event(depth, goal1,
+                "method_applicable" if isinstance(subgoals, list) else "method_malformed_return",
+                subgoals)
             if verify_goals:
                 verification = [('_verify_mg', method.__name__, goal1, depth)]
             else:
@@ -1184,8 +1196,10 @@ def _refine_multigoal_and_continue_recursive(state, goal1, todo_list, plan, dept
         else:
             if verbose >= 3:
                 print(f'not applicable')
+            _record_trace_event(depth, goal1, "method_not_applicable")
     if verbose >= 3:
-        print(f'depth {depth} could not achieve multigoal {goal1}')        
+        print(f'depth {depth} could not achieve multigoal {goal1}')
+    _record_trace_event(depth, goal1, "multigoal_exhausted")
     return False
 
 def seek_plan_recursive(state, todo_list, plan, depth):
@@ -1291,6 +1305,12 @@ def _refine_task_and_continue_iterative(state, task1, todo_list, plan, depth):
             if verbose >= 3:
                 print('applicable')
                 _verbose_print_and_log(f'depth {depth} subtasks: {subtasks}', 3, "refine_task")
+            # Record before the len() call below, which raises TypeError on
+            # a malformed (non-list) subtasks value -- recording must happen
+            # first so the malformed_return event survives that crash.
+            _record_trace_event(depth, task1,
+                "method_applicable" if isinstance(subtasks, list) else "method_malformed_return",
+                subtasks)
             _log_if_available("debug", "refine_task", "Method applicable",
                              method_name=method.__name__, subtask_count=len(subtasks))
             result = (state, subtasks + todo_list, plan, depth + 1)
@@ -1300,10 +1320,12 @@ def _refine_task_and_continue_iterative(state, task1, todo_list, plan, depth):
                 print(f'not applicable')
             _log_if_available("debug", "refine_task", "Method not applicable",
                              method_name=method.__name__)
+            _record_trace_event(depth, task1, "method_not_applicable")
     if verbose >= 3:
         _verbose_print_and_log(f'depth {depth} could not accomplish task {task1}', 3, "refine_task")
     _log_if_available("debug", "refine_task", "Task refinement failed",
                      task_name=task1[0], depth=depth)
+    _record_trace_event(depth, task1, "task_exhausted")
     return None
 
 def _refine_unigoal_and_continue_iterative(state, goal1, todo_list, plan, depth):
@@ -1330,6 +1352,9 @@ def _refine_unigoal_and_continue_iterative(state, goal1, todo_list, plan, depth)
             if verbose >= 3:
                 print('applicable')
                 print(f'depth {depth} subgoals: {subgoals}')
+            _record_trace_event(depth, goal1,
+                "method_applicable" if isinstance(subgoals, list) else "method_malformed_return",
+                subgoals)
             if verify_goals:
                 verification = [('_verify_g', method.__name__, state_var_name, arg, val, depth)]
             else:
@@ -1339,8 +1364,10 @@ def _refine_unigoal_and_continue_iterative(state, goal1, todo_list, plan, depth)
         else:
             if verbose >= 3:
                 print(f'not applicable')
+            _record_trace_event(depth, goal1, "method_not_applicable")
     if verbose >= 3:
         print(f'depth {depth} could not achieve goal {goal1}')
+    _record_trace_event(depth, goal1, "goal_exhausted")
     return None
 
 def _refine_multigoal_and_continue_iterative(state, goal1, todo_list, plan, depth):
@@ -1362,6 +1389,9 @@ def _refine_multigoal_and_continue_iterative(state, goal1, todo_list, plan, dept
             if verbose >= 3:
                 print('applicable')
                 print(f'depth {depth} subgoals: {subgoals}')
+            _record_trace_event(depth, goal1,
+                "method_applicable" if isinstance(subgoals, list) else "method_malformed_return",
+                subgoals)
             if verify_goals:
                 verification = [('_verify_mg', method.__name__, goal1, depth)]
             else:
@@ -1371,8 +1401,10 @@ def _refine_multigoal_and_continue_iterative(state, goal1, todo_list, plan, dept
         else:
             if verbose >= 3:
                 print(f'not applicable')
+            _record_trace_event(depth, goal1, "method_not_applicable")
     if verbose >= 3:
         print(f'depth {depth} could not achieve multigoal {goal1}')
+    _record_trace_event(depth, goal1, "multigoal_exhausted")
     return None
 
 ################################################################################
@@ -1403,6 +1435,12 @@ def _refine_task_and_continue_iterative_bt(state, task1, todo_list, plan, depth)
             if verbose >= 3:
                 print('applicable')
                 _verbose_print_and_log(f'depth {depth} subtasks: {subtasks}', 3, "refine_task_bt")
+            # Record before the len() call below, which raises TypeError on
+            # a malformed (non-list) subtasks value -- recording must happen
+            # first so the malformed_return event survives that crash.
+            _record_trace_event(depth, task1,
+                "method_applicable" if isinstance(subtasks, list) else "method_malformed_return",
+                subtasks)
             _log_if_available("debug", "refine_task_bt", "Method applicable",
                              method_name=method.__name__, subtask_count=len(subtasks))
             continuations.append((state, subtasks + todo_list, plan, depth + 1))
@@ -1411,12 +1449,14 @@ def _refine_task_and_continue_iterative_bt(state, task1, todo_list, plan, depth)
                 print(f'not applicable')
             _log_if_available("debug", "refine_task_bt", "Method not applicable",
                              method_name=method.__name__)
+            _record_trace_event(depth, task1, "method_not_applicable")
 
     if not continuations:
         if verbose >= 3:
             _verbose_print_and_log(f'depth {depth} could not accomplish task {task1}', 3, "refine_task_bt")
         _log_if_available("debug", "refine_task_bt", "Task refinement failed",
                          task_name=task1[0], depth=depth)
+        _record_trace_event(depth, task1, "task_exhausted")
     return continuations
 
 
@@ -1445,6 +1485,9 @@ def _refine_unigoal_and_continue_iterative_bt(state, goal1, todo_list, plan, dep
             if verbose >= 3:
                 print('applicable')
                 print(f'depth {depth} subgoals: {subgoals}')
+            _record_trace_event(depth, goal1,
+                "method_applicable" if isinstance(subgoals, list) else "method_malformed_return",
+                subgoals)
             if verify_goals:
                 verification = [('_verify_g', method.__name__, state_var_name, arg, val, depth)]
             else:
@@ -1454,10 +1497,12 @@ def _refine_unigoal_and_continue_iterative_bt(state, goal1, todo_list, plan, dep
         else:
             if verbose >= 3:
                 print(f'not applicable')
+            _record_trace_event(depth, goal1, "method_not_applicable")
 
     if not continuations:
         if verbose >= 3:
             print(f'depth {depth} could not achieve goal {goal1}')
+        _record_trace_event(depth, goal1, "goal_exhausted")
     return continuations
 
 
@@ -1481,6 +1526,9 @@ def _refine_multigoal_and_continue_iterative_bt(state, goal1, todo_list, plan, d
             if verbose >= 3:
                 print('applicable')
                 print(f'depth {depth} subgoals: {subgoals}')
+            _record_trace_event(depth, goal1,
+                "method_applicable" if isinstance(subgoals, list) else "method_malformed_return",
+                subgoals)
             if verify_goals:
                 verification = [('_verify_mg', method.__name__, goal1, depth)]
             else:
@@ -1490,10 +1538,12 @@ def _refine_multigoal_and_continue_iterative_bt(state, goal1, todo_list, plan, d
         else:
             if verbose >= 3:
                 print(f'not applicable')
+            _record_trace_event(depth, goal1, "method_not_applicable")
 
     if not continuations:
         if verbose >= 3:
             print(f'depth {depth} could not achieve multigoal {goal1}')
+        _record_trace_event(depth, goal1, "multigoal_exhausted")
     return continuations
 
 ################################################################################
@@ -1918,11 +1968,27 @@ Design Notes:
 - Backward compatibility maintained through global function preservation
 """
 
+#: Terminal statuses: recorded once, when a search path has definitively
+#: failed at that point. Candidates for PlanTrace.dead_end.
+_TERMINAL_STATUSES = frozenset({
+    "not_applicable", "malformed_return",
+    "task_exhausted", "goal_exhausted", "multigoal_exhausted",
+    # A malformed method return is structurally positioned like
+    # "method_applicable" (the code proceeds to use it), but in practice
+    # it is terminal: `subtasks + todo_list` on a non-list value raises
+    # TypeError immediately, ending the search via exception rather than
+    # ever reaching the "*_exhausted" line. Recording it as terminal means
+    # dead_end reports the true proximate cause instead of missing it.
+    "method_malformed_return",
+})
+
+
 @dataclass
 class TraceEvent:
     """
-    One action-application attempt recorded during find_plan's search, in
-    depth-first visitation order.
+    One attempt recorded during find_plan's search, in depth-first
+    visitation order: applying an action, or trying a method to refine a
+    task/unigoal/multigoal.
 
     status is one of:
       - "applied":          the action returned a State different from the
@@ -1932,67 +1998,114 @@ class TraceEvent:
                              continued from it.
       - "not_applicable":   the action returned exactly False (the documented
                              failure contract) -- a legitimate precondition
-                             failure.
+                             failure. Terminal for this item.
       - "malformed_return": the action returned something that is neither a
                              State nor False (e.g. True, None, a string).
                              Before this status existed, GTPyhop treated this
                              identically to "not_applicable", making a broken
                              action indistinguishable from a legitimate
                              precondition failure. detail describes what was
-                             actually returned.
+                             actually returned. Terminal for this item.
+      - "method_applicable":       a candidate method for this task/unigoal/
+                                    multigoal returned a subtask/subgoal list.
+                                    Not terminal -- for recursive search, a
+                                    locally-applicable method can still lead
+                                    to eventual failure deeper in the tree.
+      - "method_not_applicable":   a candidate method returned False/None.
+                                    Not terminal -- the loop moves on to the
+                                    next candidate method, if any remain.
+      - "method_malformed_return": a candidate method returned something
+                                    that is neither a list, False, nor None
+                                    (e.g. True) -- the method-level analogue
+                                    of an action's malformed_return. Terminal:
+                                    although structurally positioned like
+                                    "method_applicable" in the code, the
+                                    malformed value is used immediately
+                                    afterward (subtasks + todo_list), which
+                                    raises TypeError before the enclosing
+                                    task/unigoal/multigoal's *_exhausted event
+                                    would ever be reached. detail describes
+                                    what was actually returned.
+      - "task_exhausted":       every candidate method for this task was
+                                 tried (recorded as method_applicable or
+                                 method_not_applicable/malformed_return
+                                 above) and none led to a successful plan.
+                                 Terminal.
+      - "goal_exhausted":       same, for a unigoal. Terminal.
+      - "multigoal_exhausted":  same, for a multigoal. Terminal.
+
+    item holds whatever todo_list entry this event concerns: an action tuple
+    for "applied"/"idempotent"/"not_applicable"/"malformed_return"; a task,
+    unigoal, or Multigoal for the method_*/*_exhausted statuses. This mirrors
+    GTPyhop's own internal naming (`item1 = todo_list[0]`) for exactly this
+    "todo-list entry of unknown-until-dispatched type" concept.
     """
     depth: int
-    action: Tuple
+    item: Any
     status: str
     detail: Optional[str] = None
 
 
 class PlanTrace:
     """
-    Structured, depth-first record of every action-application attempt made
-    during one find_plan call. Opt-in via find_plan(..., trace=True); costs
-    nothing when not requested (no events are recorded).
+    Structured, depth-first record of every action-application and
+    method-refinement attempt made during one find_plan call. Opt-in via
+    find_plan(..., trace=True); costs nothing when not requested (no events
+    are recorded).
 
     This replaces two fragile patterns for consumers that need to know *why*
     a scenario failed to plan: parsing verbose=3 debug print output, and
-    reaching into Domain's private _action_dict / _task_method_dict. This
-    class provides only mechanical facts (which action, at what depth, with
-    what status) -- it does not attribute failure to a specific precondition
-    or state variable; that remains a source-level analysis for the caller.
+    reaching into Domain's private _action_dict / _task_method_dict /
+    _unigoal_method_dict / _multigoal_method_list. This class provides only
+    mechanical facts (which action or method, at what depth, with what
+    status) -- it does not attribute failure to a specific precondition or
+    state variable; that remains a source-level analysis for the caller.
     """
 
     def __init__(self):
         self.events: List[TraceEvent] = []
 
-    def record(self, depth: int, action: Tuple, status: str, detail: Optional[str] = None):
-        self.events.append(TraceEvent(depth=depth, action=action, status=status, detail=detail))
+    def record(self, depth: int, item: Any, status: str, detail: Optional[str] = None):
+        self.events.append(TraceEvent(depth=depth, item=item, status=status, detail=detail))
 
     @property
     def dead_end(self) -> Optional[TraceEvent]:
         """
-        The first "not_applicable" or "malformed_return" event, in
-        depth-first order -- the action GTPyhop's search abandoned first on
-        the path it actually explored. For a non-backtracking strategy
-        (iterative greedy) this is unambiguously the reason the search
-        failed. For a backtracking strategy (recursive DFS, iterative DFS
-        with backtracking), this is a heuristic, not a guarantee: later
-        events may belong to alternative branches explored after this one
-        was abandoned. Returns None if every recorded action succeeded.
+        The first terminal event (see _TERMINAL_STATUSES), in depth-first
+        order -- the action or the exhausted task/unigoal/multigoal
+        refinement that GTPyhop's search abandoned first on the path it
+        actually explored. "method_applicable" and "method_not_applicable"
+        are never terminal by themselves -- for a task/unigoal/multigoal to
+        count as a dead end, either every candidate method must be
+        exhausted ("*_exhausted"), or one of them must have returned a
+        malformed value ("method_malformed_return", terminal because it
+        crashes the search on use rather than yielding control back to the
+        loop). For a
+        non-backtracking strategy (iterative greedy) this is unambiguously
+        the reason the search failed. For a backtracking strategy (recursive
+        DFS, iterative DFS with backtracking), this is a heuristic, not a
+        guarantee: later events may belong to alternative branches explored
+        after this one was abandoned. Returns None if the search never hit a
+        terminal event (i.e. it found a plan without ever exhausting an
+        item's alternatives).
         """
         for event in self.events:
-            if event.status in ("not_applicable", "malformed_return"):
+            if event.status in _TERMINAL_STATUSES:
                 return event
         return None
 
     @property
     def applied_before_dead_end(self) -> int:
         """
-        Count of "applied"/"idempotent" events recorded strictly before
-        dead_end (0 if there is no dead_end, i.e. every action succeeded).
+        Count of "applied"/"idempotent" action events recorded strictly
+        before dead_end (0 if there is no dead_end). Method-refinement
+        events are not counted here -- this mirrors check_solvability.py's
+        existing "expansion count" convention, which counts applied
+        *actions*, not methods tried.
         """
         count = 0
         for event in self.events:
-            if event.status in ("not_applicable", "malformed_return"):
+            if event.status in _TERMINAL_STATUSES:
                 break
             if event.status in ("applied", "idempotent"):
                 count += 1
@@ -2000,8 +2113,11 @@ class PlanTrace:
 
     @property
     def malformed_returns(self) -> List[TraceEvent]:
-        """All events where an action returned neither a State nor False."""
-        return [event for event in self.events if event.status == "malformed_return"]
+        """All events where an action or method returned a value that
+        violates its return contract (neither State/False for an action,
+        nor list/False/None for a method)."""
+        return [event for event in self.events
+                if event.status in ("malformed_return", "method_malformed_return")]
 
     def __len__(self):
         return len(self.events)
@@ -2702,8 +2818,6 @@ class PlannerSession:
                     else:
                         plan = self._plan_iterative(state, todo_list, trace=trace)
 
-                result.trace = self._last_trace
-
                 # Process results
                 duration_ms = int((time.time() - start_time) * 1000)
 
@@ -2733,6 +2847,13 @@ class PlannerSession:
                 result.error = f"Planning error: {e}"
                 self._stats["errors"] += 1
                 self._log_operation("find_plan_error", error=str(e))
+
+            # Always populate result.trace, even if an exception propagated
+            # out of the search (isolated_execution's finally block still
+            # captures whatever was recorded up to the point of failure --
+            # this is exactly the case where a partial trace showing "here's
+            # the malformed step right before the crash" matters most).
+            result.trace = self._last_trace
 
             # Always update timing stats
             duration_ms = int((time.time() - start_time) * 1000)

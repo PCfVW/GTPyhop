@@ -48,12 +48,17 @@ compatibility with `pip install gtpyhop`). The public API of this package (impor
 gtpyhop) is unchanged.
 
 Version 2.0 also introduces opt-in execution diagnostics: find_plan(..., trace=True)
-populates result.trace with a PlanTrace recording every action-application attempt
-(depth, action, status), including a distinct "malformed_return" status for actions
-that violate the return contract (neither State nor False) -- previously
-indistinguishable from a legitimate precondition failure. Default False; costs
-nothing when not requested. PlanResult and ExecutionResult also now correctly
-support bool(result) (previously always True regardless of .success).
+populates result.trace with a PlanTrace recording every action-application and
+method-refinement attempt (depth, item, status) made during the search -- covering
+actions and task/unigoal/multigoal method refinement alike, uniformly across all
+three planning strategies. Distinct "malformed_return" / "method_malformed_return"
+statuses flag an action or method that violates its return contract (an action must
+return State or False; a method must return a list or False/None) -- previously
+indistinguishable from a legitimate precondition failure or refinement exhaustion.
+result.trace.dead_end reports the first such terminal event, or the point where a
+task/unigoal/multigoal exhausted every candidate method without success. Default
+False; costs nothing when not requested. PlanResult and ExecutionResult also now
+correctly support bool(result) (previously always True regardless of .success).
 """
 
 import os
