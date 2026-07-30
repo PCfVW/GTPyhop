@@ -1,0 +1,37 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "gtpyhop-examples"
+version = "2.0.0"
+description = "Bundled example domains for GTPyhop (requires gtpyhop-core)"
+readme = "README.md"
+authors = [
+    { name = "Eric Jacopin", email = "eric.jacopin@protonmail.com" },
+    { name = "Dana Nau", email = "nau@umd.edu" },
+]
+license = { text = "Clear BSD License" }
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+]
+keywords = ["Planning", "HTN", "Artificial Intelligence", "Automated Planning", "Examples"]
+requires-python = ">=3.8"
+dependencies = [
+    "gtpyhop-core==2.0.0",
+    "numpy",
+]
+
+[project.urls]
+Homepage = "https://github.com/PCfVW/GTPyhop/tree/pip"
+Documentation = "https://github.com/dananau/GTPyhop/blob/main/additional_information.md"
+Repository = "https://github.com/PCfVW/GTPyhop.git"
+Issues = "https://github.com/PCfVW/GTPyhop/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/gtpyhop"]

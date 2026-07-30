@@ -3,14 +3,14 @@
 
 ################################################################################
 #                                                                              #
-#                              GTPyhop 1.9.7                                   #
+#                              GTPyhop 2.0.0                                   #
 #                                                                              #
 #                    Goal-Task-Network Planning System                         #
 #                                                                              #
 ################################################################################
 
 """
-GTPyhop 1.9.7: A Goal-Task-Network planning system with session-based architecture
+GTPyhop 2.0.0: A Goal-Task-Network planning system with session-based architecture
 
 GTPyhop is an automated planning system that can plan for both tasks and goals.
 Version 1.3.0 introduces session-based planning for better isolation, structured
@@ -60,9 +60,11 @@ This file contains the complete GTPyhop implementation organized into logical
 sections for improved maintainability while preserving the single-file
 architecture that makes GTPyhop easy to understand and deploy.
 
-Accompanying this file are a README.md file giving an overview of GTPyhop,
-and several examples of how to use GTPyhop. To run them, try importing any
-of the modules in the Examples directory.
+This package (gtpyhop-core) contains the planner only. Example domains showing
+how to use GTPyhop live in the separate gtpyhop-examples package (installed
+automatically by `pip install gtpyhop`, or directly via `pip install
+gtpyhop-examples`); once installed, try importing any of the modules under
+gtpyhop.examples.
 """
 
 # For use in debugging:
@@ -1955,7 +1957,7 @@ class SessionSerializer:
                     'last_used': session._last_used,
                     'stats': session._stats.copy(),
                     'domain_name': session.domain.__name__ if session.domain else None,
-                    'version': '1.9.7',
+                    'version': '2.0.0',
                     'timestamp': time.time()
                 }
 
@@ -3223,7 +3225,7 @@ def list_sessions() -> List[str]:
 
 ################################################################################
 #                                                                              #
-#                            END OF GTPYHOP 1.9.7                              #
+#                            END OF GTPYHOP 2.0.0                              #
 #                                                                              #
 ################################################################################
 

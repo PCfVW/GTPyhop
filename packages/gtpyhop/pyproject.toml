@@ -1,0 +1,59 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "gtpyhop"
+version = "2.0.0"
+description = "A Goal-Task-Network planning package written in Python (full bundle: gtpyhop-core + gtpyhop-examples)"
+readme = "README.md"
+authors = [
+    # Packaging author:
+    #   - this toml file,
+    #   - new folder names and new package folder structure,
+    #   - greedy iterative_seek_plan
+    #   - backtracking iterative_seek_plan
+    #   - session-based architecture
+    #   - structured logging
+    #   - plan validation
+    #   - new examples (IPC 2020 Total Order, MCP orchestration, memory tracking, poetry,
+    #     Control Arena protocols + threat-model variety extension, cybersecurity attack planning,
+    #     Android: Netrunner, Trunk Thumper game-AI, and Colt Express board-game)
+    #   - documentation style guides for domains, problems, actions, methods, and new examples
+    #   - the gtpyhop-core / gtpyhop-examples / gtpyhop package split
+    { name = "Eric Jacopin", email = "eric.jacopin@protonmail.com" },
+
+    # Original author
+    { name = "Dana Nau", email = "nau@umd.edu" },
+]
+license = { text = "Clear BSD License" }
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+]
+keywords = ["Planning", "HTN", "Artificial Intelligence", "Automated Planning"]
+requires-python = ">=3.8"
+# gtpyhop is a meta-package: it ships no code of its own. Installing it
+# installs the planner (gtpyhop-core) and the bundled examples
+# (gtpyhop-examples), which together are byte-identical to what a plain
+# `pip install gtpyhop` installed before the 2.0 package split.
+dependencies = [
+    "gtpyhop-core==2.0.0",
+    "gtpyhop-examples==2.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/PCfVW/GTPyhop/tree/pip"
+Documentation = "https://github.com/dananau/GTPyhop/blob/main/additional_information.md"
+Repository = "https://github.com/PCfVW/GTPyhop.git"
+Issues = "https://github.com/PCfVW/GTPyhop/issues"
+
+[tool.hatch.build.targets.wheel]
+# No first-party code: this package exists solely to declare the
+# dependencies above. Tells hatchling not to look for a gtpyhop/ or
+# gtpyhop_meta/ source directory to auto-include.
+bypass-selection = true

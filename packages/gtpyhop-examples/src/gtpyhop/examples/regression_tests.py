@@ -31,7 +31,7 @@ def main_legacy():
     from gtpyhop.examples import simple_hgn; simple_hgn.main_legacy(False)
 
     # skip testing the recursive backtracking when planning is iterative
-    from src.gtpyhop.main import get_recursive_planning
+    from gtpyhop import get_recursive_planning
     if get_recursive_planning():
          from gtpyhop.examples import backtracking_htn; backtracking_htn.main(False)
 
@@ -92,7 +92,7 @@ def main_session():
     ]
 
     # Skip backtracking if not using recursive planning
-    from src.gtpyhop.main import get_recursive_planning
+    from gtpyhop import get_recursive_planning
     if not get_recursive_planning():
         examples_to_test = [ex for ex in examples_to_test if ex[0] != 'gtpyhop.examples.backtracking_htn']
 

@@ -1,0 +1,263 @@
+name: Build and Publish One Package
+
+# Reusable workflow: builds, validates, and (unless dry_run) publishes a
+# single package living under packages/<package_dir>/. Called three times
+# from publish-new-GTPyhop-to-pypi.yml, in dependency order (gtpyhop-core,
+# then gtpyhop-examples, then gtpyhop) via `needs:`, since gtpyhop-examples
+# and gtpyhop declare an exact-pinned dependency on gtpyhop-core's version
+# and must not be published before that version actually exists on PyPI.
+
+on:
+  workflow_call:
+    inputs:
+      package_name:
+        description: 'PyPI project name (e.g. gtpyhop-core)'
+        required: true
+        type: string
+      package_dir:
+        description: "Directory under packages/ containing this package's pyproject.toml"
+        required: true
+        type: string
+      environment_name:
+        description: 'GitHub Environment configured as this package''s PyPI trusted publisher'
+        required: true
+        type: string
+      dry_run:
+        description: 'Build and validate, but do not upload to PyPI'
+        required: true
+        type: boolean
+
+jobs:
+  check-and-publish:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    environment: ${{ inputs.environment_name }}
+    defaults:
+      run:
+        working-directory: packages/${{ inputs.package_dir }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.x'
+
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip build packaging requests toml twine
+
+      - name: Extract version from tag
+        id: tag_version
+        # Strips the leading "v" from the tag (e.g. refs/tags/v2.0.0 -> 2.0.0).
+        # For workflow_dispatch runs (no tag), GITHUB_REF is a branch ref and
+        # this step yields an empty value; the tag/toml consistency check
+        # below tolerates that case by falling back to pyproject.toml's version.
+        run: |
+          ref="${GITHUB_REF}"
+          if [[ "$ref" == refs/tags/v* ]]; then
+            tag_version="${ref#refs/tags/v}"
+          else
+            tag_version=""
+          fi
+          echo "Resolved tag version: '${tag_version}' (from ref: ${ref})"
+          echo "version=${tag_version}" >> $GITHUB_OUTPUT
+
+      - name: Get current version from pyproject.toml
+        id: current_version
+        run: |
+          current_version=$(python -c "
+          import toml
+          import sys
+
+          try:
+              with open('pyproject.toml', 'r') as f:
+                  data = toml.load(f)
+
+              if 'project' not in data:
+                  print('Error: [project] section not found in pyproject.toml', file=sys.stderr)
+                  sys.exit(1)
+
+              if 'version' not in data['project']:
+                  print('Error: version field not found in [project] section of pyproject.toml', file=sys.stderr)
+                  sys.exit(1)
+
+              version = data['project']['version']
+              if not version or not isinstance(version, str):
+                  print('Error: version field is empty or not a string', file=sys.stderr)
+                  sys.exit(1)
+
+              print(version)
+          except FileNotFoundError:
+              print('Error: pyproject.toml file not found', file=sys.stderr)
+              sys.exit(1)
+          except toml.TomlDecodeError as e:
+              print(f'Error: Failed to parse pyproject.toml: {e}', file=sys.stderr)
+              sys.exit(1)
+          except Exception as e:
+              print(f'Error: Unexpected error reading version: {e}', file=sys.stderr)
+              sys.exit(1)
+          ")
+          echo "version=$current_version" >> $GITHUB_OUTPUT
+
+      - name: Verify tag version matches pyproject.toml version
+        # Sanity guard: if someone pushes a tag like v2.0.0 but forgot to bump
+        # this package's pyproject.toml to 2.0.0, fail loudly here rather than
+        # silently publishing a mismatched build. Skipped for workflow_dispatch
+        # runs (when tag_version is empty), which fall back to pyproject.toml's
+        # version unchanged.
+        run: |
+          tag_v="${{ steps.tag_version.outputs.version }}"
+          toml_v="${{ steps.current_version.outputs.version }}"
+          if [ -z "$tag_v" ]; then
+            echo "No tag context (workflow_dispatch run). Using pyproject.toml version: $toml_v"
+          else
+            echo "Tag version:           $tag_v"
+            echo "pyproject.toml version: $toml_v"
+            if [ "$tag_v" != "$toml_v" ]; then
+              echo "::error::Tag version ($tag_v) does not match pyproject.toml version ($toml_v) for ${{ inputs.package_name }}. Bump packages/${{ inputs.package_dir }}/pyproject.toml before pushing the tag."
+              exit 1
+            fi
+            echo "✓ Tag and pyproject.toml versions match."
+          fi
+
+      - name: Get latest published version from PyPI
+        id: pypi_version
+        run: |
+          pypi_version=$(python -c "
+          import requests
+          import json
+          import sys
+          from packaging import version
+
+          package_name = '${{ inputs.package_name }}'
+          pypi_url = f'https://pypi.org/pypi/{package_name}/json'
+
+          try:
+              print(f'Checking PyPI for package: {package_name}', file=sys.stderr)
+              response = requests.get(pypi_url, timeout=30)
+
+              if response.status_code == 404:
+                  print('Package not found on PyPI, using default version 0.0.0', file=sys.stderr)
+                  print('0.0.0')
+              elif response.status_code == 200:
+                  try:
+                      data = response.json()
+                      if 'info' not in data or 'version' not in data['info']:
+                          print('Error: Invalid PyPI API response format', file=sys.stderr)
+                          sys.exit(1)
+
+                      pypi_ver = data['info']['version']
+                      print(f'Found PyPI version: {pypi_ver}', file=sys.stderr)
+
+                      # Validate that it's a proper version string
+                      try:
+                          version.parse(pypi_ver)
+                          print(pypi_ver)
+                      except Exception as e:
+                          print(f'Error: Invalid version format from PyPI: {pypi_ver} - {e}', file=sys.stderr)
+                          sys.exit(1)
+
+                  except json.JSONDecodeError as e:
+                      print(f'Error: Failed to parse PyPI API response: {e}', file=sys.stderr)
+                      sys.exit(1)
+              else:
+                  print(f'Error: PyPI API returned status code {response.status_code}', file=sys.stderr)
+                  sys.exit(1)
+
+          except requests.exceptions.Timeout:
+              print('Error: Timeout while connecting to PyPI API', file=sys.stderr)
+              sys.exit(1)
+          except requests.exceptions.ConnectionError:
+              print('Error: Failed to connect to PyPI API', file=sys.stderr)
+              sys.exit(1)
+          except requests.exceptions.RequestException as e:
+              print(f'Error: Request to PyPI API failed: {e}', file=sys.stderr)
+              sys.exit(1)
+          except Exception as e:
+              print(f'Error: Unexpected error while checking PyPI: {e}', file=sys.stderr)
+              sys.exit(1)
+          ")
+          echo "version=$pypi_version" >> $GITHUB_OUTPUT
+
+      - name: Check if version is greater than PyPI version
+        id: version_check
+        run: |
+          echo "Current version: ${{ steps.current_version.outputs.version }}"
+          echo "Latest PyPI version: ${{ steps.pypi_version.outputs.version }}"
+
+          python -c "
+          from packaging import version
+          import sys
+
+          current = '${{ steps.current_version.outputs.version }}'
+          pypi_published = '${{ steps.pypi_version.outputs.version }}'
+
+          print(f'Comparing versions: {current} vs {pypi_published}')
+
+          try:
+              current_parsed = version.parse(current)
+              pypi_parsed = version.parse(pypi_published)
+          except Exception as e:
+              print(f'Error: Failed to parse version strings - {e}', file=sys.stderr)
+              sys.exit(1)
+
+          if current == pypi_published:
+              print(f'Error: Current version ({current}) is the same as the latest PyPI version ({pypi_published}). Please increment the version number.')
+              sys.exit(1)
+          elif current_parsed > pypi_parsed:
+              print(f'✓ New version ({current}) is greater than PyPI version ({pypi_published}). Proceeding with publication of ${{ inputs.package_name }} to PyPI.')
+              sys.exit(0)
+          else:
+              print(f'Error: Current version ({current}) is not greater than the latest PyPI version ({pypi_published}). Please ensure the version number is properly incremented.')
+              print(f'Note: You cannot publish a version that is lower than or equal to an already published version.')
+              sys.exit(1)
+          "
+
+      - name: Build package
+        run: python -m build --outdir dist
+
+      - name: List built artifacts
+        run: ls -la dist/
+
+      - name: Validate artifacts with twine
+        run: twine check dist/*
+
+      - name: Publish to PyPI
+        # Skipped for dry runs. inputs.dry_run is a real boolean here (the
+        # caller workflow computes it via a boolean expression), unlike the
+        # raw github.event.inputs.* strings workflow_dispatch normally yields.
+        if: inputs.dry_run != true
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: packages/${{ inputs.package_dir }}/dist
+
+      - name: Dry-run summary
+        if: inputs.dry_run == true
+        run: |
+          {
+            echo "## ⚠ DRY RUN — ${{ inputs.package_name }}"
+            echo ""
+            echo "**No artifacts were uploaded to PyPI.**"
+            echo ""
+            echo "| Field | Value |"
+            echo "|---|---|"
+            echo "| Version (pyproject.toml) | \`${{ steps.current_version.outputs.version }}\` |"
+            echo "| Latest on PyPI           | \`${{ steps.pypi_version.outputs.version }}\` |"
+            echo ""
+            echo "### Artifacts built (would be uploaded on a real publish)"
+            echo ""
+            echo '```'
+            ls -1 dist/
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "================================================================"
+          echo "  DRY RUN COMPLETE - no artifacts were uploaded to PyPI"
+          echo "================================================================"
+          echo "  Package:        ${{ inputs.package_name }}"
+          echo "  Version:        ${{ steps.current_version.outputs.version }}"
+          echo "  Latest on PyPI: ${{ steps.pypi_version.outputs.version }}"
+          echo "  Artifacts in dist/ (would be uploaded on a real publish):"
+          ls -1 dist/

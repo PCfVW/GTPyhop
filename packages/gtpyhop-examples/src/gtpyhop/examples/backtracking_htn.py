@@ -10,17 +10,8 @@ import argparse
 
 import gtpyhop.test_harness as th   # code for use in paging and debugging
 
-# Import the function to check if recursive planning is enabled
-try:
-    from src.gtpyhop.main import get_recursive_planning
-except ImportError:
-    # Fallback for different import paths
-    try:
-        from gtpyhop.main import get_recursive_planning
-    except ImportError:
-        # If we can't import it, assume recursive planning is available
-        def get_recursive_planning():
-            return True
+# Check whether recursive planning is enabled
+from gtpyhop import get_recursive_planning
 
 # Rather than hard-coding the domain name, use the name of the current file.
 # This makes the code more portable.

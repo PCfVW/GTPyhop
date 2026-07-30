@@ -1,6 +1,6 @@
 """
 GTPyhop: A Goal-Task-Network planning system
-Version 1.9.7 with
+Version 2.0.0 with
 - session-based architecture (1.3),
 - structured logging (1.3),
 - plan validation (1.4),
@@ -14,6 +14,7 @@ Version 1.9.7 with
 - Trunk Thumper game-AI tutorial collection based on Troy Humphreys' Game AI Pro chapter (1.9.6)
 - Colt Express example collection mirroring trunk_thumper's pattern catalog (1.9.7)
 - Control Arena adversarial_protocol extended with threat-model variety and [EXPECTED_EFFECT] marker (1.9.7)
+- Split into gtpyhop-core, gtpyhop-examples, and the gtpyhop meta-package (2.0)
 
 This module provides hierarchical task network (HTN) planning capabilities
 with support for both goals and tasks.
@@ -37,13 +38,19 @@ Version 1.9 introduces iterative DFS planning with full backtracking via explici
 Activated via set_recursive_planning("iterative_dfs_backtracking") or
 PlannerSession(strategy="iterative_dfs_backtracking"). Backward compatible:
 existing True/False callers are unaffected.
+
+Version 2.0 splits distribution into three PyPI packages: gtpyhop-core (this package,
+the planner only), gtpyhop-examples (the bundled example domains, depends on
+gtpyhop-core), and gtpyhop (a meta-package depending on both, for full backward
+compatibility with `pip install gtpyhop`). The public API of this package (import
+gtpyhop) is unchanged.
 """
 
 import os
 import warnings
 
 # Version information
-__version__ = "1.9.7"
+__version__ = "2.0.0"
 __author__ = "Dana Nau, Eric Jacopin"
 __license__ = "Clear BSD License"
 __description__ = "A Goal-Task-Network planning package written in Python"
@@ -52,6 +59,46 @@ __description__ = "A Goal-Task-Network planning package written in Python"
 _GTPYHOP_QUIET = os.getenv("GTPYHOP_QUIET", "false").lower() == "true"
 _GTPYHOP_NO_DEFAULTS = os.getenv("GTPYHOP_NO_DEFAULTS", "false").lower() == "true"
 _GTPYHOP_WARN_GLOBALS = os.getenv("GTPYHOP_WARN_GLOBALS", "false").lower() == "true"
+
+
+def _check_legacy_gtpyhop_conflict():
+    """
+    Before 2.0, `gtpyhop` was a single self-contained distribution that
+    shipped gtpyhop/__init__.py, main.py, etc. directly. Since 2.0, those
+    files are owned by gtpyhop-core, and a pre-2.0 `gtpyhop` install has no
+    dependency relationship with it -- so if both end up installed in the
+    same environment, pip has no way to know they collide on the same
+    site-packages/gtpyhop/ paths, and whichever installed last silently
+    overwrote the other's files. Detect that inconsistent state and fail
+    loudly instead of letting it cause confusing downstream errors.
+    """
+    try:
+        from importlib.metadata import version, PackageNotFoundError
+    except ImportError:  # pragma: no cover - Python 3.8+ always has this
+        return
+    try:
+        legacy_version = version("gtpyhop")
+    except PackageNotFoundError:
+        return
+    try:
+        legacy_major = int(legacy_version.split(".")[0])
+    except (ValueError, IndexError):  # pragma: no cover - malformed version
+        return
+    if legacy_major < 2:
+        raise ImportError(
+            f"Both a pre-2.0 'gtpyhop' distribution (version {legacy_version}) "
+            "and 'gtpyhop-core' are installed in this environment. Their files "
+            "collide under site-packages/gtpyhop/, since pre-2.0 'gtpyhop' "
+            "predates the gtpyhop-core / gtpyhop-examples / gtpyhop split and "
+            "has no dependency relationship with gtpyhop-core. Run: "
+            "pip uninstall gtpyhop gtpyhop-core gtpyhop-examples, then "
+            "reinstall exactly one of 'gtpyhop' (full bundle), 'gtpyhop-core' "
+            "(planner only), or 'gtpyhop-examples' (examples, pulls in "
+            "gtpyhop-core automatically)."
+        )
+
+
+_check_legacy_gtpyhop_conflict()
 
 # Import core functionality
 from .main import (
