@@ -481,15 +481,21 @@ class PlannerBenchmark:
 
         return result
 
-    def run_multiple(self, problems: Dict[str, Tuple[Any, Any, str]], benchmarking_verbose: int = 0) -> List[BenchmarkResult]:
+    def run_multiple(self, problems: Dict[str, Tuple[Any, Any]], benchmarking_verbose: int = 0) -> List[BenchmarkResult]:
         """
         Execute multiple planning problems in batch mode with consistent verbosity.
 
         This method efficiently processes multiple problems while maintaining
         consistent verbosity settings and providing batch execution optimizations.
 
+        Shared by colt_express/trunk_thumper/mcp-orchestration/ipc-2020-total-order's
+        benchmarking.py -- each normalizes its own get_problems() output (which may be
+        a 2-tuple or a 3-tuple with a description) to a plain (state, goal) 2-tuple
+        before calling this method. Do not widen this to 3-tuples again without
+        updating every caller's normalization step to match.
+
         Args:
-            problems: Dictionary mapping problem names to (state, goal, description) tuples
+            problems: Dictionary mapping problem names to (state, goal) tuples
             benchmarking_verbose: Verbosity level for all planning executions
 
         Returns:
@@ -499,10 +505,8 @@ class PlannerBenchmark:
         current_verbose_level = get_verbose_level()
         set_verbose_level(benchmarking_verbose)
 
-        # Execute all problems with batch optimization flag. get_problems()
-        # for this collection's domains returns (state, goal, description)
-        # triples; the description is informational only and unused here.
-        for name, (state, goal, _description) in problems.items():
+        # Execute all problems with batch optimization flag
+        for name, (state, goal) in problems.items():
             self.run_single(name, state, goal, benchmarking_verbose, multiple_problems=True)
 
         # Restore original verbosity level
@@ -805,10 +809,22 @@ def main() -> int:
     benchmark = PlannerBenchmark(domain=domain_obj if use_sessions else domain_module,
                                 verbose=True, use_sessions=use_sessions)
 
+    # Normalize problems to (state, tasks) format, supporting optional
+    # description -- run_multiple is shared with colt_express/trunk_thumper/
+    # mcp-orchestration's benchmarking.py, which already normalize the same
+    # way before calling it.
+    normalized_problems = {}
+    for name, value in problems.items():
+        if len(value) == 3:
+            state, tasks, description = value
+            normalized_problems[name] = (state, tasks)
+        else:
+            normalized_problems[name] = value
+
     # Execute benchmark suite
     planning_mode = "Thread-Safe Sessions" if use_sessions else "Legacy Global"
     print(f"\nRunning benchmarks for {domain_name} using {planning_mode} planning...")
-    benchmark.run_multiple(problems, benchmarking_verbose=args.verbose)
+    benchmark.run_multiple(normalized_problems, benchmarking_verbose=args.verbose)
 
     # Display primary results with requested sorting
     print(f"\n=== {domain_name} Benchmark Results ===")

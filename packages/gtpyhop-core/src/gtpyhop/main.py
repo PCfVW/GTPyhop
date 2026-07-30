@@ -136,6 +136,11 @@ Design Notes:
 # How much information to print while the program is running
 verbose = 1
 
+# Active PlanTrace instance during a find_plan(..., trace=True) call, or
+# None otherwise. Set/restored by PlannerSession.isolated_execution(),
+# mirroring how `verbose` and `current_domain` are already handled.
+_trace_collector = None
+
 # Global structured logging support
 _global_logger = None
 _legacy_print_replacer = None
@@ -1010,6 +1015,24 @@ Design Notes:
 # Recursive Planning Implementation
 
 
+def _record_trace_event(depth, task1, status, newstate=None):
+    """
+    Record one action-application attempt into the active PlanTrace, if
+    find_plan(..., trace=True) is in effect for the current call
+    (_trace_collector is None otherwise, in which case this is a no-op).
+    Shared by both the recursive and iterative action-application paths
+    (and, transitively, by iterative DFS backtracking, which reuses the
+    iterative path for actions) so all three planning strategies produce
+    traces through one code path.
+    """
+    if _trace_collector is None:
+        return
+    detail = None
+    if status == "malformed_return":
+        detail = f"returned {type(newstate).__name__}: {newstate!r:.200}"
+    _trace_collector.record(depth=depth, action=task1, status=status, detail=detail)
+
+
 def _apply_action_and_continue_recursive(state, task1, todo_list, plan, depth):
     """
     _apply_action_and_continue is called only when task1's name matches an
@@ -1032,16 +1055,19 @@ def _apply_action_and_continue_recursive(state, task1, todo_list, plan, depth):
             if verbose >= 3:
                 print('applied')
                 newstate.display()
+            _record_trace_event(depth, task1, "applied")
             return seek_plan_recursive(newstate, todo_list, plan+[task1], depth+1)
         else:
             # action didn't change the state: don't record it in the plan
             if verbose >= 3:
                 print('idempotent')
                 newstate.display()
+            _record_trace_event(depth, task1, "idempotent")
             return seek_plan_recursive(newstate, todo_list, plan, depth+1)
 
     if verbose >= 3:
         print('not applicable')
+    _record_trace_event(depth, task1, "not_applicable" if newstate is False else "malformed_return", newstate)
     return False
 
 
@@ -1223,18 +1249,21 @@ def _apply_action_and_continue_iterative(state, task1, todo_list, plan, depth):
                 newstate.display()
             _log_if_available("debug", "apply_action", "Action applied successfully",
                              action_name=task1[0], depth=depth)
+            _record_trace_event(depth, task1, "applied")
             return (newstate, todo_list, plan + [task1], depth + 1)
         else:
             # action didn't change the state: don't record it in the plan
             if verbose >= 3:
                 print('idempotent')
                 newstate.display()
+            _record_trace_event(depth, task1, "idempotent")
             return (newstate, todo_list, plan, depth + 1)
 
     if verbose >= 3:
         print('not applicable')
     _log_if_available("debug", "apply_action", "Action not applicable",
                      action_name=task1[0], depth=depth)
+    _record_trace_event(depth, task1, "not_applicable" if newstate is False else "malformed_return", newstate)
     return None
 
 def _refine_task_and_continue_iterative(state, task1, todo_list, plan, depth):
@@ -1890,6 +1919,103 @@ Design Notes:
 """
 
 @dataclass
+class TraceEvent:
+    """
+    One action-application attempt recorded during find_plan's search, in
+    depth-first visitation order.
+
+    status is one of:
+      - "applied":          the action returned a State different from the
+                             input state; recorded in the plan.
+      - "idempotent":       the action returned a State equal to the input
+                             state; not recorded in the plan, but the search
+                             continued from it.
+      - "not_applicable":   the action returned exactly False (the documented
+                             failure contract) -- a legitimate precondition
+                             failure.
+      - "malformed_return": the action returned something that is neither a
+                             State nor False (e.g. True, None, a string).
+                             Before this status existed, GTPyhop treated this
+                             identically to "not_applicable", making a broken
+                             action indistinguishable from a legitimate
+                             precondition failure. detail describes what was
+                             actually returned.
+    """
+    depth: int
+    action: Tuple
+    status: str
+    detail: Optional[str] = None
+
+
+class PlanTrace:
+    """
+    Structured, depth-first record of every action-application attempt made
+    during one find_plan call. Opt-in via find_plan(..., trace=True); costs
+    nothing when not requested (no events are recorded).
+
+    This replaces two fragile patterns for consumers that need to know *why*
+    a scenario failed to plan: parsing verbose=3 debug print output, and
+    reaching into Domain's private _action_dict / _task_method_dict. This
+    class provides only mechanical facts (which action, at what depth, with
+    what status) -- it does not attribute failure to a specific precondition
+    or state variable; that remains a source-level analysis for the caller.
+    """
+
+    def __init__(self):
+        self.events: List[TraceEvent] = []
+
+    def record(self, depth: int, action: Tuple, status: str, detail: Optional[str] = None):
+        self.events.append(TraceEvent(depth=depth, action=action, status=status, detail=detail))
+
+    @property
+    def dead_end(self) -> Optional[TraceEvent]:
+        """
+        The first "not_applicable" or "malformed_return" event, in
+        depth-first order -- the action GTPyhop's search abandoned first on
+        the path it actually explored. For a non-backtracking strategy
+        (iterative greedy) this is unambiguously the reason the search
+        failed. For a backtracking strategy (recursive DFS, iterative DFS
+        with backtracking), this is a heuristic, not a guarantee: later
+        events may belong to alternative branches explored after this one
+        was abandoned. Returns None if every recorded action succeeded.
+        """
+        for event in self.events:
+            if event.status in ("not_applicable", "malformed_return"):
+                return event
+        return None
+
+    @property
+    def applied_before_dead_end(self) -> int:
+        """
+        Count of "applied"/"idempotent" events recorded strictly before
+        dead_end (0 if there is no dead_end, i.e. every action succeeded).
+        """
+        count = 0
+        for event in self.events:
+            if event.status in ("not_applicable", "malformed_return"):
+                break
+            if event.status in ("applied", "idempotent"):
+                count += 1
+        return count
+
+    @property
+    def malformed_returns(self) -> List[TraceEvent]:
+        """All events where an action returned neither a State nor False."""
+        return [event for event in self.events if event.status == "malformed_return"]
+
+    def __len__(self):
+        return len(self.events)
+
+    def __bool__(self):
+        # A PlanTrace with zero events is still a meaningful, valid result
+        # (e.g. an empty todo_list) -- never treat it as falsy.
+        return True
+
+    def __repr__(self):
+        return f"PlanTrace({len(self.events)} events, dead_end={self.dead_end!r})"
+
+
+@dataclass
 class PlanResult:
     """Structured result from planning operations."""
     success: bool
@@ -1898,12 +2024,19 @@ class PlanResult:
     logs: List[Dict[str, Any]] = field(default_factory=list)
     stats: Dict[str, Any] = field(default_factory=dict)
     session_id: Optional[str] = None
+    trace: Optional['PlanTrace'] = None
 
     def __post_init__(self):
         if self.plan is None:
             self.plan = []
         if not self.stats:
             self.stats = {"duration_ms": 0, "expansions": 0}
+
+    def __bool__(self):
+        # Dataclasses are truthy by default regardless of contents; without
+        # this override, `if result:` is always True even when
+        # result.success is False. Always check `.success`, not `bool(result)`.
+        return self.success
 
 @dataclass
 class ExecutionResult:
@@ -1916,6 +2049,10 @@ class ExecutionResult:
     stats: Dict[str, Any] = field(default_factory=dict)
     session_id: Optional[str] = None
     tries_used: int = 0
+
+    def __bool__(self):
+        # Same rationale as PlanResult.__bool__ above.
+        return self.success
 
 class PlanningTimeoutError(Exception):
     """Raised when planning operations exceed time limits."""
@@ -2406,6 +2543,7 @@ class PlannerSession:
         self._created_at = time.time()
         self._last_used = time.time()
         self._lock = threading.RLock()  # Reentrant lock for nested calls
+        self._last_trace = None  # PlanTrace from the most recent find_plan(..., trace=True) call
         self._stats = {
             "plans_generated": 0,
             "total_planning_time_ms": 0,
@@ -2454,17 +2592,26 @@ class PlannerSession:
             self.logger.info("session", f"Operation: {operation}", **context)
 
     @contextmanager
-    def isolated_execution(self):
+    def isolated_execution(self, trace: bool = False):
         """
         Context manager for isolated execution with state restoration.
-        Saves and restores global GTPyhop state (domain, verbose, strategy).
+        Saves and restores global GTPyhop state (domain, verbose, strategy,
+        trace collector).
+
+        Args:
+            trace: If True, activate a PlanTrace for the duration of the
+                yielded block; retrievable afterward via self._last_trace
+                (find_plan(..., trace=True) reads this into result.trace).
+                Default False costs nothing beyond the save/restore of a
+                single global already performed for domain/verbose/strategy.
         """
-        global _current_seek_plan
+        global _current_seek_plan, _trace_collector
 
         # Save current global state
         saved_domain = current_domain
         saved_verbose = verbose
         saved_strategy = _current_seek_plan
+        saved_trace_collector = _trace_collector
 
         try:
             # Set session-specific state
@@ -2472,6 +2619,7 @@ class PlannerSession:
                 set_current_domain(self.domain)
             set_verbose_level(self.verbose)
             set_recursive_planning(self._strategy)
+            _trace_collector = PlanTrace() if trace else None
 
             self._log_operation("isolated_execution_start",
                               saved_domain=saved_domain.__name__ if saved_domain else None,
@@ -2480,17 +2628,24 @@ class PlannerSession:
             yield self
 
         finally:
+            # Capture the populated trace (if any) before the global is
+            # restored, so find_plan can read it back after this context
+            # manager exits.
+            self._last_trace = _trace_collector
+
             # Restore global state
             if saved_domain:
                 set_current_domain(saved_domain)
             set_verbose_level(saved_verbose)
             _current_seek_plan = saved_strategy
+            _trace_collector = saved_trace_collector
 
             self._log_operation("isolated_execution_end")
 
     def find_plan(self, state: 'State', todo_list: List, *,
                   timeout_ms: Optional[int] = None,
-                  max_expansions: Optional[int] = None) -> PlanResult:
+                  max_expansions: Optional[int] = None,
+                  trace: bool = False) -> PlanResult:
         """
         Generate a plan for the given state and todo list.
 
@@ -2499,6 +2654,10 @@ class PlannerSession:
             todo_list: List of tasks/goals to achieve
             timeout_ms: Maximum planning time in milliseconds
             max_expansions: Maximum number of plan expansions
+            trace: If True, populate result.trace with a PlanTrace recording
+                every action-application attempt made during the search
+                (depth, action, status). Default False; costs nothing when
+                not requested. See PlanTrace for details.
 
         Returns:
             PlanResult with success status, plan, logs, and statistics
@@ -2508,6 +2667,10 @@ class PlannerSession:
             start_time = time.time()
 
             result = PlanResult(success=False, session_id=self.session_id)
+            # Reset so a stale trace from a previous call can't leak through
+            # if this call is interrupted (e.g. by timeout_ms) before
+            # isolated_execution's finally block runs.
+            self._last_trace = None
 
             try:
                 self._log_operation("find_plan",
@@ -2525,19 +2688,21 @@ class PlannerSession:
                     @ResourceManager.with_timeout(timeout_ms, self.session_id)
                     def timed_planning():
                         if self._strategy == "recursive_dfs":
-                            return self._plan_recursive(state, todo_list)
+                            return self._plan_recursive(state, todo_list, trace=trace)
                         elif self._strategy == "iterative_dfs_backtracking":
-                            return self._plan_iterative_bt(state, todo_list)
+                            return self._plan_iterative_bt(state, todo_list, trace=trace)
                         else:
-                            return self._plan_iterative(state, todo_list)
+                            return self._plan_iterative(state, todo_list, trace=trace)
                     plan = timed_planning()
                 else:
                     if self._strategy == "recursive_dfs":
-                        plan = self._plan_recursive(state, todo_list)
+                        plan = self._plan_recursive(state, todo_list, trace=trace)
                     elif self._strategy == "iterative_dfs_backtracking":
-                        plan = self._plan_iterative_bt(state, todo_list)
+                        plan = self._plan_iterative_bt(state, todo_list, trace=trace)
                     else:
-                        plan = self._plan_iterative(state, todo_list)
+                        plan = self._plan_iterative(state, todo_list, trace=trace)
+
+                result.trace = self._last_trace
 
                 # Process results
                 duration_ms = int((time.time() - start_time) * 1000)
@@ -2599,19 +2764,19 @@ class PlannerSession:
 
             return result
 
-    def _plan_recursive(self, state: 'State', todo_list: List) -> Optional[List[Tuple]]:
+    def _plan_recursive(self, state: 'State', todo_list: List, trace: bool = False) -> Optional[List[Tuple]]:
         """Session-specific recursive planning implementation."""
-        with self.isolated_execution():
+        with self.isolated_execution(trace=trace):
             return seek_plan_recursive(state, todo_list, [], 0)
 
-    def _plan_iterative(self, state: 'State', todo_list: List) -> Optional[List[Tuple]]:
+    def _plan_iterative(self, state: 'State', todo_list: List, trace: bool = False) -> Optional[List[Tuple]]:
         """Session-specific iterative planning implementation."""
-        with self.isolated_execution():
+        with self.isolated_execution(trace=trace):
             return seek_plan_iterative(state, todo_list, [], 0)
 
-    def _plan_iterative_bt(self, state: 'State', todo_list: List) -> Optional[List[Tuple]]:
+    def _plan_iterative_bt(self, state: 'State', todo_list: List, trace: bool = False) -> Optional[List[Tuple]]:
         """Session-specific iterative backtracking planning implementation."""
-        with self.isolated_execution():
+        with self.isolated_execution(trace=trace):
             return seek_plan_iterative_backtracking(state, todo_list, [], 0)
 
     def run_lazy_lookahead(self, state: 'State', todo_list: List, *,

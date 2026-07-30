@@ -15,6 +15,8 @@ Version 2.0.0 with
 - Colt Express example collection mirroring trunk_thumper's pattern catalog (1.9.7)
 - Control Arena adversarial_protocol extended with threat-model variety and [EXPECTED_EFFECT] marker (1.9.7)
 - Split into gtpyhop-core, gtpyhop-examples, and the gtpyhop meta-package (2.0)
+- PlanTrace execution diagnostics via find_plan(..., trace=True), plus correct
+  PlanResult/ExecutionResult truthiness (2.0)
 
 This module provides hierarchical task network (HTN) planning capabilities
 with support for both goals and tasks.
@@ -44,6 +46,14 @@ the planner only), gtpyhop-examples (the bundled example domains, depends on
 gtpyhop-core), and gtpyhop (a meta-package depending on both, for full backward
 compatibility with `pip install gtpyhop`). The public API of this package (import
 gtpyhop) is unchanged.
+
+Version 2.0 also introduces opt-in execution diagnostics: find_plan(..., trace=True)
+populates result.trace with a PlanTrace recording every action-application attempt
+(depth, action, status), including a distinct "malformed_return" status for actions
+that violate the return contract (neither State nor False) -- previously
+indistinguishable from a legitimate precondition failure. Default False; costs
+nothing when not requested. PlanResult and ExecutionResult also now correctly
+support bool(result) (previously always True regardless of .success).
 """
 
 import os
@@ -110,6 +120,11 @@ from .main import (
     PlanResult,
     ExecutionResult,
     PlanningTimeoutError,
+
+    # === EXECUTION DIAGNOSTICS (New in 2.0) ===
+    PlanTrace,
+    TraceEvent,
+
     get_session,
     create_session,
     destroy_session,
@@ -249,6 +264,9 @@ __all__ = [
     # Session-based API (New in 1.3)
     "PlannerSession", "PlanResult", "ExecutionResult", "PlanningTimeoutError",
     "get_session", "create_session", "destroy_session", "list_sessions",
+
+    # Execution diagnostics (New in 2.0)
+    "PlanTrace", "TraceEvent",
 
     # Resource management (New in 1.3)
     "ResourceManager",
