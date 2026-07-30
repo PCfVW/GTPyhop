@@ -121,6 +121,27 @@ python -m gtpyhop.examples.regression_tests
 python -m gtpyhop.examples.regression_tests --session
 ```
 
+### Long-Running Benchmarks in the Background
+
+Some example collections include intentionally extreme scenarios for
+stress-testing — e.g. `memory_tracking`'s largest `data` scenarios scale to
+~2GB and can run for tens of minutes. If you redirect a long-running
+benchmark's output to a file to check on later, force unbuffered output:
+
+```bash
+python -u benchmarking.py > run.log 2>&1 &
+# or: PYTHONUNBUFFERED=1 python benchmarking.py > run.log 2>&1 &
+```
+
+Without `-u`, Python fully buffers stdout whenever it isn't an interactive
+terminal, so `run.log` can sit at 0 bytes for a long time even though the
+process is actively working — the per-scenario `Success:`/`Failed:` lines
+these scripts already print as each scenario finishes are just stuck in an
+in-memory buffer until it fills or the process exits. `-u` (or
+`PYTHONUNBUFFERED=1`) forces a flush after every line, so the log file is
+genuinely tailable in real time (`tail -f run.log`) instead of only showing
+everything at once at the end.
+
 ## Example Usage Patterns
 
 **Interactive exploration:**
