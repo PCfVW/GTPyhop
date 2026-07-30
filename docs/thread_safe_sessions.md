@@ -1,6 +1,24 @@
 # GTPyhop Thread-Safe Sessions Guide
 
-GTPyhop 1.3.0 introduced a session-based, thread-safe architecture. GTPyhop 1.8.0 adds memory tracking integration. GTPyhop 1.9.0 adds the iterative DFS backtracking strategy and the `strategy` parameter. This guide explains why sessions matter, how to use them, and shows concurrent examples.
+GTPyhop 1.3.0 introduced a session-based, thread-safe architecture. GTPyhop 1.8.0 adds memory tracking integration. GTPyhop 1.9.0 adds the iterative DFS backtracking strategy and the `strategy` parameter. GTPyhop 2.0.0 adds opt-in execution diagnostics via `PlanTrace`. This guide explains why sessions matter, how to use them, and shows concurrent examples.
+
+## Table of Contents
+
+- [Why Thread-Safe Sessions?](#why-thread-safe-sessions)
+- [Basic Session Example](#basic-session-example)
+- [Session with Memory Tracking (1.8.0+)](#session-with-memory-tracking-180)
+- [Planning Strategy Selection (1.9.0+)](#planning-strategy-selection-190)
+- [Execution Diagnostics with PlanTrace (2.0.0+)](#execution-diagnostics-with-plantrace-200)
+- [Concurrent Planning Example](#concurrent-planning-example)
+  - [Why This Is Unsafe Without Sessions (Pre-1.3.0)](#why-this-is-unsafe-without-sessions-pre-130)
+- [Session APIs Reference](#session-apis-reference)
+  - [Core Session APIs (1.3.0+)](#core-session-apis-130)
+  - [Persistence APIs (1.3.0+)](#persistence-apis-130)
+  - [Memory Tracking APIs (1.8.0+)](#memory-tracking-apis-180)
+  - [Execution Diagnostics APIs (2.0.0+)](#execution-diagnostics-apis-200)
+- [Dual-Mode Interface](#dual-mode-interface)
+- [When to Use Sessions](#when-to-use-sessions)
+- [Related Documentation](#related-documentation)
 
 ## Why Thread-Safe Sessions?
 
@@ -225,8 +243,9 @@ Concurrent use of the classic global API is effectively unsafe:
 |-----|-------------|
 | `PlannerSession(domain, verbose, ...)` | Isolated planning context |
 | `PlannerSession(strategy=...)` | Strategy selection: `"recursive_dfs"`, `"iterative_greedy"`, `"iterative_dfs_backtracking"` (1.9.0+) |
+| `session.recursive` | `True` only when the strategy is `"recursive_dfs"` (read-only property) |
 | `session.isolated_execution()` | Context manager for safe execution |
-| `session.find_plan(state, tasks, timeout_ms, trace)` | Plan with optional timeout and execution tracing (2.0.0+) |
+| `session.find_plan(state, tasks, timeout_ms=..., trace=...)` | Plan with optional timeout and execution tracing (2.0.0+); both keyword-only |
 | `create_session(session_id, **kwargs)` | Create and register a session |
 | `get_session(session_id)` | Fetch existing session |
 | `destroy_session(session_id)` | Cleanup and remove session |
