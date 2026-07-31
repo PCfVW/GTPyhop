@@ -102,7 +102,9 @@ action.
 **A goal that is already true costs nothing.** GTPyhop checks before doing any work:
 
 ```python
-result = session.find_plan(initial_state(), [('loc', 'box1', 'hall')])
+with gtpyhop.PlannerSession(domain=domain, verbose=0) as session:
+    result = session.find_plan(initial_state(), [('loc', 'box1', 'hall')])
+
 # result.plan -> []          result.success -> True
 ```
 
@@ -114,9 +116,10 @@ An empty plan here means "nothing needed doing", not failure — always check
 Want both boxes placed? Put two goals in the list:
 
 ```python
-result = session.find_plan(initial_state(),
-                           [('loc', 'box1', 'kitchen'),
-                            ('loc', 'box2', 'study')])
+with gtpyhop.PlannerSession(domain=domain, verbose=0) as session:
+    result = session.find_plan(initial_state(),
+                               [('loc', 'box1', 'kitchen'),
+                                ('loc', 'box2', 'study')])
 ```
 
 ```
@@ -157,9 +160,11 @@ A multigoal needs a method, and GTPyhop ships exactly one. It is **opt-in** — 
 declare it yourself:
 
 ```python
+gtpyhop.set_current_domain(domain)                   # declarations go to this domain
 gtpyhop.declare_multigoal_methods(gtpyhop.m_split_multigoal)
 
-result = session.find_plan(initial_state(), [g])
+with gtpyhop.PlannerSession(domain=domain, verbose=0) as session:
+    result = session.find_plan(initial_state(), [g])
 ```
 
 ```
@@ -287,10 +292,17 @@ never seen. Keep the namespaces distinct.
 | Several, all true together | `Multigoal('g', loc={...})` | `m(state, multigoal)` | `declare_multigoal_methods(m)` |
 | Several, split for you | the same `Multigoal` | — | `declare_multigoal_methods(gtpyhop.m_split_multigoal)` |
 
-Worked examples in the bundled collections, in increasing order of difficulty:
-`simple_hgn` (goals in a familiar travel domain), `blocks_hgn` (goals only),
-`blocks_gtn` (tasks and goals together), and `blocks_goal_splitting`
-(`m_split_multigoal` at work). See [All Examples](all_examples.md).
+Worked examples in the bundled collections, by what each one actually declares:
+
+| Example | Task methods | Unigoal | Multigoal | Good for seeing |
+|---|:---:|:---:|:---:|---|
+| `simple_hgn` | — | 1 | 1 | goals in the familiar travel domain |
+| `logistics_hgn` | — | 4 | — | unigoals over *several* state variables, no multigoals |
+| `blocks_hgn` | — | 1 | 1 | a domain driven entirely by goals |
+| `blocks_gtn` | 2 | — | 1 | tasks and multigoals side by side |
+| `blocks_goal_splitting` | — | 2 | 1 | `m_split_multigoal` doing the work |
+
+See [All Examples](all_examples.md) for what each collection teaches.
 
 If a goal fails and you cannot see why, the
 [diagnostics tutorial](diagnostics_tutorial.md) shows how to make GTPyhop tell you.
