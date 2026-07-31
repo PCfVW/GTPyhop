@@ -40,42 +40,99 @@ on:
         type: boolean
         default: true
 
+# Why each package has BOTH a build job and a publish job:
+#
+# PyPI's trusted publishing cannot authenticate an upload made from inside a
+# reusable workflow -- the token exchange matches `job_workflow_ref` (the
+# reusable file) while attestation verification matches `workflow_ref` (this
+# file), and with a reusable workflow those differ by construction, so one
+# check always disagrees. Confirmed against PyPI from both directions on
+# 2026-07-31. The publish steps therefore live HERE, in the top-level
+# workflow, where the two claims are the same file -- which is also the
+# filename each package's Trusted Publisher on PyPI is configured with.
+# See https://github.com/pypi/warehouse/issues/11096.
+#
+# Builds run in parallel (building a package never needs another to be on
+# PyPI first -- `python -m build` only installs build backends). Publishing
+# is what must be ordered: gtpyhop-examples and gtpyhop declare an
+# exact-pinned dependency on gtpyhop-core's version, so that version has to
+# exist on PyPI before either of them is published, or they would ship a
+# broken transitive install.
+
 jobs:
-  # Published first: gtpyhop-examples and gtpyhop both declare an exact-pinned
-  # dependency on this package's version, so it must exist on PyPI before
-  # either of them is published, or they'd ship a broken transitive install.
-  publish-gtpyhop-core:
+  build-gtpyhop-core:
     uses: ./.github/workflows/publish-one-package.yml
     with:
       package_name: gtpyhop-core
       package_dir: gtpyhop-core
-      environment_name: pypi-release-gtpyhop-core
       dry_run: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run == 'true' }}
-    permissions:
-      id-token: write
-      contents: read
 
-  publish-gtpyhop-examples:
-    needs: publish-gtpyhop-core
+  build-gtpyhop-examples:
     uses: ./.github/workflows/publish-one-package.yml
     with:
       package_name: gtpyhop-examples
       package_dir: gtpyhop-examples
-      environment_name: pypi-release-gtpyhop-examples
       dry_run: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run == 'true' }}
-    permissions:
-      id-token: write
-      contents: read
 
-  # Published last: the meta-package depends on both of the above.
-  publish-gtpyhop:
-    needs: publish-gtpyhop-examples
+  build-gtpyhop:
     uses: ./.github/workflows/publish-one-package.yml
     with:
       package_name: gtpyhop
       package_dir: gtpyhop
-      environment_name: pypi-release-of-the-pip-branch
       dry_run: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run == 'true' }}
+
+  # Published first: the other two exact-pin this version.
+  publish-gtpyhop-core:
+    needs: build-gtpyhop-core
+    if: ${{ !(github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run == 'true') }}
+    runs-on: ubuntu-latest
+    environment: pypi-release-gtpyhop-core
     permissions:
       id-token: write
-      contents: read
+    steps:
+      - name: Download built artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.build-gtpyhop-core.outputs.artifact_name }}
+          path: dist
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist
+
+  publish-gtpyhop-examples:
+    needs: [build-gtpyhop-examples, publish-gtpyhop-core]
+    if: ${{ !(github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run == 'true') }}
+    runs-on: ubuntu-latest
+    environment: pypi-release-gtpyhop-examples
+    permissions:
+      id-token: write
+    steps:
+      - name: Download built artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.build-gtpyhop-examples.outputs.artifact_name }}
+          path: dist
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist
+
+  # Published last: the meta-package depends on both of the above.
+  publish-gtpyhop:
+    needs: [build-gtpyhop, publish-gtpyhop-examples]
+    if: ${{ !(github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run == 'true') }}
+    runs-on: ubuntu-latest
+    environment: pypi-release-of-the-pip-branch
+    permissions:
+      id-token: write
+    steps:
+      - name: Download built artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.build-gtpyhop.outputs.artifact_name }}
+          path: dist
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist

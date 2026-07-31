@@ -14,6 +14,15 @@ name: Build and Publish gtpyhop-diagnostics to PyPI
 #
 # Note `v*` in the other workflow does not match `diagnostics-v*`, so the two
 # tag namespaces cannot collide.
+#
+# As in the lockstep workflow, the build happens in the reusable
+# publish-one-package.yml but the PUBLISH step lives here, in the top-level
+# workflow. PyPI's trusted publishing cannot authenticate an upload from
+# inside a reusable workflow: the token exchange matches `job_workflow_ref`
+# (the reusable file) while attestation verification matches `workflow_ref`
+# (this file), so one check always disagrees. Both failure modes were
+# reproduced against PyPI on 2026-07-31 while releasing this very package.
+# See https://github.com/pypi/warehouse/issues/11096.
 
 run-name: >-
   ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run == 'true')
@@ -37,14 +46,28 @@ on:
         default: true
 
 jobs:
-  publish-gtpyhop-diagnostics:
+  build-gtpyhop-diagnostics:
     uses: ./.github/workflows/publish-one-package.yml
     with:
       package_name: gtpyhop-diagnostics
       package_dir: gtpyhop-diagnostics
-      environment_name: pypi-release-gtpyhop-diagnostics
       tag_prefix: diagnostics-v
       dry_run: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run == 'true' }}
+
+  publish-gtpyhop-diagnostics:
+    needs: build-gtpyhop-diagnostics
+    if: ${{ !(github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run == 'true') }}
+    runs-on: ubuntu-latest
+    environment: pypi-release-gtpyhop-diagnostics
     permissions:
       id-token: write
-      contents: read
+    steps:
+      - name: Download built artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.build-gtpyhop-diagnostics.outputs.artifact_name }}
+          path: dist
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist

@@ -1,11 +1,30 @@
-name: Build and Publish One Package
+name: Build and Validate One Package
 
-# Reusable workflow: builds, validates, and (unless dry_run) publishes a
-# single package living under packages/<package_dir>/. Called three times
-# from publish-new-GTPyhop-to-pypi.yml, in dependency order (gtpyhop-core,
-# then gtpyhop-examples, then gtpyhop) via `needs:`, since gtpyhop-examples
-# and gtpyhop declare an exact-pinned dependency on gtpyhop-core's version
-# and must not be published before that version actually exists on PyPI.
+# Reusable workflow: builds and validates a single package living under
+# packages/<package_dir>/, then uploads the built artifacts for a caller to
+# publish. Called once per package from publish-new-GTPyhop-to-pypi.yml and
+# publish-diagnostics-to-pypi.yml.
+#
+# IT DOES NOT PUBLISH. That is deliberate, and it is not an arbitrary style
+# choice -- PyPI's trusted publishing cannot work from inside a reusable
+# workflow, because the two halves of an upload check different OIDC claims:
+#
+#   * the token exchange matches `job_workflow_ref`, which for a reusable
+#     workflow is THIS file;
+#   * attestation verification matches the Sigstore certificate's Build
+#     Config URI, which is `workflow_ref` -- the CALLER's file.
+#
+# With a reusable workflow those two are different by construction, so
+# whichever filename is configured as the Trusted Publisher, one of the
+# checks disagrees. Both directions were confirmed empirically against PyPI
+# on 2026-07-31: naming the caller gives `invalid-publisher` at the token
+# exchange; naming this file gets past the exchange and then fails
+# attestation verification with a Build Config URI mismatch.
+#
+# The fix, which is also PyPI's own recommendation, is to publish from a job
+# defined directly in the top-level workflow, where workflow_ref and
+# job_workflow_ref are the same file. Hence: build here, publish there.
+# See https://github.com/pypi/warehouse/issues/11096.
 
 on:
   workflow_call:
@@ -18,12 +37,8 @@ on:
         description: "Directory under packages/ containing this package's pyproject.toml"
         required: true
         type: string
-      environment_name:
-        description: 'GitHub Environment configured as this package''s PyPI trusted publisher'
-        required: true
-        type: string
       dry_run:
-        description: 'Build and validate, but do not upload to PyPI'
+        description: 'Report as a dry run in the job summary (publishing is the caller''s job either way)'
         required: true
         type: boolean
       tag_prefix:
@@ -36,14 +51,22 @@ on:
         required: false
         type: string
         default: 'v'
+    outputs:
+      artifact_name:
+        description: 'Name of the uploaded artifact holding this package''s dist/ files'
+        value: ${{ jobs.build-and-validate.outputs.artifact_name }}
+      version:
+        description: "Version built, from the package's pyproject.toml"
+        value: ${{ jobs.build-and-validate.outputs.version }}
 
 jobs:
-  check-and-publish:
+  build-and-validate:
     runs-on: ubuntu-latest
     permissions:
-      id-token: write
       contents: read
-    environment: ${{ inputs.environment_name }}
+    outputs:
+      artifact_name: dist-${{ inputs.package_name }}
+      version: ${{ steps.current_version.outputs.version }}
     defaults:
       run:
         working-directory: packages/${{ inputs.package_dir }}
@@ -237,39 +260,45 @@ jobs:
       - name: Validate artifacts with twine
         run: twine check dist/*
 
-      - name: Publish to PyPI
-        # Skipped for dry runs. inputs.dry_run is a real boolean here (the
-        # caller workflow computes it via a boolean expression), unlike the
-        # raw github.event.inputs.* strings workflow_dispatch normally yields.
-        if: inputs.dry_run != true
-        uses: pypa/gh-action-pypi-publish@release/v1
+      - name: Upload artifacts for the publishing job
+        # The caller downloads these and runs pypa/gh-action-pypi-publish from
+        # a job it defines itself. See the header comment for why publishing
+        # cannot happen here.
+        uses: actions/upload-artifact@v4
         with:
-          packages-dir: packages/${{ inputs.package_dir }}/dist
+          name: dist-${{ inputs.package_name }}
+          path: packages/${{ inputs.package_dir }}/dist/
+          if-no-files-found: error
+          retention-days: 1
 
-      - name: Dry-run summary
-        if: inputs.dry_run == true
+      - name: Build summary
         run: |
           {
-            echo "## ⚠ DRY RUN — ${{ inputs.package_name }}"
-            echo ""
-            echo "**No artifacts were uploaded to PyPI.**"
+            if [ "${{ inputs.dry_run }}" = "true" ]; then
+              echo "## ⚠ DRY RUN — ${{ inputs.package_name }}"
+              echo ""
+              echo "**Built and validated only. Nothing will be uploaded to PyPI.**"
+            else
+              echo "## ✓ Built — ${{ inputs.package_name }}"
+              echo ""
+              echo "Handed to the caller's publishing job."
+            fi
             echo ""
             echo "| Field | Value |"
             echo "|---|---|"
             echo "| Version (pyproject.toml) | \`${{ steps.current_version.outputs.version }}\` |"
             echo "| Latest on PyPI           | \`${{ steps.pypi_version.outputs.version }}\` |"
-            echo ""
-            echo "### Artifacts built (would be uploaded on a real publish)"
+            echo "| Artifact                 | \`dist-${{ inputs.package_name }}\` |"
             echo ""
             echo '```'
             ls -1 dist/
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
           echo "================================================================"
-          echo "  DRY RUN COMPLETE - no artifacts were uploaded to PyPI"
+          echo "  BUILD COMPLETE - publishing is the caller's job"
           echo "================================================================"
           echo "  Package:        ${{ inputs.package_name }}"
           echo "  Version:        ${{ steps.current_version.outputs.version }}"
           echo "  Latest on PyPI: ${{ steps.pypi_version.outputs.version }}"
-          echo "  Artifacts in dist/ (would be uploaded on a real publish):"
+          echo "  Dry run:        ${{ inputs.dry_run }}"
           ls -1 dist/
