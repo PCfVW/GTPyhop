@@ -34,14 +34,22 @@ friends, a leading hyphen left behind when emoji were stripped from the
 headings. Every target file existed, so target-only checking saw nothing
 wrong. A link can name a real file and a section that does not exist.
 
+A fourth rule applies only to `packages/*/README.md`. Each package declares
+`readme = "README.md"` relative to its OWN directory, so those four files --
+and not the repository root README -- are what PyPI renders as each
+project's long description. PyPI renders them standalone, with no
+repository around them, so a relative link that resolves perfectly here is
+broken there. Relative links in those files are therefore reported even
+when their target exists.
+
 Usage:
     python tools/link_audit.py           # report, exit 1 if anything is broken
     python tools/link_audit.py --quiet   # totals only
     python tools/link_audit.py --list-external
 
-Intended as a pre-release check: README.md becomes the PyPI
-long-description at publish time, where a broken link is more visible and
-less fixable than one on GitHub.
+Intended as a pre-release check: a broken link on PyPI is more visible and
+much less fixable than one on GitHub, since correcting it means publishing
+a new version.
 """
 
 import argparse
@@ -139,8 +147,14 @@ def audit(root, files):
     result = {
         "ok_absolute": 0, "ok_relative": 0, "ok_anchor": 0,
         "broken_absolute": [], "broken_relative": [], "broken_anchor": [],
-        "foreign_ref": [], "external": {},
+        "pypi_relative": [], "foreign_ref": [], "external": {},
     }
+
+    def is_pypi_readme(rel_path):
+        """A packages/<dist>/README.md, i.e. a PyPI long description."""
+        parts = rel_path.replace("\\", "/").split("/")
+        return (len(parts) == 3 and parts[0] == "packages"
+                and parts[2].lower() == "readme.md")
 
     def check_anchor(source_rel, target_path, frag):
         if not frag:
@@ -190,6 +204,10 @@ def audit(root, files):
                 # A same-file anchor, e.g. a table of contents entry.
                 check_anchor(rel, path, frag)
                 continue
+            if is_pypi_readme(rel):
+                # Resolves here, but PyPI renders this file standalone.
+                result["pypi_relative"].append((rel, target))
+                continue
             resolved = os.path.normpath(
                 os.path.join(os.path.dirname(path), target))
             if os.path.exists(resolved):
@@ -215,7 +233,7 @@ def main():
     result = audit(root, files)
 
     broken = (result["broken_absolute"] + result["broken_relative"]
-              + result["broken_anchor"])
+              + result["broken_anchor"] + result["pypi_relative"])
 
     print("markdown files scanned : {}".format(len(files)))
     print("absolute self-links OK : {}".format(result["ok_absolute"]))
@@ -236,6 +254,13 @@ def main():
                   "not:".format(len(result["broken_anchor"])))
             for rel, target, frag in result["broken_anchor"]:
                 print("  {}\n      -> {}#{}".format(rel, target, frag))
+
+        if result["pypi_relative"]:
+            print("\nRELATIVE links in a PyPI long description ({}) — these "
+                  "resolve here but break on PyPI; use an absolute "
+                  "https://github.com/... URL:".format(len(result["pypi_relative"])))
+            for rel, target in result["pypi_relative"]:
+                print("  {}\n      -> {}".format(rel, target))
 
         if result["foreign_ref"]:
             print("\nself-links pointing at a ref other than 'pip' "

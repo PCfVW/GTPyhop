@@ -19,8 +19,9 @@ pip install gtpyhop-diagnostics
 It depends only on `gtpyhop-core>=2.0.0` — no bundled examples, no third-party
 dependencies, and the analysis uses the standard library's `ast`.
 
-New to this? The **[diagnostics tutorial](../../docs/diagnostics_tutorial.md)** walks one
-small domain from *"there is no plan"* to *"the truck had no fuel"*, one step at a time.
+New to this? The **[diagnostics tutorial](https://github.com/PCfVW/GTPyhop/blob/pip/docs/diagnostics_tutorial.md)**
+walks one small domain from *"there is no plan"* to *"the truck had no fuel"*, one step
+at a time.
 
 ## Usage
 
