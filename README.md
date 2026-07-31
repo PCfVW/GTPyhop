@@ -515,9 +515,16 @@ GTPyhop/
     │       └── test_harness/
     │           ├── __init__.py
     │           └── test_harness.py
-    ├── gtpyhop/                  # meta-package: depends on the other two,
-    │   ├── README.md             #   ships no source of its own
+    ├── gtpyhop/                  # meta-package: depends on gtpyhop-core and
+    │   ├── README.md             #   gtpyhop-examples; ships no source of its own
     │   └── pyproject.toml
+    ├── gtpyhop-diagnostics/      # optional add-on, versioned independently:
+    │   ├── README.md             #   names the precondition that blocked a plan
+    │   ├── pyproject.toml
+    │   └── src/gtpyhop/diagnostics/
+    │       ├── __init__.py
+    │       ├── guards.py         # domain source -> candidate preconditions
+    │       └── explain.py        # joins those with the trace's state snapshot
     └── gtpyhop-examples/         # the example domains
         ├── README.md
         ├── pyproject.toml

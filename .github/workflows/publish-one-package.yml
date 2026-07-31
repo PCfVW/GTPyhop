@@ -26,6 +26,16 @@ on:
         description: 'Build and validate, but do not upload to PyPI'
         required: true
         type: boolean
+      tag_prefix:
+        description: >-
+          Tag prefix this package releases under. Defaults to "v", the
+          lockstep tag shared by gtpyhop-core / gtpyhop-examples / gtpyhop.
+          Independently versioned packages pass their own prefix (e.g.
+          "diagnostics-v") so the tag-vs-pyproject.toml guard below can still
+          find the version instead of silently skipping the check.
+        required: false
+        type: string
+        default: 'v'
 
 jobs:
   check-and-publish:
@@ -51,14 +61,16 @@ jobs:
 
       - name: Extract version from tag
         id: tag_version
-        # Strips the leading "v" from the tag (e.g. refs/tags/v2.0.0 -> 2.0.0).
+        # Strips the tag prefix (default "v", e.g. refs/tags/v2.0.0 -> 2.0.0;
+        # or "diagnostics-v", e.g. refs/tags/diagnostics-v0.1.0 -> 0.1.0).
         # For workflow_dispatch runs (no tag), GITHUB_REF is a branch ref and
         # this step yields an empty value; the tag/toml consistency check
         # below tolerates that case by falling back to pyproject.toml's version.
         run: |
+          prefix="${{ inputs.tag_prefix }}"
           ref="${GITHUB_REF}"
-          if [[ "$ref" == refs/tags/v* ]]; then
-            tag_version="${ref#refs/tags/v}"
+          if [[ "$ref" == refs/tags/${prefix}* ]]; then
+            tag_version="${ref#refs/tags/${prefix}}"
           else
             tag_version=""
           fi

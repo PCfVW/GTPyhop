@@ -178,6 +178,16 @@ if dead_end is not None and dead_end.state is not None:
 
 Snapshots are the runtime half of failure attribution; the other half is a source-level analysis of the failing action's preconditions, which stays outside `gtpyhop-core` (see the note below).
 
+That other half is available as the optional [`gtpyhop-diagnostics`](../packages/gtpyhop-diagnostics/README.md) package, which reads the domain source for the failing action's guards and evaluates them against this snapshot:
+
+```python
+from gtpyhop.diagnostics import explain_dead_end          # pip install gtpyhop-diagnostics
+
+report = explain_dead_end(result.trace, "path/to/domain.py")
+print(report.summary())        # "pickup('a') was blocked by: s.clear[x] == True"
+print(report.blocking_vars)    # ['clear']
+```
+
 | Status | Terminal? | Meaning |
 |--------|:---------:|---------|
 | `applied` | No | Action returned a changed `State`; recorded in the plan |

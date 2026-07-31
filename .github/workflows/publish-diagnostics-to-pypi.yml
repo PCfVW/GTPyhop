@@ -1,0 +1,50 @@
+name: Build and Publish gtpyhop-diagnostics to PyPI
+
+# gtpyhop-diagnostics is versioned INDEPENDENTLY of the other three packages.
+#
+# gtpyhop-core, gtpyhop-examples and gtpyhop ship in lockstep at one version
+# under a shared `vX.Y.Z` tag (see publish-new-GTPyhop-to-pypi.yml). This one
+# is an optional add-on with its own cadence, depending on `gtpyhop-core>=2.0.0`
+# rather than an exact pin, so it must NOT ride the `v*` tag: a v2.0.0 tag would
+# otherwise try to republish whatever version this package already has, which
+# fails the "version must be greater than PyPI" check.
+#
+# It therefore has its own trigger and its own tag namespace:
+#     diagnostics-v0.1.0, diagnostics-v0.2.0, ...
+#
+# Note `v*` in the other workflow does not match `diagnostics-v*`, so the two
+# tag namespaces cannot collide.
+
+run-name: >-
+  ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run == 'true')
+      && format('[DRY RUN] Build and validate gtpyhop-diagnostics {0}', github.ref_name)
+      || format('Publish gtpyhop-diagnostics {0}', github.ref_name) }}
+
+on:
+  push:
+    tags:
+      - "diagnostics-v*"
+      # Hyphenated pre-release suffixes are git checkpoints only, matching the
+      # convention of the lockstep workflow. Note this exclusion is anchored
+      # after the version so it does not exclude the "diagnostics-" prefix
+      # itself: diagnostics-v0.1.0-rc1 is excluded, diagnostics-v0.1.0 is not.
+      - "!diagnostics-v*-*"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run: build, validate, and run all checks, but do NOT upload to PyPI'
+        type: boolean
+        default: true
+
+jobs:
+  publish-gtpyhop-diagnostics:
+    uses: ./.github/workflows/publish-one-package.yml
+    with:
+      package_name: gtpyhop-diagnostics
+      package_dir: gtpyhop-diagnostics
+      environment_name: pypi-release-gtpyhop-diagnostics
+      tag_prefix: diagnostics-v
+      dry_run: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.dry_run == 'true' }}
+    permissions:
+      id-token: write
+      contents: read
