@@ -76,6 +76,60 @@ _GTPYHOP_NO_DEFAULTS = os.getenv("GTPYHOP_NO_DEFAULTS", "false").lower() == "tru
 _GTPYHOP_WARN_GLOBALS = os.getenv("GTPYHOP_WARN_GLOBALS", "false").lower() == "true"
 
 
+def _legacy_owns_colliding_files(dist):
+    """
+    Does this pre-2.0 `gtpyhop` distribution actually own files that collide
+    with gtpyhop-core's?
+
+    A version number alone does not answer that. An *editable* pre-2.0
+    install -- `pip install -e .` from a dev checkout, which is how anyone
+    working on GTPyhop itself had it -- installs no `gtpyhop/` package
+    directory at all: just a `.pth` file pointing at the source tree, plus
+    its own dist-info. Nothing can collide, so refusing to import would be a
+    false alarm, and the "uninstall everything and reinstall" advice would
+    describe a problem the user does not have.
+
+    Returns True only when the distribution still owns at least one real
+    `gtpyhop/*.py` file on disk. `dist.files` lists what RECORD *claims*;
+    each candidate is checked for existence too, so a stale entry left by a
+    half-removed install does not resurrect the false alarm.
+    """
+    try:
+        files = dist.files
+    except Exception:  # pragma: no cover - defensive
+        files = None
+    if not files:
+        # RECORD missing or unreadable: fall back to the editable marker.
+        # An editable install is the known-benign case; anything else is
+        # treated as a possible collision, since being wrong in that
+        # direction merely asks the user to check, while the opposite lets
+        # silently overwritten files cause confusing failures later.
+        return not _is_editable_install(dist)
+
+    for path in files:
+        parts = getattr(path, "parts", ())
+        if len(parts) < 2 or parts[0] != "gtpyhop" or not str(path).endswith(".py"):
+            continue
+        try:
+            if os.path.exists(str(dist.locate_file(path))):
+                return True
+        except Exception:  # pragma: no cover - defensive
+            continue
+    return False
+
+
+def _is_editable_install(dist):
+    """True if this distribution was installed with `pip install -e`."""
+    try:
+        raw = dist.read_text("direct_url.json")
+        if not raw:
+            return False
+        import json
+        return bool(json.loads(raw).get("dir_info", {}).get("editable"))
+    except Exception:  # pragma: no cover - defensive
+        return False
+
+
 def _check_legacy_gtpyhop_conflict():
     """
     Before 2.0, `gtpyhop` was a single self-contained distribution that
@@ -86,31 +140,44 @@ def _check_legacy_gtpyhop_conflict():
     site-packages/gtpyhop/ paths, and whichever installed last silently
     overwrote the other's files. Detect that inconsistent state and fail
     loudly instead of letting it cause confusing downstream errors.
+
+    The collision, not the version number, is what matters: see
+    _legacy_owns_colliding_files. An old *editable* install owns no
+    colliding files, so it is left alone rather than blocking every import
+    with a message describing a file collision that does not exist.
     """
     try:
-        from importlib.metadata import version, PackageNotFoundError
+        from importlib.metadata import distribution, PackageNotFoundError
     except ImportError:  # pragma: no cover - Python 3.8+ always has this
         return
     try:
-        legacy_version = version("gtpyhop")
+        legacy = distribution("gtpyhop")
     except PackageNotFoundError:
         return
+    legacy_version = legacy.version
     try:
         legacy_major = int(legacy_version.split(".")[0])
     except (ValueError, IndexError):  # pragma: no cover - malformed version
         return
-    if legacy_major < 2:
-        raise ImportError(
-            f"Both a pre-2.0 'gtpyhop' distribution (version {legacy_version}) "
-            "and 'gtpyhop-core' are installed in this environment. Their files "
-            "collide under site-packages/gtpyhop/, since pre-2.0 'gtpyhop' "
-            "predates the gtpyhop-core / gtpyhop-examples / gtpyhop split and "
-            "has no dependency relationship with gtpyhop-core. Run: "
-            "pip uninstall gtpyhop gtpyhop-core gtpyhop-examples, then "
-            "reinstall exactly one of 'gtpyhop' (full bundle), 'gtpyhop-core' "
-            "(planner only), or 'gtpyhop-examples' (examples, pulls in "
-            "gtpyhop-core automatically)."
-        )
+    if legacy_major >= 2:
+        return
+    if not _legacy_owns_colliding_files(legacy):
+        # Metadata for a pre-2.0 gtpyhop, but no colliding files: an
+        # editable or already-removed install. Nothing is broken.
+        return
+    raise ImportError(
+        f"Both a pre-2.0 'gtpyhop' distribution (version {legacy_version}) "
+        "and 'gtpyhop-core' are installed in this environment, and the older "
+        "one still owns files under site-packages/gtpyhop/. They collide "
+        "there, since pre-2.0 'gtpyhop' predates the gtpyhop-core / "
+        "gtpyhop-examples / gtpyhop split and has no dependency relationship "
+        "with gtpyhop-core, so whichever was installed last silently "
+        "overwrote the other's files. Run: "
+        "pip uninstall gtpyhop gtpyhop-core gtpyhop-examples, then "
+        "reinstall exactly one of 'gtpyhop' (full bundle), 'gtpyhop-core' "
+        "(planner only), or 'gtpyhop-examples' (examples, pulls in "
+        "gtpyhop-core automatically)."
+    )
 
 
 _check_legacy_gtpyhop_conflict()
