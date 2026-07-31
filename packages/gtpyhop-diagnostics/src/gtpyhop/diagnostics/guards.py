@@ -197,6 +197,21 @@ def extract_action_guards(func, source):
             # by `or` (see _split_conjuncts) and not descended into further.
             for conjunct in _split_conjuncts(node.test):
                 atoms.append(_atom_from(conjunct, source, state_param, negated=False))
+        elif node.orelse and _returns_falsey(node.orelse):
+            # `if <cond>: <something> else: return False` -- the else bails,
+            # so the test is the requirement, exactly as for a wrapping guard.
+            #
+            # Reached only when neither branch above fired, which is what
+            # keeps it from double-counting: in the common
+            # `if cond: ...; return s else: return False`, the body already
+            # returns the state and was handled above, and adding the test a
+            # second time here would report the same atom twice. No action in
+            # the bundled examples needs this branch today -- every `else:
+            # return False` there has a body the earlier cases already
+            # recognise -- but the shape is legal and appears in generated
+            # domains, which are what this package exists to diagnose.
+            for conjunct in _split_conjuncts(node.test):
+                atoms.append(_atom_from(conjunct, source, state_param, negated=False))
 
     return ActionGuards(
         name=func.name, params=args, state_param=state_param,

@@ -2,7 +2,7 @@
 
 ## 2.0.0 — gtpyhop-core / gtpyhop-examples / gtpyhop Package Split (Latest, Recommended)
 
-This is a packaging-only major release: no planner algorithm changes. GTPyhop is now published as three coordinated PyPI distributions instead of one. `pip install gtpyhop` is unaffected and remains a full install, byte-identical to pre-2.0 installs; `pip install gtpyhop-core` is new and gives a lean, examples-free install.
+This is a packaging-only major release: no planner algorithm changes. GTPyhop is now published as three coordinated PyPI distributions instead of one — plus the optional, independently versioned `gtpyhop-diagnostics`, described below, which is not part of this lockstep release. `pip install gtpyhop` is unaffected and remains a full install, byte-identical to pre-2.0 installs; `pip install gtpyhop-core` is new and gives a lean, examples-free install.
 
 ### Package Split (breaking, packaging only)
 

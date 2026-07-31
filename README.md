@@ -62,6 +62,8 @@ pip install packages/gtpyhop-core packages/gtpyhop-examples
 
 Install `packages/gtpyhop-core` alone if you want the planner without the bundled example domains. Note that `packages/gtpyhop/` is only a meta-package: it ships no source and depends on the other two *from PyPI*, so it is not the one to install from a checkout.
 
+Add `packages/gtpyhop-diagnostics` for failure attribution — when `find_plan` fails, it names the precondition that blocked it rather than just the action that failed. It is optional, versioned independently, and documented in [its own README](packages/gtpyhop-diagnostics/README.md).
+
 If you intend to modify GTPyhop or add an example, install both in editable mode instead — the two `src/` trees only merge into a single `gtpyhop` import namespace once installed:
 
 ```bash
@@ -549,4 +551,6 @@ GTPyhop/
                 ├── s1_minimal_turn/, s3_marshal_expected_effects/, s2_recursive_round/, s4_character_priorities/, s5_partial_plan_movement/
 ```
 
-`gtpyhop-core` and `gtpyhop-examples` both install into the same `gtpyhop` import namespace, which is why each keeps its own `src/gtpyhop/` tree: once installed they merge, so `import gtpyhop` and `import gtpyhop.examples` work exactly as they did before 2.0.
+`gtpyhop-core`, `gtpyhop-examples` and `gtpyhop-diagnostics` all install into the same `gtpyhop` import namespace, which is why each keeps its own `src/gtpyhop/` tree: once installed they merge, so `import gtpyhop`, `import gtpyhop.examples` and `import gtpyhop.diagnostics` all work — the first two exactly as they did before 2.0. Only `gtpyhop-core` ships `gtpyhop/__init__.py`; the other two add subpackages beside it and cannot overwrite it.
+
+`gtpyhop-diagnostics` is versioned independently of the other three (which release in lockstep at one version): it is an optional add-on depending on `gtpyhop-core>=2.0.0`, released under its own `diagnostics-v*` tags.
