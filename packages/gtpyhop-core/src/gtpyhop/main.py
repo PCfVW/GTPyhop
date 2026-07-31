@@ -1024,6 +1024,37 @@ Design Notes:
 # Recursive Planning Implementation
 
 
+def _action_failure_status(returned_value):
+    """
+    Classify what an action returned when it did not return a State.
+
+    False and None are both legitimate "this action's preconditions did not
+    hold" signals:
+
+      - False is what this project's own style guide teaches, and what the
+        newer bundled example collections use.
+      - None is what GTPyhop's original examples have always done -- the
+        canonical `if <preconditions>: <effects>; return s` shape simply
+        falls off the end of the function when the guard is false, with no
+        explicit return at all. That is how blocks_htn, blocks_gtn,
+        blocks_hgn, blocks_goal_splitting, simple_htn, simple_hgn,
+        logistics_hgn and backtracking_htn are all written.
+
+    Treating None as malformed would therefore label GTPyhop's own teaching
+    examples as buggy, and would contradict the method-refinement paths,
+    which have always accepted None as an ordinary "not applicable"
+    (`subtasks != False and subtasks != None`).
+
+    Anything else -- True, a string, an int, a list -- really does violate
+    the contract, and remains "malformed_return". That is the case worth
+    catching: an action that returns True instead of the state silently
+    discards its own effects while looking successful.
+    """
+    if returned_value is False or returned_value is None:
+        return "not_applicable"
+    return "malformed_return"
+
+
 def _record_trace_event(depth, item, status, returned_value=None, state=None):
     """
     Record one action-application or method-refinement attempt into the
@@ -1095,7 +1126,7 @@ def _apply_action_and_continue_recursive(state, task1, todo_list, plan, depth):
 
     if verbose >= 3:
         print('not applicable')
-    _record_trace_event(depth, task1, "not_applicable" if newstate is False else "malformed_return", newstate, state=state)
+    _record_trace_event(depth, task1, _action_failure_status(newstate), newstate, state=state)
     return False
 
 
@@ -1306,7 +1337,7 @@ def _apply_action_and_continue_iterative(state, task1, todo_list, plan, depth):
         print('not applicable')
     _log_if_available("debug", "apply_action", "Action not applicable",
                      action_name=task1[0], depth=depth)
-    _record_trace_event(depth, task1, "not_applicable" if newstate is False else "malformed_return", newstate, state=state)
+    _record_trace_event(depth, task1, _action_failure_status(newstate), newstate, state=state)
     return None
 
 def _refine_task_and_continue_iterative(state, task1, todo_list, plan, depth):
@@ -2025,15 +2056,25 @@ class TraceEvent:
       - "idempotent":       the action returned a State equal to the input
                              state; not recorded in the plan, but the search
                              continued from it.
-      - "not_applicable":   the action returned exactly False (the documented
-                             failure contract) -- a legitimate precondition
-                             failure. Terminal for this item.
+      - "not_applicable":   the action returned False or None -- a legitimate
+                             precondition failure. False is what this
+                             project's style guide teaches; None is what
+                             GTPyhop's original examples have always done,
+                             falling off the end of
+                             `if <preconditions>: <effects>; return s` when
+                             the guard is false. Both are ordinary failures,
+                             matching the method-refinement paths, which have
+                             likewise always accepted None. See
+                             _action_failure_status. Terminal for this item.
       - "malformed_return": the action returned something that is neither a
-                             State nor False (e.g. True, None, a string).
-                             Before this status existed, GTPyhop treated this
-                             identically to "not_applicable", making a broken
-                             action indistinguishable from a legitimate
-                             precondition failure. detail describes what was
+                             State, False, nor None (e.g. True, a string, an
+                             int). Before this status existed, GTPyhop treated
+                             this identically to "not_applicable", making a
+                             broken action indistinguishable from a legitimate
+                             precondition failure -- the case that matters
+                             being an action that returns True rather than the
+                             state, silently discarding its own effects while
+                             appearing to succeed. detail describes what was
                              actually returned. Terminal for this item.
       - "method_applicable":       a candidate method for this task/unigoal/
                                     multigoal returned a subtask/subgoal list.

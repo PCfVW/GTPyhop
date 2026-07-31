@@ -182,12 +182,24 @@ Snapshots are the runtime half of failure attribution; the other half is a sourc
 |--------|:---------:|---------|
 | `applied` | No | Action returned a changed `State`; recorded in the plan |
 | `idempotent` | No | Action returned an unchanged `State`; not recorded, search continued |
-| `not_applicable` | Yes | Action returned exactly `False` — a legitimate precondition failure |
-| `malformed_return` | Yes | Action returned neither `State` nor `False` (e.g. `True`) — a domain-authoring bug, previously indistinguishable from `not_applicable` |
+| `not_applicable` | Yes | Action returned `False` **or** `None` — a legitimate precondition failure (see note below) |
+| `malformed_return` | Yes | Action returned neither `State`, `False`, nor `None` (e.g. `True`) — a domain-authoring bug, previously indistinguishable from `not_applicable` |
 | `method_applicable` | No | A candidate method for a task/unigoal/multigoal returned a subtask/subgoal list |
 | `method_not_applicable` | No | A candidate method returned `False`/`None`; the loop moves to the next candidate |
 | `method_malformed_return` | Yes | A candidate method returned something that is neither a list, `False`, nor `None` — terminal because the value is used immediately afterward and raises `TypeError`, so the enclosing `*_exhausted` event is never reached |
 | `task_exhausted` / `goal_exhausted` / `multigoal_exhausted` | Yes | Every candidate method was tried and none succeeded |
+
+**Why `None` counts as a legitimate failure.** An action signals "my preconditions did not hold" by returning `False` — what the [domain style guide](gtpyhop_domain_style_guide.md) teaches and what the newer example collections do — or by returning `None`, which is what GTPyhop's original examples have always done: the canonical
+
+```python
+def pickup(s, x):
+    if s.pos[x] == 'table' and s.clear[x] and s.holding['hand'] == False:
+        ...             # effects
+        return s
+    # no else, no explicit return: falls off the end -> None
+```
+
+simply falls off the end when the guard is false. `blocks_htn`, `blocks_gtn`, `blocks_hgn`, `blocks_goal_splitting`, `simple_htn`, `simple_hgn`, `logistics_hgn` and `backtracking_htn` are all written this way. Treating `None` as malformed would label GTPyhop's own teaching examples as buggy, and would contradict method refinement, which has always accepted `None` as an ordinary "not applicable". Returning `True`, a string or an int *is* still `malformed_return` — that is the case worth catching, since an action returning `True` instead of the state silently discards its own effects while appearing to succeed.
 
 `PlanTrace` is a mechanical primitive only: it reports *which* action or method, at what depth, with what status, and — with `trace_state=True` — the state it was attempted against. It does not itself attribute failure to a specific precondition or state variable: naming the culprit means reading the domain source to find the failing action's guards and intersecting them with the snapshot, which is a source-level analysis deliberately left to the caller.
 
