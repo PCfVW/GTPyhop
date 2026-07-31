@@ -53,6 +53,10 @@ Built all three wheels and, in fresh venvs, confirmed: `gtpyhop-core` alone has 
 
 `trace_state` verified separately by 39 assertions over a purpose-built precondition-guard domain: across all three strategies, that the dead-end event's snapshot exposes the blocking state variable, that every event carries one, and that plain `trace=True` records none; that an action's snapshot is the *pre*-action state while the next action's reflects the previous one's effect; that snapshots are deep copies unaffected by later search mutation; that `trace_state=True` implies `trace=True` while requesting neither still leaves `result.trace` as `None`; that snapshotting preserves state names (guarding the `_next_state_number` regression that `State.copy()` would have caused); and that an uncopyable state variable degrades the snapshot to `None`, leaves the partial trace inspectable, and reports GTPyhop's own pre-existing copy failure rather than a tracing failure. The full `regression_tests` suite was re-run in both legacy and session mode afterward with no regressions.
 
+---
+
+> **Everything below predates the 2.0.0 restructuring.** These entries describe the repository as it was when each version shipped, so bare paths and shell commands in them refer to the old single-`src/` layout — `src/gtpyhop/examples/...`, where today the same files live under `packages/gtpyhop-examples/src/gtpyhop/examples/...`. They are left as written because rewriting them would misreport what those releases actually contained; a command copied from a pre-2.0 entry therefore needs its path adjusted before it will run. Links in these entries *are* kept current, since a link's job is to reach the file as it exists now. See the 2.0.0 entry above for the current layout.
+
 ## 1.9.7 — Colt Express Collection + Control Arena adversarial_protocol Extension
 
 This version closes the 1.9 minor on the "examples" theme. It adds the **Colt Express** example collection (a 5-sub-folder pedagogical collection mirroring `trunk_thumper`'s pattern catalog applied to the published board game) and **extends the existing `adversarial_protocol/`** sub-folder of `control_arena_protocols/` with three additive features. No planner changes; pure additions to the example library.
@@ -379,9 +383,9 @@ python -m doctest -v src/gtpyhop/examples/poetry/feature_space_poetry/problems.p
 
 **Documentation updates:**
 - **[All Examples Guide](https://github.com/PCfVW/GTPyhop/blob/pip/docs/all_examples.md)** — Updated Feature Space Poetry section (8→12 scenarios, added 2.5M scenario table)
-- **[Poetry README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/poetry/README.md)** — Updated scenario counts, strategy table, directory structure; added 2.5M scenario table
-- **[Poetry Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/poetry/benchmarking_quickstart.md)** — Updated expected results with all 12 scenarios; updated troubleshooting
-- **[Feature Space Poetry README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/poetry/feature_space_poetry/README.md)** — Added 2.5M scenarios, empirical grounding, decomposition examples; updated domain statistics
+- **[Poetry README](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/poetry/README.md)** — Updated scenario counts, strategy table, directory structure; added 2.5M scenario table
+- **[Poetry Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/poetry/benchmarking_quickstart.md)** — Updated expected results with all 12 scenarios; updated troubleshooting
+- **[Feature Space Poetry README](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/poetry/feature_space_poetry/README.md)** — Added 2.5M scenarios, empirical grounding, decomposition examples; updated domain statistics
 
 **Compatibility:** 100% backward compatible with GTPyhop 1.9.1. No API changes.
 
@@ -495,9 +499,9 @@ python benchmarking.py feature_space_poetry --strategy iterative_dfs_backtrackin
 
 **Documentation & Style Guides:**
 - **[All Examples Guide](https://github.com/PCfVW/GTPyhop/blob/pip/docs/all_examples.md)** — Updated with examples 6-7 (sections, summary table, benchmarking commands)
-- **[Poetry README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/poetry/README.md)** — Updated with examples 6-7 (tables, directory structure, server architectures); fixed example 6 strategy classification (Backtracking → Any); added comprehensive MCP section (Why MCP?, server configurations, MCP reference summary)
-- **[Poetry Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/poetry/benchmarking_quickstart.md)** — Updated with examples 6-7 (expected results, troubleshooting, strategy tables)
-- **[Feature Space Poetry README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/poetry/feature_space_poetry/README.md)** — Added Llama 3.2 1B scenarios (4-7); fixed server architecture (suppress_group moved to clt_server); fixed method count (5, not 7); added Appendix on state restoration and backtrack with MI and AI planning implications
+- **[Poetry README](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/poetry/README.md)** — Updated with examples 6-7 (tables, directory structure, server architectures); fixed example 6 strategy classification (Backtracking → Any); added comprehensive MCP section (Why MCP?, server configurations, MCP reference summary)
+- **[Poetry Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/poetry/benchmarking_quickstart.md)** — Updated with examples 6-7 (expected results, troubleshooting, strategy tables)
+- **[Feature Space Poetry README](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/poetry/feature_space_poetry/README.md)** — Added Llama 3.2 1B scenarios (4-7); fixed server architecture (suppress_group moved to clt_server); fixed method count (5, not 7); added Appendix on state restoration and backtrack with MI and AI planning implications
 - **[Problems Style Guide](https://github.com/PCfVW/GTPyhop/blob/pip/docs/gtpyhop_problems_style_guide.md)** — v2.2.0: added section 2.3 on doctests in `get_problems()` with template and conventions
 - **[Example Style Guide](https://github.com/PCfVW/GTPyhop/blob/pip/docs/gtpyhop_example_style_guide.md)** — v1.2.0: added section 7 on doctests for plan verification; updated checklist and quick start template
 
@@ -604,10 +608,10 @@ with PlannerSession(
 
 **Documentation:**
 - [Example Style Guide](https://github.com/PCfVW/GTPyhop/blob/pip/docs/gtpyhop_example_style_guide.md) - How to write GTPyhop examples
-- [Memory Tracking README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/memory_tracking/README.md)
-- [Benchmarking Quick Start](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/memory_tracking/benchmarking_quickstart.md)
-- [Scalable Data Processing](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/memory_tracking/scalable_data_processing/README.md)
-- [Scalable Recursive Decomposition](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/memory_tracking/scalable_recursive_decomposition/README.md)
+- [Memory Tracking README](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/memory_tracking/README.md)
+- [Benchmarking Quick Start](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/memory_tracking/benchmarking_quickstart.md)
+- [Scalable Data Processing](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/memory_tracking/scalable_data_processing/README.md)
+- [Scalable Recursive Decomposition](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/memory_tracking/scalable_recursive_decomposition/README.md)
 
 **References:**
 - Ron Alford, Pascal Bercher, & David Aha (2015). ["Tight Bounds for HTN Planning."](https://ojs.aaai.org/index.php/ICAPS/article/view/13721) 25th ICAPS, pp. 7-15. [Video Recording](https://www.icaps-conference.org/recording/tight-bounds-for-htn-planning/)
@@ -690,8 +694,8 @@ with PlannerSession(
 - **🌐 MCP Orchestration Opentrons Flex Examples** - Omega HDQ 96-channel and PCR Workflow Automation with dynamic sample scaling (4 to 96 samples)
 
 **Opentrons Flex Examples Documentation:**
-- **[PCR Workflow Automation →](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/bio_opentrons/README.md)** - Multi-server robot coordination for Polymerase Chain Reaction (PCR) workflow automation (3 servers, 18 actions, 15 methods)
-- **[Omega HDQ 96-channel →](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/omega_hdq_dna_bacteria_flex_96_channel/README.md)** - Multi-server robot coordination for DNA extraction (3 servers, 17 actions, 14 methods)
+- **[PCR Workflow Automation →](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/mcp-orchestration/bio_opentrons/README.md)** - Multi-server robot coordination for Polymerase Chain Reaction (PCR) workflow automation (3 servers, 18 actions, 15 methods)
+- **[Omega HDQ 96-channel →](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/mcp-orchestration/omega_hdq_dna_bacteria_flex_96_channel/README.md)** - Multi-server robot coordination for DNA extraction (3 servers, 17 actions, 14 methods)
 
 [Opentrons Flex](https://en.wikipedia.org/wiki/Opentrons) is a modular liquid handling robot platform.
 
@@ -709,9 +713,9 @@ with PlannerSession(
 - **🌐 MCP Orchestration Examples** - Cross-server coordination and scientific workflows
 
 **MCP Orchestration Documentation:**
-- **[Cross-Server Orchestration →](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/cross_server/README.md)** - Multi-server robot coordination (2 servers, 9 actions, 5 methods)
-- **[TNF Cancer Modelling →](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/tnf_cancer_modelling/README.md)** - Multiscale biological modeling (12 actions, 3 methods)
-- **[MCP Benchmarking →](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/benchmarking_quickstart.md)** - Performance benchmarking for MCP domains
+- **[Cross-Server Orchestration →](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/mcp-orchestration/cross_server/README.md)** - Multi-server robot coordination (2 servers, 9 actions, 5 methods)
+- **[TNF Cancer Modelling →](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/mcp-orchestration/tnf_cancer_modelling/README.md)** - Multiscale biological modeling (12 actions, 3 methods)
+- **[MCP Benchmarking →](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/mcp-orchestration/benchmarking_quickstart.md)** - Performance benchmarking for MCP domains
 
 **MCP** stands for [Model Context Protocol](https://modelcontextprotocol.io/), [an open-source standard from Anthropic](https://www.anthropic.com/news/model-context-protocol/) for connecting AI applications to external systems.
 
@@ -726,9 +730,9 @@ with PlannerSession(
 - **📈 Resource monitoring for Benchmarking** - Memory (Total and Peak Kb) and CPU usage (%) tracking
 
 **IPC 2020 Total Order Documentation:**
-- **[Benchmarking documentation →](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/ipc-2020-total-order/benchmarking_quickstart.md)**
-- **[Blocksworld-GTOHP documentation →](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/ipc-2020-total-order/Blocksworld-GTOHP/ipc-2020-to-bw-gtohp-readme.md)**
-- **[Childsnack documentation →](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/ipc-2020-total-order/Childsnack/ipc-2020-to-cs-gtohp-readme.md)**
+- **[Benchmarking documentation →](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/ipc-2020-total-order/benchmarking_quickstart.md)**
+- **[Blocksworld-GTOHP documentation →](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/ipc-2020-total-order/Blocksworld-GTOHP/ipc-2020-to-bw-gtohp-readme.md)**
+- **[Childsnack documentation →](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/ipc-2020-total-order/Childsnack/ipc-2020-to-cs-gtohp-readme.md)**
 
 ## 1.3.0 — Thread-Safe Sessions
 **Uploaded to PyPI: https://pypi.org/project/gtpyhop/1.3.0/**
