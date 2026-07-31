@@ -40,6 +40,32 @@ Both GTPyhop precondition idioms are handled, which matters because they are str
 
 Deliberately **not** versioned in lockstep with the other three: it is `0.1.0`, depends on `gtpyhop-core>=2.0.0` rather than an exact pin, and publishes under its own `diagnostics-v*` tag namespace via its own workflow, so the `v2.0.0` tag sequence is untouched. `publish-one-package.yml` gained an optional `tag_prefix` input (defaulting to `v`) so the tag-vs-`pyproject.toml` version guard still works for a prefixed tag instead of silently skipping. See [its README](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-diagnostics/README.md) for usage, coverage and the degradation table.
 
+### Goals tutorial and roadmap
+
+**[How to write a goal](goals_tutorial.md)** — the tutorial 2.0 was originally scoped
+around, finally written. It assumes no knowledge of goals and asks for *the same thing*
+four ways in one tiny two-box domain, so the differences between the forms are visible
+rather than described: a single unigoal; two unigoals in sequence; the same pair as one
+`Multigoal` split automatically by the built-in `m_split_multigoal`; and that multigoal
+achieved by a method you write yourself to control the order. It closes with what
+`verify_goals` catches for you, and the traps — chief among them that a goal whose state
+variable was never declared is reported *differently by strategy* (`recursive_dfs` names
+it; the two iterative strategies just say "no plan found"), which makes re-running under
+`recursive_dfs` the fastest way to diagnose a goal that mysteriously refuses to plan.
+
+Two things the tutorial documents that were not written down anywhere before: unigoal
+and multigoal methods take **different signatures** — `m(state, arg, value)` versus
+`m(state, multigoal)` — and `verify_goals` must be set as `gtpyhop.main.verify_goals`,
+since it is not re-exported at package level, so the natural-looking
+`gtpyhop.verify_goals = False` silently creates an unread attribute instead.
+
+**[docs/ROADMAP.md](ROADMAP.md)** — new, and candid about 2.0 having changed course. The
+release was scoped as goals tutorial + visualisation + iterative deepening, and became
+packaging + diagnosability instead, because measurement showed plan *existence*, not plan
+quality, was the dominant failure. Visualisation is now 2.1, IDDFS follows it, cost-aware
+planning remains 3.0, and there is a "not planned" section so settled questions —
+partial-order planning, PDDL parsing, retiring the global API — stay settled.
+
 ### Documentation rewritten for the release
 
 `README.md` cut from 556 lines to roughly a third of that, and turned into a landing

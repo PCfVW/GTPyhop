@@ -140,6 +140,7 @@ the guard that did hold. Walked through step by step in the
 **Start here**
 
 - **[FAQ](docs/faq.md)** — which package to install, which strategy to pick, what an action must return
+- **[Goals tutorial](docs/goals_tutorial.md)** — asking for a *state* instead of a task, four ways
 - **[Diagnostics tutorial](docs/diagnostics_tutorial.md)** — from "it failed" to "this precondition blocked it"
 - **[All Examples](docs/all_examples.md)** — the full catalogue, with pedagogical notes
 - **[Running Examples](docs/running_examples.md)** — how to invoke and benchmark them
@@ -149,6 +150,7 @@ the guard that did hold. Walked through step by step in the
 - **[Thread-Safe Sessions](docs/thread_safe_sessions.md)** — sessions, planning strategies, memory tracking, `PlanTrace`
 - **[Structured Logging](docs/logging.md)** — the logging system
 - **[Version History](docs/changelog.md)** — full changelog
+- **[Roadmap](docs/ROADMAP.md)** — what is coming, what is deferred, and what is not planned
 
 **Writing your own**
 
