@@ -40,6 +40,44 @@ Both GTPyhop precondition idioms are handled, which matters because they are str
 
 Deliberately **not** versioned in lockstep with the other three: it is `0.1.0`, depends on `gtpyhop-core>=2.0.0` rather than an exact pin, and publishes under its own `diagnostics-v*` tag namespace via its own workflow, so the `v2.0.0` tag sequence is untouched. `publish-one-package.yml` gained an optional `tag_prefix` input (defaulting to `v`) so the tag-vs-`pyproject.toml` version guard still works for a prefixed tag instead of silently skipping. See [its README](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-diagnostics/README.md) for usage, coverage and the degradation table.
 
+### One shared dispatch for every planning strategy
+
+Each of the three `seek_plan_*` functions carried its own copy of "what kind of thing is
+this todo-list entry", and its own copy of the "is this unigoal already true" check.
+Three copies meant three chances to diverge, and they had diverged: an item that is
+neither action, task, unigoal nor multigoal raised a clear exception under
+`recursive_dfs`, while `iterative_greedy` — **the default** — and
+`iterative_dfs_backtracking` fell through silently and reported nothing worse than "no
+plan found". So the commonest goal mistake of all, forgetting
+`declare_unigoal_methods`, was indistinguishable from "this problem has no solution" for
+most users, and sent them looking in exactly the wrong place.
+
+Both checks now live in one place — `classify_todo_item` and `_unigoal_satisfied` — used
+by all three strategies. This is worth doing *before* iterative deepening arrives as a
+fourth strategy: shared behaviour is inherited by construction rather than by whoever
+writes it next remembering to copy it.
+
+Two error messages improved in the process, since a single implementation can afford to
+be careful where three copies could not:
+
+- An unrecognised item now names what was not found and what to do about it: *"Nothing
+  named `'colour'` is declared in domain `'boxes'`. Declare it with `declare_actions`,
+  `declare_task_methods`, or — if it is meant to be a goal —
+  `declare_unigoal_methods('colour', ...)`."* A non-tuple says what shape was expected
+  and what it got.
+- A goal about a state variable the state does not have used to die with `'NoneType'
+  object has no attribute 'get'`, which mentions neither goals nor state variables. It
+  now reads *"goal `('height', 'box1', 3)` is about state variable `'height'`, which does
+  not exist in state `'s0'`. Initialise it before planning — `state.height = {}` is
+  enough…"*. The same check covers multigoals, which had the identical failure inside
+  `_goals_not_achieved`, and a state variable that is not a dictionary at all now says so
+  rather than raising `AttributeError`.
+
+This makes the two iterative strategies raise where they previously returned a plain
+failure. That is a behaviour change, made deliberately while 2.0.0 is unreleased and the
+contract is still free to move: after publication it would be a breaking change to a
+public planning API.
+
 ### Goals tutorial and roadmap
 
 **[How to write a goal](goals_tutorial.md)** — the tutorial 2.0 was originally scoped

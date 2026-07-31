@@ -250,27 +250,32 @@ reports success — wrong, and quietly so.
 
 ## Traps
 
-**A goal whose state variable was never declared.** If you forget
-`declare_unigoal_methods`, what happens depends on your planning strategy:
+**A goal whose state variable was never declared.** Forget
+`declare_unigoal_methods` and GTPyhop says so, whichever strategy you are using:
 
-| Strategy | What you see |
-|---|---|
-| `iterative_greedy` (the default) | `No plan found` |
-| `iterative_dfs_backtracking` | `No plan found` |
-| `recursive_dfs` | `('colour','box1','red') isn't an action, task, unigoal, or multigoal` |
+```
+('colour', 'box1', 'red') isn't an action, task, unigoal, or multigoal.
+Nothing named 'colour' is declared in domain 'boxes'. Declare it with
+declare_actions, declare_task_methods, or -- if it is meant to be a goal --
+declare_unigoal_methods('colour', ...).
+```
 
-So if a goal mysteriously refuses to plan, re-run once with
-`PlannerSession(..., strategy="recursive_dfs")`. It names the problem immediately.
+This is an error rather than a quiet planning failure on purpose: left silent, it is
+indistinguishable from "this problem has no solution", which sends you looking in
+entirely the wrong place.
 
 **A goal on a state variable the state doesn't have.** Declaring methods is not enough —
 the variable must also exist in the initial state:
 
 ```
-Planning error: 'NoneType' object has no attribute 'get'
+goal ('height', 'box1', 3) is about state variable 'height', which does not
+exist in state 's0'. Initialise it before planning -- state.height = {} is
+enough, since GTPyhop state variables are dictionaries keyed by the goal's
+argument.
 ```
 
-That is what an uninitialised state variable looks like. Initialise every variable you
-intend to write goals about, even to an empty dict.
+So initialise every variable you intend to write goals about, even to an empty dict. The
+same message appears for a multigoal naming a variable the state lacks.
 
 **The two method signatures differ.** A frequent source of confusion:
 

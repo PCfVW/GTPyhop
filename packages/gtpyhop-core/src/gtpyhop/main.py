@@ -871,7 +871,11 @@ def _goals_not_achieved(state,multigoal):
         if name != '__name__':
             for arg in vars(multigoal).get(name):
                 val = vars(multigoal).get(name).get(arg)
-                if val != vars(state).get(name).get(arg):
+                # _unigoal_satisfied rather than a bare .get().get(): a
+                # multigoal naming a state variable the state does not have
+                # otherwise dies with "'NoneType' object has no attribute
+                # 'get'", exactly as unigoals used to.
+                if not _unigoal_satisfied(state, name, arg, val):
                     # want arg_value_pairs.name[arg] = val
                     if not unachieved.get(name):
                         unachieved.update({name:{}})
@@ -1019,6 +1023,98 @@ Design Notes:
   method continuations, enabling backtracking without recursion depth limits
 - All planning respects the global verbose level for output control
 """
+
+################################################################################
+# Shared by every planning strategy
+#
+# The three seek_plan_* functions below used to each carry their own copy of
+# the "what kind of thing is this todo_list entry" logic, and of the "is this
+# unigoal already true" check. Three copies meant three chances to diverge,
+# and they had: an unrecognised item raised a clear error under recursive_dfs
+# but was silently ignored by both iterative strategies, which then reported
+# nothing worse than "no plan found". Anything added here is inherited by
+# every strategy, including ones not written yet.
+
+
+# The kinds of thing a todo_list entry can be.
+ITEM_ACTION = 'action'
+ITEM_TASK = 'task'
+ITEM_UNIGOAL = 'unigoal'
+ITEM_MULTIGOAL = 'multigoal'
+
+
+def classify_todo_item(item, depth=0, domain=None):
+    """
+    Say what kind of thing a todo_list entry is, or raise explaining why it is
+    none of them.
+
+    Returns one of ITEM_ACTION, ITEM_TASK, ITEM_UNIGOAL, ITEM_MULTIGOAL.
+
+    Note the order: a name is looked up as an action first, then a task, then
+    a unigoal, so a state variable sharing a name with an action or task is
+    shadowed by it. That order is long-standing behaviour, preserved here.
+
+    An item that matches nothing is a domain-authoring error rather than a
+    search outcome -- most often a goal whose state variable was never passed
+    to declare_unigoal_methods, or a simple misspelling -- so it raises
+    instead of quietly failing to plan. Left silent, it is indistinguishable
+    from "this problem has no solution", which sends you looking in exactly
+    the wrong place.
+    """
+    if domain is None:
+        domain = current_domain
+    if get_type(item) == 'Multigoal':
+        return ITEM_MULTIGOAL
+    if isinstance(item, (list, tuple)) and len(item) > 0:
+        name = item[0]
+        if name in domain._action_dict:
+            return ITEM_ACTION
+        if name in domain._task_method_dict:
+            return ITEM_TASK
+        if name in domain._unigoal_method_dict:
+            return ITEM_UNIGOAL
+        raise Exception(
+            f"depth {depth}: {item} isn't an action, task, unigoal, or "
+            f"multigoal. Nothing named {name!r} is declared in domain "
+            f"{domain.__name__!r}. Declare it with declare_actions, "
+            f"declare_task_methods, or -- if it is meant to be a goal -- "
+            f"declare_unigoal_methods({name!r}, ...)."
+        )
+    raise Exception(
+        f"depth {depth}: {item} isn't an action, task, unigoal, or multigoal. "
+        f"Expected a Multigoal, or a non-empty tuple whose first element names "
+        f"an action, a task, or a goal's state variable; got {get_type(item)}."
+    )
+
+
+def _unigoal_satisfied(state, state_var_name, arg, val, depth=0):
+    """
+    Is the unigoal (state_var_name, arg, val) already true in state?
+
+    Raises a readable error when the state variable itself is missing. The
+    bare `vars(state).get(name).get(arg)` this replaces raised
+    "'NoneType' object has no attribute 'get'", which says nothing about
+    goals, state variables, or what to do next.
+    """
+    bindings = vars(state).get(state_var_name)
+    if bindings is None:
+        raise Exception(
+            f"depth {depth}: goal ({state_var_name!r}, {arg!r}, {val!r}) is about "
+            f"state variable {state_var_name!r}, which does not exist in state "
+            f"{state.__name__!r}. Initialise it before planning -- "
+            f"state.{state_var_name} = {{}} is enough, since GTPyhop state "
+            f"variables are dictionaries keyed by the goal's argument."
+        )
+    if not hasattr(bindings, 'get'):
+        raise Exception(
+            f"depth {depth}: goal ({state_var_name!r}, {arg!r}, {val!r}) is about "
+            f"state variable {state_var_name!r}, which is a {get_type(bindings)} "
+            f"in state {state.__name__!r} rather than a dictionary. GTPyhop "
+            f"state variables are dictionaries keyed by the goal's argument, "
+            f"e.g. state.{state_var_name}[{arg!r}]."
+        )
+    return bindings.get(arg) == val
+
 
 ################################################################################
 # Recursive Planning Implementation
@@ -1180,7 +1276,7 @@ def _refine_unigoal_and_continue_recursive(state, goal1, todo_list, plan, depth)
     if verbose >= 3:
         print(f'depth {depth} goal {goal1}: ', end='')
     (state_var_name, arg, val) = goal1
-    if vars(state).get(state_var_name).get(arg) == val:
+    if _unigoal_satisfied(state, state_var_name, arg, val, depth):
         if verbose >= 3:
             print(f'already achieved')
         return seek_plan_recursive(state, todo_list, plan, depth+1)
@@ -1278,19 +1374,14 @@ def seek_plan_recursive(state, todo_list, plan, depth):
             print(f'depth {depth} no more tasks or goals, return plan')
         return plan
     item1 = todo_list[0]
-    ttype = get_type(item1)
-    if ttype in {'Multigoal'}:
+    kind = classify_todo_item(item1, depth)      # raises if it is none of them
+    if kind == ITEM_MULTIGOAL:
         return _refine_multigoal_and_continue_recursive(state, item1, todo_list[1:], plan, depth)
-    elif ttype in {'list','tuple'}:
-        if item1[0] in current_domain._action_dict:
-            return _apply_action_and_continue_recursive(state, item1, todo_list[1:], plan, depth)
-        elif item1[0] in current_domain._task_method_dict:
-            return _refine_task_and_continue_recursive(state, item1, todo_list[1:], plan, depth)
-        elif item1[0] in current_domain._unigoal_method_dict:
-            return _refine_unigoal_and_continue_recursive(state, item1, todo_list[1:], plan, depth)
-    raise Exception(    \
-        f"depth {depth}: {item1} isn't an action, task, unigoal, or multigoal\n")
-    return False
+    if kind == ITEM_ACTION:
+        return _apply_action_and_continue_recursive(state, item1, todo_list[1:], plan, depth)
+    if kind == ITEM_TASK:
+        return _refine_task_and_continue_recursive(state, item1, todo_list[1:], plan, depth)
+    return _refine_unigoal_and_continue_recursive(state, item1, todo_list[1:], plan, depth)
 
 
 ###############################################################################
@@ -1397,7 +1488,7 @@ def _refine_unigoal_and_continue_iterative(state, goal1, todo_list, plan, depth)
     if verbose >= 3:
         print(f'depth {depth} goal {goal1}: ', end='')
     (state_var_name, arg, val) = goal1
-    if vars(state).get(state_var_name).get(arg) == val:
+    if _unigoal_satisfied(state, state_var_name, arg, val, depth):
         if verbose >= 3:
             print(f'already achieved')
         return (state, todo_list, plan, depth + 1)
@@ -1528,7 +1619,7 @@ def _refine_unigoal_and_continue_iterative_bt(state, goal1, todo_list, plan, dep
     if verbose >= 3:
         print(f'depth {depth} goal {goal1}: ', end='')
     (state_var_name, arg, val) = goal1
-    if vars(state).get(state_var_name).get(arg) == val:
+    if _unigoal_satisfied(state, state_var_name, arg, val, depth):
         if verbose >= 3:
             print(f'already achieved')
         return [(state, todo_list, plan, depth + 1)]
@@ -1650,25 +1741,18 @@ def seek_plan_iterative(initial_state, initial_todo_list, initial_plan, initial_
             return plan
 
         item1 = todo_list[0]
-        ttype = get_type(item1)
+        kind = classify_todo_item(item1, depth)  # raises if it is none of them
 
-        if ttype in {'Multigoal'}:
+        if kind == ITEM_MULTIGOAL:
             result = _refine_multigoal_and_continue_iterative(state, item1, todo_list[1:], plan, depth)
-            if result is not None:
-                stack.append(result)  # Add new state to the stack
-        elif ttype in {'list', 'tuple'}:
-            if item1[0] in current_domain._action_dict:
-                result = _apply_action_and_continue_iterative(state, item1, todo_list[1:], plan, depth)
-                if result is not None:
-                    stack.append(result)  # Add new state to the stack
-            elif item1[0] in current_domain._task_method_dict:
-                result = _refine_task_and_continue_iterative(state, item1, todo_list[1:], plan, depth)
-                if result is not None:
-                    stack.append(result)  # Add new state to the stack
-            elif item1[0] in current_domain._unigoal_method_dict:
-                result = _refine_unigoal_and_continue_iterative(state, item1, todo_list[1:], plan, depth)
-                if result is not None:
-                    stack.append(result)  # Add new state to the stack
+        elif kind == ITEM_ACTION:
+            result = _apply_action_and_continue_iterative(state, item1, todo_list[1:], plan, depth)
+        elif kind == ITEM_TASK:
+            result = _refine_task_and_continue_iterative(state, item1, todo_list[1:], plan, depth)
+        else:
+            result = _refine_unigoal_and_continue_iterative(state, item1, todo_list[1:], plan, depth)
+        if result is not None:
+            stack.append(result)  # Add new state to the stack
 
     return False
 
@@ -1719,28 +1803,24 @@ def seek_plan_iterative_backtracking(initial_state, initial_todo_list, initial_p
             return plan
 
         item1 = todo_list[0]
-        ttype = get_type(item1)
+        kind = classify_todo_item(item1, depth)  # raises if it is none of them
 
-        if ttype in {'Multigoal'}:
-            continuations = _refine_multigoal_and_continue_iterative_bt(state, item1, todo_list[1:], plan, depth)
+        if kind == ITEM_ACTION:
+            # Actions have no alternatives -- reuse the standard iterative handler
+            result = _apply_action_and_continue_iterative(state, item1, todo_list[1:], plan, depth)
+            if result is not None:
+                stack.append(result)
+            # If None: action failed, stack falls through to next alternative
+        else:
+            if kind == ITEM_MULTIGOAL:
+                continuations = _refine_multigoal_and_continue_iterative_bt(state, item1, todo_list[1:], plan, depth)
+            elif kind == ITEM_TASK:
+                continuations = _refine_task_and_continue_iterative_bt(state, item1, todo_list[1:], plan, depth)
+            else:
+                continuations = _refine_unigoal_and_continue_iterative_bt(state, item1, todo_list[1:], plan, depth)
             # Push in reverse so first method is tried first (LIFO)
             for c in reversed(continuations):
                 stack.append(c)
-        elif ttype in {'list', 'tuple'}:
-            if item1[0] in current_domain._action_dict:
-                # Actions have no alternatives -- reuse the standard iterative handler
-                result = _apply_action_and_continue_iterative(state, item1, todo_list[1:], plan, depth)
-                if result is not None:
-                    stack.append(result)
-                # If None: action failed, stack falls through to next alternative
-            elif item1[0] in current_domain._task_method_dict:
-                continuations = _refine_task_and_continue_iterative_bt(state, item1, todo_list[1:], plan, depth)
-                for c in reversed(continuations):
-                    stack.append(c)
-            elif item1[0] in current_domain._unigoal_method_dict:
-                continuations = _refine_unigoal_and_continue_iterative_bt(state, item1, todo_list[1:], plan, depth)
-                for c in reversed(continuations):
-                    stack.append(c)
 
     return False
 
