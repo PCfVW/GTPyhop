@@ -89,6 +89,7 @@ import json
 import pickle
 import os
 import atexit
+import warnings
 
 # Type hints and modern Python features
 from typing import Optional, List, Dict, Any, Tuple, Union
@@ -2827,7 +2828,19 @@ class PlannerSession:
             state: Initial state
             todo_list: List of tasks/goals to achieve
             timeout_ms: Maximum planning time in milliseconds
-            max_expansions: Maximum number of plan expansions
+            max_expansions: ACCEPTED BUT NOT ENFORCED -- passing a value
+                emits a UserWarning and has no effect on the search. The
+                parameter has been part of this signature since 1.3.0 but
+                was never threaded into the seek_plan_* functions, so a
+                caller asking for a bounded search has silently been given
+                an exhaustive one. It is kept (rather than removed) because
+                a deterministic search-effort cap is genuinely wanted as a
+                companion to timeout_ms's wall-clock cap -- notably for
+                bounding a possibly-adversarial machine-generated domain --
+                but implementing it means adding an expansion counter to
+                seek_plan_recursive (which has none; the two iterative
+                strategies count main-loop iterations locally) and settling
+                what one "expansion" means. Use timeout_ms meanwhile.
             trace: If True, populate result.trace with a PlanTrace recording
                 every action-application attempt made during the search
                 (depth, action, status). Default False; costs nothing when
@@ -2843,6 +2856,20 @@ class PlannerSession:
         Returns:
             PlanResult with success status, plan, logs, and statistics
         """
+        if max_expansions is not None:
+            # Fail loudly rather than silently ignoring the cap: until this
+            # is implemented, a caller passing it gets an exhaustive search
+            # while believing the search was bounded. stacklevel=2 points
+            # the warning at that caller, not at this line.
+            warnings.warn(
+                "find_plan(max_expansions=...) is accepted but NOT enforced: "
+                "the search is not bounded by it. Use timeout_ms for a "
+                "wall-clock bound. See the find_plan docstring for why the "
+                "parameter is retained.",
+                UserWarning,
+                stacklevel=2,
+            )
+
         with self._lock:
             self._update_last_used()
             start_time = time.time()
