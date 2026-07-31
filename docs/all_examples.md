@@ -199,7 +199,7 @@ This document provides pedagogical details about all HTN Planning examples inclu
 
 ### Blocksworld-GTOHP and Childsnack Domains
 **Purpose:** Competition-grade planning domains
-**Location:** `src/gtpyhop/examples/ipc-2020-total-order/`
+**Location:** `packages/gtpyhop-examples/src/gtpyhop/examples/ipc-2020-total-order/`
 **Key Learning Points:**
 - Competition-standard domain modeling
 - Performance benchmarking
@@ -212,13 +212,13 @@ This document provides pedagogical details about all HTN Planning examples inclu
 
 **Educational Value:** Shows how GTPyhop handles competition-grade planning problems.
 
-**Documentation:** [Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/ipc-2020-total-order/benchmarking_quickstart.md)
+**Documentation:** [Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/ipc-2020-total-order/benchmarking_quickstart.md)
 
 ---
 
 ## MCP Orchestration Examples
 
-**Location:** `src/gtpyhop/examples/mcp-orchestration/`
+**Location:** `packages/gtpyhop-examples/src/gtpyhop/examples/mcp-orchestration/`
 
 MCP (Model Context Protocol) is an open-source standard from Anthropic for connecting AI applications to external systems.
 
@@ -237,7 +237,7 @@ MCP (Model Context Protocol) is an open-source standard from Anthropic for conne
 - **Actions (18):** Tip handling, liquid transfers, thermal cycling
 - **Methods (15):** PCR workflow orchestration
 
-**Documentation:** [Bio-Opentrons README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/bio_opentrons/README.md)
+**Documentation:** [Bio-Opentrons README](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/mcp-orchestration/bio_opentrons/README.md)
 
 ### Cross-Server Orchestration (1.5.0+)
 **Purpose:** Cross-server coordination with HTN planning
@@ -254,7 +254,7 @@ MCP (Model Context Protocol) is an open-source standard from Anthropic for conne
 - **Actions (9):** Server initialization, gripper control, motion planning
 - **Methods (5):** Pick-and-place orchestration
 
-**Documentation:** [Cross-Server README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/cross_server/README.md)
+**Documentation:** [Cross-Server README](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/mcp-orchestration/cross_server/README.md)
 
 ### Drug Target Discovery (1.7.0+)
 **Purpose:** Drug target discovery pipeline using OpenTargets platform
@@ -271,7 +271,7 @@ MCP (Model Context Protocol) is an open-source standard from Anthropic for conne
 - **Actions (8):** Query, analyze, rank targets
 - **Methods (3):** Discovery pipeline orchestration
 
-**Documentation:** [Drug Target Discovery README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/drug_target_discovery/README.md)
+**Documentation:** [Drug Target Discovery README](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/mcp-orchestration/drug_target_discovery/README.md)
 
 ### Omega HDQ DNA Extraction (1.6.0+)
 **Purpose:** DNA extraction workflow with Opentrons Flex 96-channel
@@ -288,7 +288,7 @@ MCP (Model Context Protocol) is an open-source standard from Anthropic for conne
 - **Actions (17):** Magnetic separation, wash cycles, elution
 - **Methods (14):** DNA extraction orchestration
 
-**Documentation:** [Omega HDQ README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/omega_hdq_dna_bacteria_flex_96_channel/README.md)
+**Documentation:** [Omega HDQ README](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/mcp-orchestration/omega_hdq_dna_bacteria_flex_96_channel/README.md)
 
 ### TNF Cancer Modelling (1.5.0+)
 **Purpose:** Multiscale cancer modeling with systems biology integration
@@ -305,13 +305,13 @@ MCP (Model Context Protocol) is an open-source standard from Anthropic for conne
 - **Actions (12):** Network creation, analysis, model building, simulation
 - **Methods (3):** Workflow orchestration
 
-**Documentation:** [TNF Cancer Modelling README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/tnf_cancer_modelling/README.md)
+**Documentation:** [TNF Cancer Modelling README](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/mcp-orchestration/tnf_cancer_modelling/README.md)
 
 ---
 
 ## Memory Tracking Examples (1.8.0+)
 
-**Location:** `src/gtpyhop/examples/memory_tracking/`
+**Location:** `packages/gtpyhop-examples/src/gtpyhop/examples/memory_tracking/`
 
 These examples demonstrate GTPyhop's memory tracking capabilities using the `psutil` library.
 
@@ -332,7 +332,7 @@ These examples demonstrate GTPyhop's memory tracking capabilities using the `psu
 
 **Use Case:** Understanding how state payload size affects memory consumption.
 
-**Documentation:** [Scalable Data Processing README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/memory_tracking/scalable_data_processing/README.md)
+**Documentation:** [Scalable Data Processing README](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/memory_tracking/scalable_data_processing/README.md)
 
 ### Scalable Recursive Decomposition
 **Purpose:** Memory scaling via structural complexity
@@ -353,12 +353,12 @@ These examples demonstrate GTPyhop's memory tracking capabilities using the `psu
 
 **Use Case:** Understanding how HTN decomposition structure affects memory consumption.
 
-**Documentation:** [Scalable Recursive Decomposition README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/memory_tracking/scalable_recursive_decomposition/README.md)
+**Documentation:** [Scalable Recursive Decomposition README](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/memory_tracking/scalable_recursive_decomposition/README.md)
 
 ### Running Memory Benchmarks
 
 ```bash
-cd src/gtpyhop/examples/memory_tracking
+cd packages/gtpyhop-examples/src/gtpyhop/examples/memory_tracking
 
 # Run data processing scenarios
 python benchmarking.py --example data
@@ -374,13 +374,13 @@ python benchmarking.py --example recursive --scenario scenario_10 \
 python benchmarking.py --list-scenarios --example recursive
 ```
 
-**Documentation:** [Memory Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/memory_tracking/benchmarking_quickstart.md)
+**Documentation:** [Memory Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/memory_tracking/benchmarking_quickstart.md)
 
 ---
 
 ## Poetry Examples (1.9.0+)
 
-**Location:** `src/gtpyhop/examples/poetry/`
+**Location:** `packages/gtpyhop-examples/src/gtpyhop/examples/poetry/`
 
 These examples demonstrate HTN-planned poetry generation where the planner produces structural plans (form, rhyme scheme, meter constraints) and leaf-level actions are delegated to external MCP servers for text generation and phonetic verification. The collection is motivated by Anthropic's "[Planning in Poems](https://transformer-circuits.pub/2025/attribution-graphs/biology.html#dives-poems)" (March 2025) discovery that Claude 3.5 Haiku plans ahead when writing rhyming poetry.
 
@@ -590,7 +590,7 @@ Gemma 2 2B + CLT 2.5M (scenarios 8-11): word-level planning model, 26 layers, CL
 ### Running the Poetry Benchmarks
 
 ```bash
-cd src/gtpyhop/examples/poetry
+cd packages/gtpyhop-examples/src/gtpyhop/examples/poetry
 
 # List all available poetry domains
 python benchmarking.py --list-domains
@@ -607,7 +607,7 @@ python benchmarking.py replanning_poetry --strategy iterative_dfs_backtracking
 python benchmarking.py feature_space_poetry --strategy iterative_dfs_backtracking
 ```
 
-**Documentation:** [Poetry Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/poetry/benchmarking_quickstart.md)
+**Documentation:** [Poetry Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/poetry/benchmarking_quickstart.md)
 
 ---
 
@@ -617,7 +617,7 @@ These examples formalize **AI safety micro-protocols** from the [Control Arena](
 
 All three examples use `MCP_Tool: None` (purely symbolic, no external MCP servers).
 
-**Overview:** [Control Arena Protocols README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/control_arena_protocols/README.md)
+**Overview:** [Control Arena Protocols README](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/control_arena_protocols/README.md)
 
 ### 1. Defer to Trusted Protocol
 
@@ -707,7 +707,7 @@ Detection rates encode the empirical pattern that generic monitors are systemati
 ### Running the Control Arena Benchmarks
 
 ```bash
-cd src/gtpyhop/examples/control_arena_protocols
+cd packages/gtpyhop-examples/src/gtpyhop/examples/control_arena_protocols
 
 # Run all scenarios for each example
 python benchmarking.py --example defer
@@ -721,14 +721,14 @@ python benchmarking.py --example adversarial --scenario scenario_3_subtle_evades
 python benchmarking.py --list-scenarios --example adversarial
 
 # Run doctests
-python -m doctest -v src/gtpyhop/examples/control_arena_protocols/defer_to_trusted_protocol/problems.py
-python -m doctest -v src/gtpyhop/examples/control_arena_protocols/defer_to_resample_protocol/problems.py
-python -m doctest -v src/gtpyhop/examples/control_arena_protocols/adversarial_protocol/problems.py
+python -m doctest -v packages/gtpyhop-examples/src/gtpyhop/examples/control_arena_protocols/defer_to_trusted_protocol/problems.py
+python -m doctest -v packages/gtpyhop-examples/src/gtpyhop/examples/control_arena_protocols/defer_to_resample_protocol/problems.py
+python -m doctest -v packages/gtpyhop-examples/src/gtpyhop/examples/control_arena_protocols/adversarial_protocol/problems.py
 ```
 
 **Documentation:**
-- [Control Arena Protocols README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/control_arena_protocols/README.md) — architectural overview, Concept Mapping, Benchmark Outcome Labels, Three Levels of Integration framing
-- [Control Arena Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/control_arena_protocols/benchmarking_quickstart.md) — batch-running scenarios across all three protocol examples, with per-scenario expected-plan-length tables (added in 1.9.7)
+- [Control Arena Protocols README](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/control_arena_protocols/README.md) — architectural overview, Concept Mapping, Benchmark Outcome Labels, Three Levels of Integration framing
+- [Control Arena Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/control_arena_protocols/benchmarking_quickstart.md) — batch-running scenarios across all three protocol examples, with per-scenario expected-plan-length tables (added in 1.9.7)
 
 ---
 
@@ -764,10 +764,10 @@ Models insider attacks against a network Document Management System, based on th
 **Run doctests:**
 
 ```bash
-python -m doctest -v src/gtpyhop/examples/cybersecurity_attack_planning/problems.py
+python -m doctest -v packages/gtpyhop-examples/src/gtpyhop/examples/cybersecurity_attack_planning/problems.py
 ```
 
-**Documentation:** [Cybersecurity Attack Planning README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/cybersecurity_attack_planning/README.md)
+**Documentation:** [Cybersecurity Attack Planning README](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/cybersecurity_attack_planning/README.md)
 
 ---
 
@@ -814,14 +814,14 @@ Models a single Runner-side **run** against a configured Corporation server stac
 **Run doctests:**
 
 ```bash
-python -m doctest -v src/gtpyhop/examples/android_netrunner/problems.py
+python -m doctest -v packages/gtpyhop-examples/src/gtpyhop/examples/android_netrunner/problems.py
 ```
 
 **Tip:** When investigating shorter-than-expected plans, run with `verbose=3` to see actions annotated as `applied` or `idempotent`. GTPyhop elides idempotent actions from `result.plan` even though it processes them.
 
 **Reference:** Garfield, R. (designer), and Litzsinger, L. (developer). *Android: Netrunner — The Card Game, Rules of Play* (Fantasy Flight Games, 2012).
 
-**Documentation:** [Android: Netrunner README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/android_netrunner/README.md)
+**Documentation:** [Android: Netrunner README](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/android_netrunner/README.md)
 
 ---
 
@@ -865,7 +865,7 @@ Sub-folder names map to chapter section numbers (`sNN_<topic>` ↔ §12.NN) so r
 
 ```bash
 # Doctests for a single sub-folder
-python -m doctest -v src/gtpyhop/examples/trunk_thumper/s07_expected_effects_chase/problems.py
+python -m doctest -v packages/gtpyhop-examples/src/gtpyhop/examples/trunk_thumper/s07_expected_effects_chase/problems.py
 
 # Programmatic execution
 python -c "
@@ -883,14 +883,14 @@ for name, (state, tasks, _) in get_problems().items():
 **Across all sub-folders (via the collection-level benchmarking script):**
 
 ```bash
-cd src/gtpyhop/examples/trunk_thumper
+cd packages/gtpyhop-examples/src/gtpyhop/examples/trunk_thumper
 python benchmarking.py --list-domains
 python benchmarking.py s03_basic_attack_or_patrol
 python benchmarking.py s07_expected_effects_chase
 python benchmarking.py s08_priority_methods --strategy iterative_dfs_backtracking
 ```
 
-See `src/gtpyhop/examples/trunk_thumper/benchmarking_quickstart.md` for the full guide.
+See `packages/gtpyhop-examples/src/gtpyhop/examples/trunk_thumper/benchmarking_quickstart.md` for the full guide.
 
 ### Style guide update
 
@@ -900,7 +900,7 @@ Section 8 of `docs/gtpyhop_domain_style_guide.md` was renamed "Metadata Tags: DA
 
 [Humphreys 15] Humphreys, T. (2015). "Exploring HTN Planners through Example." In *Game AI Pro* (Steve Rabin, ed.). Boca Raton, FL: CRC Press, pp. 149–167.
 
-**Documentation:** [Trunk Thumper Collection README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/trunk_thumper/README.md)
+**Documentation:** [Trunk Thumper Collection README](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/trunk_thumper/README.md)
 
 ---
 
@@ -947,7 +947,7 @@ trunk_thumper's `s09` (simultaneous behaviors via non-blocking navigation) has n
 
 ```bash
 # Doctests for a single sub-folder
-python -m doctest -v src/gtpyhop/examples/colt_express/s3_marshal_expected_effects/problems.py
+python -m doctest -v packages/gtpyhop-examples/src/gtpyhop/examples/colt_express/s3_marshal_expected_effects/problems.py
 
 # Programmatic execution
 python -c "
@@ -965,20 +965,20 @@ for name, (state, tasks, _) in get_problems().items():
 **Across all sub-folders (via the collection-level benchmarking script):**
 
 ```bash
-cd src/gtpyhop/examples/colt_express
+cd packages/gtpyhop-examples/src/gtpyhop/examples/colt_express
 python benchmarking.py --list-domains
 python benchmarking.py s1_minimal_turn
 python benchmarking.py s3_marshal_expected_effects --strategy iterative_dfs_backtracking
 python benchmarking.py s4_character_priorities
 ```
 
-See `src/gtpyhop/examples/colt_express/benchmarking_quickstart.md` for the full guide (including a per-scenario expected-plan-length table).
+See `packages/gtpyhop-examples/src/gtpyhop/examples/colt_express/benchmarking_quickstart.md` for the full guide (including a per-scenario expected-plan-length table).
 
 ### Reference
 
 Raimbault, C., and Valbuena, J. *Colt Express*. Ludonaute / Asmodee, 2014. <http://www.coltexpress.ludonaute.fr>
 
-**Documentation:** [Colt Express Collection README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/colt_express/README.md)
+**Documentation:** [Colt Express Collection README](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/colt_express/README.md)
 
 ---
 

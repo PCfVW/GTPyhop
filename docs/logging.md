@@ -278,7 +278,7 @@ Background monitoring (0.1s interval) captures the true peak.
 **Requirements:**
 - `psutil>=5.8.0` (automatically installed with GTPyhop from PyPI)
 
-**See also:** [Memory Tracking Examples](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/memory_tracking/README.md)
+**See also:** [Memory Tracking Examples](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/memory_tracking/README.md)
 
 ## Legacy Mode Compatibility
 
@@ -363,6 +363,6 @@ with gtpyhop.PlannerSession(domain=the_domain, verbose=2) as session:
 
 ## Related Documentation
 
-- [Memory Tracking Examples](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/memory_tracking/README.md) - Scalability examples with memory profiling
+- [Memory Tracking Examples](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/memory_tracking/README.md) - Scalability examples with memory profiling
 - [Thread-Safe Sessions](https://github.com/PCfVW/GTPyhop/blob/pip/docs/thread_safe_sessions.md) - Session-based architecture guide
 - [All Examples Guide](https://github.com/PCfVW/GTPyhop/blob/pip/docs/all_examples.md) - Comprehensive example documentation

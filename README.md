@@ -52,12 +52,20 @@ uv pip install gtpyhop
 
 ### From GitHub
 
-Alternatively, you can directly install from GitHub:
+Alternatively, you can directly install from a checkout. Since 2.0.0 the repository has no root `pyproject.toml` — each distribution lives under `packages/` — so install the two source packages rather than the repository root:
 
 ```bash
 git clone -b pip https://github.com/PCfVW/GTPyhop.git
 cd GTPyhop
-pip install .
+pip install packages/gtpyhop-core packages/gtpyhop-examples
+```
+
+Install `packages/gtpyhop-core` alone if you want the planner without the bundled example domains. Note that `packages/gtpyhop/` is only a meta-package: it ships no source and depends on the other two *from PyPI*, so it is not the one to install from a checkout.
+
+If you intend to modify GTPyhop or add an example, install both in editable mode instead — the two `src/` trees only merge into a single `gtpyhop` import namespace once installed:
+
+```bash
+pip install -e packages/gtpyhop-core -e packages/gtpyhop-examples
 ```
 
 ## Testing Your Installation
@@ -353,47 +361,47 @@ GTPyhop 1.9.7 includes comprehensive documentation organized in the `docs/` fold
 ### Example-Specific Documentation
 
 #### IPC 2020 Total Order Domains (1.4.0+)
-- **[Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/ipc-2020-total-order/benchmarking_quickstart.md)** - Performance benchmarking guide
-- **[Blocksworld-GTOHP](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/ipc-2020-total-order/Blocksworld-GTOHP/ipc-2020-to-bw-gtohp-readme.md)** - IPC 2020 Blocksworld domain
-- **[Childsnack](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/ipc-2020-total-order/Childsnack/ipc-2020-to-cs-gtohp-readme.md)** - IPC 2020 Childsnack domain
+- **[Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/ipc-2020-total-order/benchmarking_quickstart.md)** - Performance benchmarking guide
+- **[Blocksworld-GTOHP](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/ipc-2020-total-order/Blocksworld-GTOHP/ipc-2020-to-bw-gtohp-readme.md)** - IPC 2020 Blocksworld domain
+- **[Childsnack](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/ipc-2020-total-order/Childsnack/ipc-2020-to-cs-gtohp-readme.md)** - IPC 2020 Childsnack domain
 
 #### MCP Orchestration Examples (1.5.0+)
-- **[MCP Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/benchmarking_quickstart.md)** - MCP orchestration benchmarking guide
-- **[Bio-Opentrons PCR Workflow](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/bio_opentrons/README.md)** - PCR workflow automation (6 scenarios)
-- **[Cross-Server Orchestration](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/cross_server/README.md)** - Multi-server coordination (2 scenarios)
-- **[Drug Target Discovery](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/drug_target_discovery/README.md)** - OpenTargets platform integration (3 scenarios)
-- **[Omega HDQ DNA Extraction](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/omega_hdq_dna_bacteria_flex_96_channel/README.md)** - DNA extraction workflow (3 scenarios)
-- **[TNF Cancer Modelling](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/tnf_cancer_modelling/README.md)** - Multiscale cancer modeling (1 scenario)
+- **[MCP Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/mcp-orchestration/benchmarking_quickstart.md)** - MCP orchestration benchmarking guide
+- **[Bio-Opentrons PCR Workflow](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/mcp-orchestration/bio_opentrons/README.md)** - PCR workflow automation (6 scenarios)
+- **[Cross-Server Orchestration](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/mcp-orchestration/cross_server/README.md)** - Multi-server coordination (2 scenarios)
+- **[Drug Target Discovery](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/mcp-orchestration/drug_target_discovery/README.md)** - OpenTargets platform integration (3 scenarios)
+- **[Omega HDQ DNA Extraction](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/mcp-orchestration/omega_hdq_dna_bacteria_flex_96_channel/README.md)** - DNA extraction workflow (3 scenarios)
+- **[TNF Cancer Modelling](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/mcp-orchestration/tnf_cancer_modelling/README.md)** - Multiscale cancer modeling (1 scenario)
 
 #### Memory Tracking Examples (1.8.0+)
-- **[Memory Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/memory_tracking/benchmarking_quickstart.md)** - How to run memory benchmarks
-- **[Memory Tracking Overview](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/memory_tracking/README.md)** - Memory tracking capabilities with psutil
-- **[Scalable Data Processing](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/memory_tracking/scalable_data_processing/README.md)** - Memory scaling via data size (10K-1M items)
-- **[Scalable Recursive Decomposition](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/memory_tracking/scalable_recursive_decomposition/README.md)** - Memory scaling via recursion depth (2^k tasks)
+- **[Memory Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/memory_tracking/benchmarking_quickstart.md)** - How to run memory benchmarks
+- **[Memory Tracking Overview](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/memory_tracking/README.md)** - Memory tracking capabilities with psutil
+- **[Scalable Data Processing](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/memory_tracking/scalable_data_processing/README.md)** - Memory scaling via data size (10K-1M items)
+- **[Scalable Recursive Decomposition](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/memory_tracking/scalable_recursive_decomposition/README.md)** - Memory scaling via recursion depth (2^k tasks)
 
 #### Poetry Examples (1.9.0+)
-- **[Poetry Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/poetry/benchmarking_quickstart.md)** - Batch-running scenarios across all 7 poetry sub-folders, with strategy notes for backtracking-required examples
-- **[Poetry Overview](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/poetry/README.md)** - HTN-planned poetry generation with MCP delegation
-- **[Structured Poetry](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/poetry/structured_poetry/README.md)** - Baseline: couplet, limerick, haiku, sonnet (6 scenarios)
-- **[Backtracking Poetry](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/poetry/backtracking_poetry/README.md)** - Strict/relaxed rhyme methods with backtracking (3 scenarios)
-- **[Candidate Planning Poetry](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/poetry/candidate_planning_poetry/README.md)** - Multi-candidate rhyme selection pipeline (3 scenarios)
-- **[Bidirectional Planning Poetry](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/poetry/bidirectional_planning_poetry/README.md)** - Decomposed backward line construction (3 scenarios)
-- **[Replanning Poetry](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/poetry/replanning_poetry/README.md)** - Post-generation evaluation and steering/revision (3 scenarios)
-- **[Formal Mechanism Poetry](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/poetry/formal_mechanism_poetry/README.md)** - Three planning mechanisms from Anthropic's "[Planning in Poems](https://transformer-circuits.pub/2025/attribution-graphs/biology.html#dives-poems)" paper (3 scenarios)
-- **[Feature Space Poetry](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/poetry/feature_space_poetry/README.md)** - Feature-space interventions with measured data: Gemma 2 2B 426K (Version D) + Llama 3.2 1B 524K (Version L) + Gemma 2 2B 2.5M (Version D 2.5M) (12 scenarios)
+- **[Poetry Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/poetry/benchmarking_quickstart.md)** - Batch-running scenarios across all 7 poetry sub-folders, with strategy notes for backtracking-required examples
+- **[Poetry Overview](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/poetry/README.md)** - HTN-planned poetry generation with MCP delegation
+- **[Structured Poetry](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/poetry/structured_poetry/README.md)** - Baseline: couplet, limerick, haiku, sonnet (6 scenarios)
+- **[Backtracking Poetry](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/poetry/backtracking_poetry/README.md)** - Strict/relaxed rhyme methods with backtracking (3 scenarios)
+- **[Candidate Planning Poetry](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/poetry/candidate_planning_poetry/README.md)** - Multi-candidate rhyme selection pipeline (3 scenarios)
+- **[Bidirectional Planning Poetry](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/poetry/bidirectional_planning_poetry/README.md)** - Decomposed backward line construction (3 scenarios)
+- **[Replanning Poetry](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/poetry/replanning_poetry/README.md)** - Post-generation evaluation and steering/revision (3 scenarios)
+- **[Formal Mechanism Poetry](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/poetry/formal_mechanism_poetry/README.md)** - Three planning mechanisms from Anthropic's "[Planning in Poems](https://transformer-circuits.pub/2025/attribution-graphs/biology.html#dives-poems)" paper (3 scenarios)
+- **[Feature Space Poetry](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/poetry/feature_space_poetry/README.md)** - Feature-space interventions with measured data: Gemma 2 2B 426K (Version D) + Llama 3.2 1B 524K (Version L) + Gemma 2 2B 2.5M (Version D 2.5M) (12 scenarios)
 
 #### Control Arena Protocol Examples (1.9.4+)
 
 Baseline collection introduced in 1.9.4; the Adversarial Protocol sub-folder was extended in 1.9.7 (see below).
 
 **1.9.4 baseline:**
-- **[Control Arena Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/control_arena_protocols/benchmarking_quickstart.md)** - Batch-running scenarios across all three protocol examples, with outcome-label catalog and per-scenario expected-plan-length tables (added in 1.9.7)
-- **[Control Arena Protocols Overview](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/control_arena_protocols/README.md)** - AI safety micro-protocols with backtracking and adversarial analysis
-- **[Defer to Trusted](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/control_arena_protocols/defer_to_trusted_protocol/README.md)** - Accept or defer based on suspicion threshold (6 scenarios)
-- **[Defer to Resample](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/control_arena_protocols/defer_to_resample_protocol/README.md)** - Recursive multi-sample resampling (6 scenarios)
-- **[Adversarial Protocol](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/control_arena_protocols/adversarial_protocol/README.md)** - Honest vs. attack with vulnerability detection (8 scenarios, 7 actions, 7 methods)
+- **[Control Arena Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/control_arena_protocols/benchmarking_quickstart.md)** - Batch-running scenarios across all three protocol examples, with outcome-label catalog and per-scenario expected-plan-length tables (added in 1.9.7)
+- **[Control Arena Protocols Overview](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/control_arena_protocols/README.md)** - AI safety micro-protocols with backtracking and adversarial analysis
+- **[Defer to Trusted](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/control_arena_protocols/defer_to_trusted_protocol/README.md)** - Accept or defer based on suspicion threshold (6 scenarios)
+- **[Defer to Resample](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/control_arena_protocols/defer_to_resample_protocol/README.md)** - Recursive multi-sample resampling (6 scenarios)
+- **[Adversarial Protocol](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/control_arena_protocols/adversarial_protocol/README.md)** - Honest vs. attack with vulnerability detection (8 scenarios, 7 actions, 7 methods)
 
-**1.9.7 extension ([Adversarial Protocol](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/control_arena_protocols/adversarial_protocol/README.md) sub-folder only):**
+**1.9.7 extension ([Adversarial Protocol](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/control_arena_protocols/adversarial_protocol/README.md) sub-folder only):**
 - **Threat-model variety**: nested `detection_rates` schema indexed by `(threat_model, subtlety)`; 6 new scenarios across code sabotage / data poisoning / research sabotage
 - **`[EXPECTED_EFFECT]` marker**: first use of the tag (introduced in `trunk_thumper/s07`, used in `colt_express/s3`) in this collection; `a_accept_output` now records downstream side-task firing via `state.side_task_observed`
 - **Negative-control scenario**: 1 new scenario using teaching-variant action `a_accept_output_demo_no_expected_effect` (omits the `[EXPECTED_EFFECT]` block) to empirically demonstrate why the tag is load-bearing
@@ -401,29 +409,29 @@ Baseline collection introduced in 1.9.4; the Adversarial Protocol sub-folder was
 - New `accept_no_ee` outcome label in `benchmarking.py` for the negative-control scenario (see collection README's "Benchmark Outcome Labels" section)
 
 #### Cybersecurity Attack Planning Example (1.9.5+)
-- **[Cybersecurity Attack Planning](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/cybersecurity_attack_planning/README.md)** - BAMS-based insider threat planning: physical, network, DMS, and malware attacks with 5 backtracking points (9 scenarios)
+- **[Cybersecurity Attack Planning](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/cybersecurity_attack_planning/README.md)** - BAMS-based insider threat planning: physical, network, DMS, and malware attacks with 5 backtracking points (9 scenarios)
 
 #### Android: Netrunner Run Planning Example (1.9.6+)
-- **[Android: Netrunner Run Planning](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/android_netrunner/README.md)** - Per-card-fidelity run planning based on the published Android: Netrunner rules (2012 core set); 14 named cards, 24 actions, 6 backtracking points, 8 scenarios — flagship scenario replicates the worked example on page 19 of the core rulebook
+- **[Android: Netrunner Run Planning](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/android_netrunner/README.md)** - Per-card-fidelity run planning based on the published Android: Netrunner rules (2012 core set); 14 named cards, 24 actions, 6 backtracking points, 8 scenarios — flagship scenario replicates the worked example on page 19 of the core rulebook
 
 #### Trunk Thumper Game-AI Examples (1.9.6+)
-- **[Trunk Thumper Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/trunk_thumper/benchmarking_quickstart.md)** - Batch-running scenarios across all sub-folders
-- **[Trunk Thumper Collection Overview](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/trunk_thumper/README.md)** - Progressive game-AI tutorial collection based on Troy Humphreys' canonical *Game AI Pro* chapter (2015); sub-folder naming `sNN_<topic>` matches chapter section §12.NN
-- **[s03 Basic Attack or Patrol](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/trunk_thumper/s03_basic_attack_or_patrol/README.md)** - §12.3 baseline BeTrunkThumper domain (2 scenarios)
-- **[s06 Recursive Trunk Replacement](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/trunk_thumper/s06_recursive_trunk_replacement/README.md)** - §12.6 recursion via m_attack_enemy self-call (3 scenarios)
-- **[s07 Expected Effects Chase](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/trunk_thumper/s07_expected_effects_chase/README.md)** - §12.7 the new `[EXPECTED_EFFECT]` tag with a negative-control scenario (3 scenarios)
-- **[s08 Priority Methods](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/trunk_thumper/s08_priority_methods/README.md)** - §12.8 multi-method m_attack_enemy with WsPowerUp/WsIsTired/boulder-fallback (4 scenarios)
-- **[s09 Simultaneous Navigation and Guard](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/trunk_thumper/s09_simultaneous_navigation_and_guard/README.md)** - §12.9 single-planner non-blocking navigation with guard (3 scenarios)
-- **[s10 Partial Plans](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/trunk_thumper/s10_partial_plans/README.md)** - §12.10 manual method-split partial plans (3 scenarios)
+- **[Trunk Thumper Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/trunk_thumper/benchmarking_quickstart.md)** - Batch-running scenarios across all sub-folders
+- **[Trunk Thumper Collection Overview](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/trunk_thumper/README.md)** - Progressive game-AI tutorial collection based on Troy Humphreys' canonical *Game AI Pro* chapter (2015); sub-folder naming `sNN_<topic>` matches chapter section §12.NN
+- **[s03 Basic Attack or Patrol](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/trunk_thumper/s03_basic_attack_or_patrol/README.md)** - §12.3 baseline BeTrunkThumper domain (2 scenarios)
+- **[s06 Recursive Trunk Replacement](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/trunk_thumper/s06_recursive_trunk_replacement/README.md)** - §12.6 recursion via m_attack_enemy self-call (3 scenarios)
+- **[s07 Expected Effects Chase](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/trunk_thumper/s07_expected_effects_chase/README.md)** - §12.7 the new `[EXPECTED_EFFECT]` tag with a negative-control scenario (3 scenarios)
+- **[s08 Priority Methods](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/trunk_thumper/s08_priority_methods/README.md)** - §12.8 multi-method m_attack_enemy with WsPowerUp/WsIsTired/boulder-fallback (4 scenarios)
+- **[s09 Simultaneous Navigation and Guard](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/trunk_thumper/s09_simultaneous_navigation_and_guard/README.md)** - §12.9 single-planner non-blocking navigation with guard (3 scenarios)
+- **[s10 Partial Plans](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/trunk_thumper/s10_partial_plans/README.md)** - §12.10 manual method-split partial plans (3 scenarios)
 
 #### Colt Express Game-AI Examples (1.9.7+)
-- **[Colt Express Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/colt_express/benchmarking_quickstart.md)** - Batch-running scenarios across all sub-folders with per-scenario expected-plan-length table
-- **[Colt Express Collection Overview](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/colt_express/README.md)** - Colt Express board game (Raimbault/Valbuena, Ludonaute 2014) as a multi-bandit / Marshal-driven Stealin'-only HTN example; mirrors trunk_thumper's pattern catalog at higher fidelity (5 sub-folders, 26 actions, 16 scenarios, 124 doctests)
-- **[s1 Minimal Turn](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/colt_express/s1_minimal_turn/README.md)** - Baseline priority methods: rob-if-loot vs. move-forward (3 scenarios) — pattern source: trunk_thumper s03
-- **[s3 Marshal Expected Effects](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/colt_express/s3_marshal_expected_effects/README.md)** - Marshal forced-escape via `[EXPECTED_EFFECT]` tag with negative-control scenario (3 scenarios incl. 1 intentional fail) — pattern source: trunk_thumper s07
-- **[s2 Recursive Round](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/colt_express/s2_recursive_round/README.md)** - Recursive deck resolution via `state.deck` head-pop, plus hostage-taking event (3 scenarios) — pattern source: trunk_thumper s06
-- **[s4 Character Priorities](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/colt_express/s4_character_priorities/README.md)** - Priority-method ladder for Belle / Tuco / Django / Cheyenne abilities (4 scenarios) — pattern source: trunk_thumper s08
-- **[s5 Partial Plan Movement](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/colt_express/s5_partial_plan_movement/README.md)** - Manual method-split partial plans for movement strategy (3 scenarios) — pattern source: trunk_thumper s10
+- **[Colt Express Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/colt_express/benchmarking_quickstart.md)** - Batch-running scenarios across all sub-folders with per-scenario expected-plan-length table
+- **[Colt Express Collection Overview](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/colt_express/README.md)** - Colt Express board game (Raimbault/Valbuena, Ludonaute 2014) as a multi-bandit / Marshal-driven Stealin'-only HTN example; mirrors trunk_thumper's pattern catalog at higher fidelity (5 sub-folders, 26 actions, 16 scenarios, 124 doctests)
+- **[s1 Minimal Turn](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/colt_express/s1_minimal_turn/README.md)** - Baseline priority methods: rob-if-loot vs. move-forward (3 scenarios) — pattern source: trunk_thumper s03
+- **[s3 Marshal Expected Effects](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/colt_express/s3_marshal_expected_effects/README.md)** - Marshal forced-escape via `[EXPECTED_EFFECT]` tag with negative-control scenario (3 scenarios incl. 1 intentional fail) — pattern source: trunk_thumper s07
+- **[s2 Recursive Round](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/colt_express/s2_recursive_round/README.md)** - Recursive deck resolution via `state.deck` head-pop, plus hostage-taking event (3 scenarios) — pattern source: trunk_thumper s06
+- **[s4 Character Priorities](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/colt_express/s4_character_priorities/README.md)** - Priority-method ladder for Belle / Tuco / Django / Cheyenne abilities (4 scenarios) — pattern source: trunk_thumper s08
+- **[s5 Partial Plan Movement](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/colt_express/s5_partial_plan_movement/README.md)** - Manual method-split partial plans for movement strategy (3 scenarios) — pattern source: trunk_thumper s10
 
 ### External Resources
 - **[Dana's Additional Information](https://github.com/dananau/GTPyhop/blob/main/additional_information.md)** - Core GTPyhop concepts
@@ -482,7 +490,6 @@ All existing `True`/`False` callers continue to work identically. See the [chang
 ```
 GTPyhop/
 ├── LICENSE.txt
-├── pyproject.toml
 ├── README.md
 ├── docs/
 │   ├── all_examples.md
@@ -493,32 +500,46 @@ GTPyhop/
 │   ├── logging.md
 │   ├── running_examples.md
 │   └── thread_safe_sessions.md
-└── src/gtpyhop/
-    ├── __init__.py
-    ├── main.py
-    ├── logging_system.py
-    ├── memory_tracking/
-    │   ├── __init__.py
-    │   ├── monitor.py
-    │   └── tracker.py
-    ├── examples/
-    │   ├── __init__.py
-    │   ├── regression_tests.py
-    │   ├── simple_htn.py, simple_hgn.py, ...
-    │   ├── blocks_htn/, blocks_hgn/, blocks_gtn/, blocks_goal_splitting/
-    │   ├── ipc-2020-total-order/
-    │   │   └── Blocksworld-GTOHP/, Childsnack/
-    │   ├── mcp-orchestration/
-    │   │   └── bio_opentrons/, cross_server/, drug_target_discovery/, omega_hdq_dna_bacteria_flex_96_channel/, tnf_cancer_modelling/
-    │   ├── memory_tracking/
-    │   │   └── scalable_data_processing/, scalable_recursive_decomposition/
-    │   ├── poetry/
-    │   │   └── structured_poetry/, backtracking_poetry/, candidate_planning_poetry/, bidirectional_planning_poetry/, replanning_poetry/, formal_mechanism_poetry/, feature_space_poetry/
-    │   ├── cybersecurity_attack_planning/
-    │   ├── android_netrunner/
-    │   ├── trunk_thumper/
-    │   │   ├── s03_basic_attack_or_patrol/, s06_recursive_trunk_replacement/, s07_expected_effects_chase/, s08_priority_methods/, s09_simultaneous_navigation_and_guard/, s10_partial_plans/
-    │   └── colt_express/
-    │       ├── s1_minimal_turn/, s3_marshal_expected_effects/, s2_recursive_round/, s4_character_priorities/, s5_partial_plan_movement/
-    └── test_harness/
+└── packages/                     # one folder per published distribution
+    ├── gtpyhop-core/             # the planner, no bundled examples
+    │   ├── README.md
+    │   ├── pyproject.toml
+    │   └── src/gtpyhop/
+    │       ├── __init__.py
+    │       ├── main.py
+    │       ├── logging_system.py
+    │       ├── memory_tracking/
+    │       │   ├── __init__.py
+    │       │   ├── monitor.py
+    │       │   └── tracker.py
+    │       └── test_harness/
+    │           ├── __init__.py
+    │           └── test_harness.py
+    ├── gtpyhop/                  # meta-package: depends on the other two,
+    │   ├── README.md             #   ships no source of its own
+    │   └── pyproject.toml
+    └── gtpyhop-examples/         # the example domains
+        ├── README.md
+        ├── pyproject.toml
+        └── src/gtpyhop/examples/
+            ├── regression_tests.py
+            ├── simple_htn.py, simple_hgn.py, ...
+            ├── blocks_htn/, blocks_hgn/, blocks_gtn/, blocks_goal_splitting/
+            ├── ipc-2020-total-order/
+            │   └── Blocksworld-GTOHP/, Childsnack/
+            ├── mcp-orchestration/
+            │   └── bio_opentrons/, cross_server/, drug_target_discovery/, omega_hdq_dna_bacteria_flex_96_channel/, tnf_cancer_modelling/
+            ├── memory_tracking/
+            │   └── scalable_data_processing/, scalable_recursive_decomposition/
+            ├── poetry/
+            │   └── structured_poetry/, backtracking_poetry/, candidate_planning_poetry/, bidirectional_planning_poetry/, replanning_poetry/, formal_mechanism_poetry/, feature_space_poetry/
+            ├── cybersecurity_attack_planning/
+            ├── android_netrunner/
+            ├── control_arena_protocols/
+            ├── trunk_thumper/
+            │   ├── s03_basic_attack_or_patrol/, s06_recursive_trunk_replacement/, s07_expected_effects_chase/, s08_priority_methods/, s09_simultaneous_navigation_and_guard/, s10_partial_plans/
+            └── colt_express/
+                ├── s1_minimal_turn/, s3_marshal_expected_effects/, s2_recursive_round/, s4_character_priorities/, s5_partial_plan_movement/
 ```
+
+`gtpyhop-core` and `gtpyhop-examples` both install into the same `gtpyhop` import namespace, which is why each keeps its own `src/gtpyhop/` tree: once installed they merge, so `import gtpyhop` and `import gtpyhop.examples` work exactly as they did before 2.0.

@@ -433,9 +433,9 @@ state.can_see_enemy = True
 
 | Sub-folder | Canonical action | Sensor / system effect | Flavor | Negative-control behavior |
 |---|---|---|---|---|
-| `src/gtpyhop/examples/trunk_thumper/s07_expected_effects_chase/` (1.9.6) | `a_nav_to_last_enemy_loc` | Vision sensor sets `can_see_enemy = True` once the troll arrives at the destination | Workflow-gating | Plan **fails** — downstream `a_regain_los_roar` precondition unsatisfied |
-| `src/gtpyhop/examples/colt_express/s3_marshal_expected_effects/` (1.9.7) | `a_move` | Game system pushes bandit to roof + issues neutral bullet when destination car contains the Marshal | Workflow-gating | Plan **fails** — downstream `a_fire`'s "shooter on roof" precondition unsatisfied |
-| `src/gtpyhop/examples/control_arena_protocols/adversarial_protocol/` (1.9.7) | `a_accept_output` | Deployment executor fires the embedded side task when `side_task_embedded` is True | Observability | Plan **succeeds** — but `state.side_task_observed` stays False; the safety-inspection invariant is silently broken |
+| `packages/gtpyhop-examples/src/gtpyhop/examples/trunk_thumper/s07_expected_effects_chase/` (1.9.6) | `a_nav_to_last_enemy_loc` | Vision sensor sets `can_see_enemy = True` once the troll arrives at the destination | Workflow-gating | Plan **fails** — downstream `a_regain_los_roar` precondition unsatisfied |
+| `packages/gtpyhop-examples/src/gtpyhop/examples/colt_express/s3_marshal_expected_effects/` (1.9.7) | `a_move` | Game system pushes bandit to roof + issues neutral bullet when destination car contains the Marshal | Workflow-gating | Plan **fails** — downstream `a_fire`'s "shooter on roof" precondition unsatisfied |
+| `packages/gtpyhop-examples/src/gtpyhop/examples/control_arena_protocols/adversarial_protocol/` (1.9.7) | `a_accept_output` | Deployment executor fires the embedded side task when `side_task_embedded` is True | Observability | Plan **succeeds** — but `state.side_task_observed` stays False; the safety-inspection invariant is silently broken |
 
 **Recommended entry point**: `trunk_thumper/s07_expected_effects_chase/` (simplest of the three; the canonical introduction of the tag).
 

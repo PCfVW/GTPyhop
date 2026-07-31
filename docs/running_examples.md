@@ -53,9 +53,9 @@ Two examples from the IPC 2020 Total Order track:
 | `Blocksworld-GTOHP/` | Classic blocks world | HTN planning, stacking, multigoals |
 | `Childsnack/` | Resource management in childcare setting | HTN planning, constraint handling, multigoals |
 
-Location: `src/gtpyhop/examples/ipc-2020-total-order/`
+Location: `packages/gtpyhop-examples/src/gtpyhop/examples/ipc-2020-total-order/`
 
-**Documentation:** [Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/ipc-2020-total-order/benchmarking_quickstart.md)
+**Documentation:** [Benchmarking Quickstart](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/ipc-2020-total-order/benchmarking_quickstart.md)
 
 ### MCP Orchestration Examples (1.5.0+)
 
@@ -69,15 +69,15 @@ Five examples demonstrating MCP (Model Context Protocol) orchestration:
 | `omega_hdq_dna_bacteria_flex_96_channel/` | DNA extraction workflow | 3 | 17 |
 | `tnf_cancer_modelling/` | Multiscale cancer modeling workflow | 1 | 12 |
 
-Location: `src/gtpyhop/examples/mcp-orchestration/`
+Location: `packages/gtpyhop-examples/src/gtpyhop/examples/mcp-orchestration/`
 
 **Documentation:**
-- [Bio-Opentrons README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/bio_opentrons/README.md)
-- [Cross-Server README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/cross_server/README.md)
-- [Drug Target Discovery README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/drug_target_discovery/README.md)
-- [Omega HDQ README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/omega_hdq_dna_bacteria_flex_96_channel/README.md)
-- [TNF Cancer Modelling README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/tnf_cancer_modelling/README.md)
-- [MCP Benchmarking Guide](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/mcp-orchestration/benchmarking_quickstart.md)
+- [Bio-Opentrons README](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/mcp-orchestration/bio_opentrons/README.md)
+- [Cross-Server README](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/mcp-orchestration/cross_server/README.md)
+- [Drug Target Discovery README](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/mcp-orchestration/drug_target_discovery/README.md)
+- [Omega HDQ README](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/mcp-orchestration/omega_hdq_dna_bacteria_flex_96_channel/README.md)
+- [TNF Cancer Modelling README](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/mcp-orchestration/tnf_cancer_modelling/README.md)
+- [MCP Benchmarking Guide](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/mcp-orchestration/benchmarking_quickstart.md)
 
 ### Memory Tracking Examples (1.8.0+)
 
@@ -88,13 +88,13 @@ Two examples demonstrating memory tracking capabilities:
 | `scalable_data_processing/` | Memory scaling via data volume | 20 | 1-300+ MB |
 | `scalable_recursive_decomposition/` | Memory scaling via recursion depth | 12 | Exponential |
 
-Location: `src/gtpyhop/examples/memory_tracking/`
+Location: `packages/gtpyhop-examples/src/gtpyhop/examples/memory_tracking/`
 
 **Documentation:**
-- [Memory Tracking README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/memory_tracking/README.md)
-- [Scalable Data Processing README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/memory_tracking/scalable_data_processing/README.md)
-- [Scalable Recursive Decomposition README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/memory_tracking/scalable_recursive_decomposition/README.md)
-- [Memory Benchmarking Guide](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/memory_tracking/benchmarking_quickstart.md)
+- [Memory Tracking README](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/memory_tracking/README.md)
+- [Scalable Data Processing README](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/memory_tracking/scalable_data_processing/README.md)
+- [Scalable Recursive Decomposition README](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/memory_tracking/scalable_recursive_decomposition/README.md)
+- [Memory Benchmarking Guide](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/memory_tracking/benchmarking_quickstart.md)
 
 ## Testing Examples
 

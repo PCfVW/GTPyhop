@@ -220,10 +220,10 @@ def get_problems():
 - **`verbose=0`**: Prevents planner messages from interfering with doctest output
 - **Narrative text between tests**: Explains what each scenario verifies (does not need `>>>` prefix)
 
-**Running doctests:**
+**Running doctests** (from the repository root, with both packages installed — `pip install -e packages/gtpyhop-core -e packages/gtpyhop-examples`):
 
 ```bash
-python -m doctest -v src/gtpyhop/examples/poetry/feature_space_poetry/problems.py
+python -m doctest -v packages/gtpyhop-examples/src/gtpyhop/examples/poetry/feature_space_poetry/problems.py
 ```
 
 **Reference implementations:** All 7 poetry examples include doctests in `get_problems()`. See `feature_space_poetry/problems.py` for the most comprehensive example (31 tests covering plan success, plan length, injected feature identity, and greedy planner failure), and the other poetry examples (`structured_poetry`, `backtracking_poetry`, `replanning_poetry`, `bidirectional_planning_poetry`, `candidate_planning_poetry`, `formal_mechanism_poetry`) for additional patterns including backtracking verification and greedy failure tests.

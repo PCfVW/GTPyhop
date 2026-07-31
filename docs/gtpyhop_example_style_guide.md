@@ -293,16 +293,24 @@ Before submitting an example, verify:
 
 ## 6. Quick Start Template
 
+**Prerequisite:** work from an editable install of both packages, done once from the repository root:
+
+```bash
+pip install -e packages/gtpyhop-core -e packages/gtpyhop-examples
+```
+
+Since 2.0.0 the planner and the examples are separate distributions with separate `src/` trees, which only merge into a single `gtpyhop` import namespace once installed. Without this, a new example under `packages/gtpyhop-examples/` is not importable as `gtpyhop.examples.your_example`, and the commands below will fail with `ModuleNotFoundError`.
+
 To create a new example:
 
-1. Create folder: `src/gtpyhop/examples/your_example/`
-2. Copy files from an existing example (e.g., `bio_opentrons/`)
+1. Create folder: `packages/gtpyhop-examples/src/gtpyhop/examples/your_example/`
+2. Copy files from an existing example (e.g., `mcp-orchestration/bio_opentrons/`)
 3. Replace domain logic in `domain.py`
 4. Define scenarios in `problems.py`
 5. Update `README.md`
 6. Test: `python -c "from gtpyhop.examples.your_example import get_problems; print(get_problems())"`
 7. Add doctests to `get_problems()` (see section 7)
-8. Verify: `python -m doctest -v src/gtpyhop/examples/your_example/problems.py`
+8. Verify: `python -m doctest -v packages/gtpyhop-examples/src/gtpyhop/examples/your_example/problems.py`
 
 ---
 
@@ -315,12 +323,14 @@ Add doctests to the `get_problems()` docstring in `problems.py` to verify that a
 - Identity of key actions in the plan (e.g., which candidate was selected)
 - Expected greedy planner failures for backtracking scenarios
 
-**How to run:**
+**How to run** (from the repository root, with the editable install of section 6 in place):
 
 ```bash
 # Run doctests for a specific problems file
-python -m doctest -v src/gtpyhop/examples/your_example/problems.py
+python -m doctest -v packages/gtpyhop-examples/src/gtpyhop/examples/your_example/problems.py
 ```
+
+Silence and exit status 0 mean every doctest passed; drop `-v` for quiet-on-success output.
 
 **Conventions:**
 - Suppress GTPyhop import messages with stdout redirection (they break doctest output matching)
