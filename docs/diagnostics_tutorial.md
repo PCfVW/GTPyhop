@@ -264,13 +264,18 @@ cases:
 | A guard calls a helper the analyser can't resolve | That conjunct lands in `report.unevaluated` with the reason, never guessed at |
 | The action's guard lives in another function it delegates to | No guard found; reported as such. A known limitation |
 
-For that fourth case, pass the defining module's globals so helper calls resolve:
+For that fourth case, pass the globals of the module that **defines the actions**, so
+the helper resolves:
 
 ```python
-import sys
-ns = vars(sys.modules[domain.__module__]) if hasattr(domain, '__module__') else vars(delivery)
-report = explain_dead_end(result.trace, "delivery.py", namespace=ns)
+import delivery
+
+report = explain_dead_end(result.trace, "delivery.py", namespace=vars(delivery))
 ```
+
+It has to be that module, not the domain object: `Domain` is an ordinary class, so
+`domain.__module__` is `gtpyhop.main` — the planner's own module, which knows nothing
+about your helpers.
 
 Some bundled examples need this — `simple_htn`'s actions guard with `is_a(...)`, for
 instance.

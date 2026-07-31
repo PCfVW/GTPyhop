@@ -47,14 +47,18 @@ report.unevaluated             # atoms that could not be decided, each with a re
 `explain_dead_end` accepts a `.py` file or a directory to search, so you can point
 it at a whole example collection without knowing which file defines the action.
 
-If an action's guard calls a helper (`simple_htn`'s `is_a`, say), pass the defining
-module's globals so those calls can be resolved:
+If an action's guard calls a helper (`simple_htn`'s `is_a`, say), pass the globals of the
+module that **defines the actions** so those calls can be resolved:
 
 ```python
-import sys
-ns = vars(sys.modules[my_domain.__module__])
-report = explain_dead_end(result.trace, "domain.py", namespace=ns)
+import my_domain_module
+
+report = explain_dead_end(result.trace, "domain.py",
+                          namespace=vars(my_domain_module))
 ```
+
+It must be that module rather than the `Domain` object: `Domain` is an ordinary class,
+so `domain.__module__` is `gtpyhop.main`, which knows nothing about your helpers.
 
 Without it, atoms calling that helper are reported in `unevaluated` — not guessed at.
 

@@ -202,9 +202,12 @@ def explain_dead_end(trace, source, namespace=None):
         trace: a PlanTrace, from find_plan(..., trace=True, trace_state=True).
         source: path to the domain's .py file, or a directory to search.
         namespace: optional dict of globals for resolving helper functions an
-            action's guard calls (e.g. simple_htn's `is_a`). Pass a module's
-            __dict__ -- typically `vars(sys.modules[TheDomain.__module__])`.
-            Without it, atoms calling such helpers are reported unevaluated
+            action's guard calls (e.g. simple_htn's `is_a`). Pass the globals
+            of the module that DEFINES the actions -- `vars(my_domain_module)`.
+            Note it must be that module, not the Domain object: Domain is an
+            ordinary class, so `domain.__module__` is `gtpyhop.main`, which
+            knows nothing about the domain author's helpers. Without a
+            namespace, atoms calling such helpers are reported unevaluated
             rather than guessed at.
 
     Returns a DeadEndReport. Every degraded case is reported rather than

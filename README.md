@@ -61,8 +61,9 @@ domain = gtpyhop.Domain('delivery')
 # An action checks its preconditions, applies its effects, and returns the
 # state. Falling off the end means "not applicable here".
 def drive(state, truck, dest):
-    if state.at[truck] != dest:
+    if state.fuel[truck] > 0 and state.at[truck] != dest:
         state.at[truck] = dest
+        state.fuel[truck] -= 1
         return state
 
 def load(state, parcel, truck):
@@ -88,6 +89,7 @@ gtpyhop.declare_task_methods('deliver', m_deliver)
 
 state = gtpyhop.State('s0')
 state.at = {'truck1': 'depot', 'parcel1': 'warehouse'}
+state.fuel = {'truck1': 2}
 
 with gtpyhop.PlannerSession(domain=domain, verbose=0) as session:
     result = session.find_plan(state, [('deliver', 'parcel1', 'truck1', 'shop')])
@@ -110,12 +112,18 @@ still works unchanged.
 ## When a plan fails
 
 `find_plan` returning nothing tells you only that no plan exists. GTPyhop can say
-considerably more:
+considerably more. Save the domain above as `delivery.py`, start the truck with an
+empty tank, and ask why:
 
 ```python
 from gtpyhop.diagnostics import explain_dead_end   # pip install gtpyhop-diagnostics
 
-result = session.find_plan(state, tasks, trace=True, trace_state=True)
+state.fuel = {'truck1': 0}                         # nothing else changes
+
+with gtpyhop.PlannerSession(domain=domain, verbose=0) as session:
+    result = session.find_plan(state, [('deliver', 'parcel1', 'truck1', 'shop')],
+                               trace=True, trace_state=True)
+
 print(explain_dead_end(result.trace, "delivery.py").summary())
 ```
 
@@ -123,7 +131,9 @@ print(explain_dead_end(result.trace, "delivery.py").summary())
 drive('truck1', 'warehouse') was blocked by: state.fuel[truck] > 0
 ```
 
-Walked through step by step in the **[diagnostics tutorial](docs/diagnostics_tutorial.md)**.
+Not just *which* action failed — *which precondition* of it, and it correctly ignores
+the guard that did hold. Walked through step by step in the
+**[diagnostics tutorial](docs/diagnostics_tutorial.md)**.
 
 ## Where to go next
 
@@ -156,7 +166,7 @@ GTPyhop/
     ├── gtpyhop-core/            the planner
     ├── gtpyhop-examples/        the bundled example domains
     ├── gtpyhop-diagnostics/     optional failure attribution
-    └── gtpyhop/                 meta-package: depends on the other two
+    └── gtpyhop/                 meta-package: core + examples, no source
 ```
 
 Each package keeps its own `src/gtpyhop/` tree; they merge into a single importable

@@ -8,20 +8,20 @@ Install them with `pip install gtpyhop` (planner plus examples) or `pip install 
 
 ## Table of Contents
 
-1. [Learning Path](#-learning-path)
-2. [Simple Examples](#-simple-examples-basic-concepts)
-3. [Complex Block World Examples](#-complex-block-world-examples-advanced-scenarios)
-4. [IPC 2020 Total Order Examples](#-ipc-2020-total-order-examples)
-5. [MCP Orchestration Examples](#-mcp-orchestration-examples)
-6. [Memory Tracking Examples](#-memory-tracking-examples-180)
-7. [Poetry Examples](#-poetry-examples-190)
-8. [Control Arena Protocol Examples](#-control-arena-protocol-examples-194)
-9. [Cybersecurity Attack Planning Example](#-cybersecurity-attack-planning-example-195)
-10. [Android: Netrunner Run Planning Example](#-android-netrunner-run-planning-example-196)
-11. [Trunk Thumper Game-AI Examples](#-trunk-thumper-game-ai-examples-196)
-12. [Colt Express Game-AI Examples](#-colt-express-game-ai-examples-197)
-13. [Running the Examples](#-running-the-examples)
-14. [Pedagogical Recommendations](#-pedagogical-recommendations)
+1. [Learning Path](#learning-path)
+2. [Simple Examples](#simple-examples-basic-concepts)
+3. [Complex Block World Examples](#complex-block-world-examples-advanced-scenarios)
+4. [IPC 2020 Total Order Examples](#ipc-2020-total-order-examples)
+5. [MCP Orchestration Examples](#mcp-orchestration-examples)
+6. [Memory Tracking Examples](#memory-tracking-examples-180)
+7. [Poetry Examples](#poetry-examples-190)
+8. [Control Arena Protocol Examples](#control-arena-protocol-examples-194)
+9. [Cybersecurity Attack Planning Example](#cybersecurity-attack-planning-example-195)
+10. [Android: Netrunner Run Planning Example](#android-netrunner-run-planning-example-196)
+11. [Trunk Thumper Game-AI Examples](#trunk-thumper-game-ai-examples-196)
+12. [Colt Express Game-AI Examples](#colt-express-game-ai-examples-197)
+13. [Running the Examples](#running-the-examples)
+14. [Pedagogical Recommendations](#pedagogical-recommendations)
 
 ---
 
