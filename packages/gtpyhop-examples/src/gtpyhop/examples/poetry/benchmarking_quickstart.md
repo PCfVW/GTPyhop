@@ -288,8 +288,8 @@ To add a new poetry domain:
    ```
 
 2. **Required files**:
-   - `domain.py` - Must create domain, define all actions and methods following the [domain style guide](../../../../docs/gtpyhop_domain_style_guide.md)
-   - `problems.py` - Must define problems using unified scenario blocks following the [problems style guide](../../../../docs/gtpyhop_problems_style_guide.md)
+   - `domain.py` - Must create domain, define all actions and methods following the [domain style guide](../../../../../../docs/gtpyhop_domain_style_guide.md)
+   - `problems.py` - Must define problems using unified scenario blocks following the [problems style guide](../../../../../../docs/gtpyhop_problems_style_guide.md)
    - `__init__.py` - Must export `the_domain` and implement `get_problems()` function
 
 3. **Run the benchmarking script** - It will automatically discover your new example:

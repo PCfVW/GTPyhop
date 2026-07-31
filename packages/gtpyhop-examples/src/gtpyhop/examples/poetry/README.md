@@ -341,7 +341,7 @@ python benchmarking.py structured_poetry --verbose 1
 - [replanning_poetry/README.md](replanning_poetry/README.md) - Evaluation and revision details
 - [formal_mechanism_poetry/README.md](formal_mechanism_poetry/README.md) - Three planning mechanisms from the paper
 - [feature_space_poetry/README.md](feature_space_poetry/README.md) - Feature-space interventions with measured data
-- [gitignore/iterative_backtracking_find_plan.md](../../../../gitignore/iterative_backtracking_find_plan.md) - Design report for iterative DFS backtracking
+- `gitignore/iterative_backtracking_find_plan.md` - Design report for iterative DFS backtracking (local working note; the `gitignore/` folder is not part of the published repository, so this is not a link)
 
 ---
 *Updated 2026-02-23*

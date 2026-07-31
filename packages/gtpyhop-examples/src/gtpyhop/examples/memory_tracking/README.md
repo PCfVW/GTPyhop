@@ -4,7 +4,7 @@
 
 This directory contains examples demonstrating **memory tracking capabilities** in GTPyhop using the `psutil` library. The examples show how memory usage scales with different aspects of planning problem complexity.
 
-**Note**: These examples measure **plan execution memory** (accumulated state during action execution), not the planner's internal working memory. See the [scalable_recursive_decomposition README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/memory_tracking/scalable_recursive_decomposition/README.md#what-we-measure-vs-theoretical-complexity) for a detailed explanation of this distinction.
+**Note**: These examples measure **plan execution memory** (accumulated state during action execution), not the planner's internal working memory. See the [scalable_recursive_decomposition README](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/memory_tracking/scalable_recursive_decomposition/README.md#what-we-measure-vs-theoretical-complexity) for a detailed explanation of this distinction.
 
 ## Available Examples
 
@@ -90,9 +90,9 @@ python benchmarking.py --list-scenarios --example recursive
 
 ## See Also
 
-- [benchmarking_quickstart.md](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/memory_tracking/benchmarking_quickstart.md) - Detailed usage guide
-- [scalable_data_processing/README.md](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/memory_tracking/scalable_data_processing/README.md) - Data processing example details
-- [scalable_recursive_decomposition/README.md](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/memory_tracking/scalable_recursive_decomposition/README.md) - Recursive decomposition example details (includes theoretical background)
+- [benchmarking_quickstart.md](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/memory_tracking/benchmarking_quickstart.md) - Detailed usage guide
+- [scalable_data_processing/README.md](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/memory_tracking/scalable_data_processing/README.md) - Data processing example details
+- [scalable_recursive_decomposition/README.md](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/memory_tracking/scalable_recursive_decomposition/README.md) - Recursive decomposition example details (includes theoretical background)
 
 ---
 *Updated 2026-01-12*

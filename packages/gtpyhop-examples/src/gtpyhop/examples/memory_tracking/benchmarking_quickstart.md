@@ -113,7 +113,7 @@ Memory scaling via data size and transformations.
 Memory scaling via recursive method decomposition depth.
 Based on Alford et al. (2015) Theorem 4.1.
 
-**Note**: This measures **execution memory** (accumulated state from 2^k actions), not the planner's polynomial working memory. See the [detailed README](https://github.com/PCfVW/GTPyhop/blob/pip/src/gtpyhop/examples/memory_tracking/scalable_recursive_decomposition/README.md#what-we-measure-vs-theoretical-complexity) for the distinction.
+**Note**: This measures **execution memory** (accumulated state from 2^k actions), not the planner's polynomial working memory. See the [detailed README](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/memory_tracking/scalable_recursive_decomposition/README.md#what-we-measure-vs-theoretical-complexity) for the distinction.
 
 ### Quick Reference
 

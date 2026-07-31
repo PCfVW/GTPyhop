@@ -39,7 +39,7 @@ Compound Task [BeTrunkThumper]                  → m_be_trunk_thumper
 
 ## Notes on faithfulness to the chapter
 
-The chapter's literal text shows `Primitive Task [DoTrunkSlam]` with an `Operator` but no `Effects`. In GTPyhop, an action that returns the state unchanged is considered **idempotent** and is elided from `result.plan` (see the [example style guide](../../../../../docs/gtpyhop_example_style_guide.md), Section 8). To keep the action visible in the plan for pedagogical clarity — and to align with how §12.6 will extend the action with `WsTrunkHealth -= 1` — `a_do_trunk_slam` increments a `slams_performed` counter as a minimal state change. The action's docstring documents this divergence.
+The chapter's literal text shows `Primitive Task [DoTrunkSlam]` with an `Operator` but no `Effects`. In GTPyhop, an action that returns the state unchanged is considered **idempotent** and is elided from `result.plan` (see the [example style guide](../../../../../../../docs/gtpyhop_example_style_guide.md), Section 8). To keep the action visible in the plan for pedagogical clarity — and to align with how §12.6 will extend the action with `WsTrunkHealth -= 1` — `a_do_trunk_slam` increments a `slams_performed` counter as a minimal state change. The action's docstring documents this divergence.
 
 For the same reason, `a_check_bridge` records bridges into a `bridges_checked` list. The chapter's literal text doesn't specify this effect, but the chapter's narrative talks about the troll patrolling "numerous bridges" so the tracking is a natural fit.
 
