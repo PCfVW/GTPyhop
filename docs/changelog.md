@@ -40,6 +40,43 @@ Both GTPyhop precondition idioms are handled, which matters because they are str
 
 Deliberately **not** versioned in lockstep with the other three: it is `0.1.0`, depends on `gtpyhop-core>=2.0.0` rather than an exact pin, and publishes under its own `diagnostics-v*` tag namespace via its own workflow, so the `v2.0.0` tag sequence is untouched. `publish-one-package.yml` gained an optional `tag_prefix` input (defaulting to `v`) so the tag-vs-`pyproject.toml` version guard still works for a prefixed tag instead of silently skipping. See [its README](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-diagnostics/README.md) for usage, coverage and the degradation table.
 
+### Documentation rewritten for the release
+
+`README.md` cut from 556 lines to roughly a third of that, and turned into a landing
+page: what GTPyhop is, how to install it, one complete **runnable** first plan, a
+one-glance look at failure diagnosis, and an annotated index of everything else. Most of
+the reduction was deleting second copies rather than losing material — a 53-entry
+example catalogue that [All Examples](all_examples.md) already covers in 62 sections, a
+version-by-version function list that is this changelog's job, and sections restating
+[Thread-Safe Sessions](thread_safe_sessions.md) and [Running Examples](running_examples.md).
+The old Quick Start was abstract skeleton code (`my_action`, `arg1`, `some_condition`)
+that could not be pasted and run; it is now a small delivery domain that executes and
+prints the plan shown beneath it.
+
+Two new guides:
+
+- **[FAQ](faq.md)** — which of the four distributions to install, the pre-2.0 conflict
+  `ImportError`, where `src/gtpyhop/` went, global API versus `PlannerSession`, choosing
+  a planning strategy, what an action must return and why `None` is fine, why an action
+  is "not applicable", whether GTPyhop optimises plans (it does not), thread safety, and
+  running or adding examples.
+- **[Diagnostics tutorial](diagnostics_tutorial.md)** — a narrative walkthrough of one
+  failing domain, from `find_plan` returning nothing, through `trace=True` (*which*
+  action), `trace_state=True` (the state it failed in), to `explain_dead_end` (*which*
+  precondition), ending with the cases the analysis honestly cannot answer.
+
+Every code block in both new documents, and in the README, was extracted from the
+finished file and executed against a clean install; the outputs shown are the outputs
+produced, not reconstructions.
+
+### `gtpyhop-diagnostics` 0.1.0 published
+
+Released to PyPI ahead of the 2.0.0 lockstep tag, deliberately, as a low-stakes canary
+for the new publishing setup — an independently versioned package whose rejection would
+have cost nothing. It earned its keep: see the note above on publishing from the
+top-level workflows, a failure this canary caught that would otherwise have struck the
+`v2.0.0` tag itself. The release carries verified PEP 740 attestations.
+
 ### Documentation repointed at the new layout
 
 The restructuring left 103 references to the pre-2.0 `src/gtpyhop/examples/` path across `README.md`, `all_examples.md`, `running_examples.md`, `logging.md`, and all three style guides — 75 of them GitHub `blob/pip/src/gtpyhop/examples/...` links that had been 404 since the move, the other 28 copy-pasteable `cd` and `python -m doctest` commands plus prose locations that simply failed. All now point at `packages/gtpyhop-examples/src/gtpyhop/examples/...`; every rewritten link was checked to resolve to a file that exists in the tree, and the corrected `doctest` and `cd`-then-`benchmarking.py` commands were run verbatim from a clean venv install. The worst of these was `gtpyhop_example_style_guide.md` §6, which told a new contributor to create their example at a path that no longer exists in any package.

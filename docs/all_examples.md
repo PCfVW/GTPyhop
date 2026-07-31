@@ -1,6 +1,10 @@
-# GTPyhop 1.9.7 HTN Planning Examples
+# GTPyhop HTN Planning Examples
 
-This document provides pedagogical details about all HTN Planning examples included with GTPyhop 1.9.7. Each example demonstrates different aspects of hierarchical task network planning, from basic concepts to advanced techniques.
+This document provides pedagogical details about all HTN Planning examples bundled with GTPyhop, as of 2.0.0. Each example demonstrates different aspects of hierarchical task network planning, from basic concepts to advanced techniques.
+
+Version markers below — "added in 1.9.4", "extended in 1.9.7" and so on — record when each example or feature first shipped, and are left as written.
+
+Install them with `pip install gtpyhop` (planner plus examples) or `pip install gtpyhop-examples` if you already have `gtpyhop-core`.
 
 ## Table of Contents
 
