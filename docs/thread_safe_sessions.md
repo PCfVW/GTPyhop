@@ -9,6 +9,7 @@ GTPyhop 1.3.0 introduced a session-based, thread-safe architecture. GTPyhop 1.8.
 - [Session with Memory Tracking (1.8.0+)](#session-with-memory-tracking-180)
 - [Planning Strategy Selection (1.9.0+)](#planning-strategy-selection-190)
 - [Execution Diagnostics with PlanTrace (2.0.0+)](#execution-diagnostics-with-plantrace-200)
+  - [State snapshots with `trace_state=True`](#state-snapshots-with-trace_statetrue)
 - [Concurrent Planning Example](#concurrent-planning-example)
   - [Why This Is Unsafe Without Sessions (Pre-1.3.0)](#why-this-is-unsafe-without-sessions-pre-130)
 - [Session APIs Reference](#session-apis-reference)
@@ -149,12 +150,33 @@ if not result.success:
 
 | API | Description |
 |-----|-------------|
-| `result.trace.events` | Ordered list of `TraceEvent(depth, item, status, detail)` |
+| `result.trace.events` | Ordered list of `TraceEvent(depth, item, status, detail, state)` |
 | `result.trace.dead_end` | First terminal event (see statuses below), or `None` if every recorded item succeeded |
 | `result.trace.applied_before_dead_end` | Count of applied/idempotent actions recorded strictly before `dead_end` |
 | `result.trace.malformed_returns` | All events where an action or method violated its return contract |
 
 `TraceEvent.item` holds whatever todo-list entry the event concerns: an action tuple for the action-level statuses, or a task/unigoal/`Multigoal` for the refinement-level ones.
+
+### State snapshots with `trace_state=True`
+
+`trace=True` alone answers *which* action or method failed. To answer *which precondition* failed, you also need the state that action was evaluated against — pass `trace_state=True` and each event carries a deep copy of it in `TraceEvent.state`:
+
+```python
+with gtpyhop.PlannerSession(domain=my_domain, verbose=0) as session:
+    result = session.find_plan(state, tasks, trace=True, trace_state=True)
+
+dead_end = result.trace.dead_end
+if dead_end is not None and dead_end.state is not None:
+    # e.g. the action guards on state.door_unlocked[door] -- now you can see it
+    print(dead_end.item, "was blocked in state:", vars(dead_end.state))
+```
+
+- `TraceEvent.state` is the state the item was **attempted against** — for an action, the state its preconditions were evaluated on, *not* the state the action returned.
+- It is `None` unless `trace_state=True`, and also `None` if the state could not be deep-copied (a domain may put an uncopyable object in a state variable; a diagnostic facility must not crash the planner it is diagnosing).
+- `trace_state=True` implies `trace=True`.
+- Unlike `trace`, this one is **not** free during a traced search: it deep-copies the state once per recorded event. Leave it off for benchmarking; turn it on when diagnosing a specific failing scenario.
+
+Snapshots are the runtime half of failure attribution; the other half is a source-level analysis of the failing action's preconditions, which stays outside `gtpyhop-core` (see the note below).
 
 | Status | Terminal? | Meaning |
 |--------|:---------:|---------|
@@ -167,7 +189,7 @@ if not result.success:
 | `method_malformed_return` | Yes | A candidate method returned something that is neither a list, `False`, nor `None` — terminal because the value is used immediately afterward and raises `TypeError`, so the enclosing `*_exhausted` event is never reached |
 | `task_exhausted` / `goal_exhausted` / `multigoal_exhausted` | Yes | Every candidate method was tried and none succeeded |
 
-`PlanTrace` is a mechanical primitive only: it reports *which* action or method, at what depth, with what status — it does not attribute failure to a specific precondition or state variable. That remains a source-level analysis for the caller.
+`PlanTrace` is a mechanical primitive only: it reports *which* action or method, at what depth, with what status, and — with `trace_state=True` — the state it was attempted against. It does not itself attribute failure to a specific precondition or state variable: naming the culprit means reading the domain source to find the failing action's guards and intersecting them with the snapshot, which is a source-level analysis deliberately left to the caller.
 
 `PlanResult` and `ExecutionResult` also correctly support `bool(result)` as of 2.0.0 (equivalent to `result.success`) — previously both were plain dataclasses and therefore always truthy regardless of outcome, so `if result:` silently ignored failures. Always check `.success` explicitly if you're on an earlier version.
 
@@ -276,11 +298,13 @@ Concurrent use of the classic global API is effectively unsafe:
 | API | Description |
 |-----|-------------|
 | `session.find_plan(..., trace=True)` | Opt in to recording a `PlanTrace` of the search (default `False`, no cost when unused) |
+| `session.find_plan(..., trace_state=True)` | Also snapshot the state each event was attempted against; implies `trace`, costs one deep copy per event |
 | `result.trace` | `PlanTrace`, or `None` if `trace=False` |
-| `result.trace.events` | Ordered `TraceEvent(depth, item, status, detail)` list |
+| `result.trace.events` | Ordered `TraceEvent(depth, item, status, detail, state)` list |
 | `result.trace.dead_end` | First terminal event, or `None` |
 | `result.trace.applied_before_dead_end` | Actions applied before the dead end |
 | `result.trace.malformed_returns` | Events where an action/method violated its return contract |
+| `event.state` | Deep copy of the state that event was attempted against, or `None` unless `trace_state=True` |
 
 See [Execution Diagnostics with PlanTrace](#execution-diagnostics-with-plantrace-200) above for the full status table and a worked example.
 

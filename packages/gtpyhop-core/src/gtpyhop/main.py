@@ -141,6 +141,14 @@ verbose = 1
 # mirroring how `verbose` and `current_domain` are already handled.
 _trace_collector = None
 
+# Whether the active trace should also snapshot the state each event was
+# recorded against (find_plan(..., trace_state=True)). Kept as a separate
+# global from _trace_collector because snapshotting deep-copies the state
+# once per event, which is far more expensive than recording the event
+# itself -- so plain trace=True must not pay for it. Set/restored alongside
+# _trace_collector by PlannerSession.isolated_execution().
+_trace_state = False
+
 # Global structured logging support
 _global_logger = None
 _legacy_print_replacer = None
@@ -1015,7 +1023,7 @@ Design Notes:
 # Recursive Planning Implementation
 
 
-def _record_trace_event(depth, item, status, returned_value=None):
+def _record_trace_event(depth, item, status, returned_value=None, state=None):
     """
     Record one action-application or method-refinement attempt into the
     active PlanTrace, if find_plan(..., trace=True) is in effect for the
@@ -1023,13 +1031,33 @@ def _record_trace_event(depth, item, status, returned_value=None):
     a no-op). Shared by the recursive, iterative, and iterative-backtracking
     action-application and refinement paths, so all three planning
     strategies produce traces through the same code path.
+
+    state is the state the item was attempted against; it is snapshotted
+    into the event only when find_plan(..., trace_state=True) asked for it
+    (see TraceEvent.state). Callers pass the state they *called the action
+    or method on*, never the state an action returned -- the diagnostic
+    question is which preconditions held at the moment of the attempt.
     """
     if _trace_collector is None:
         return
     detail = None
     if status in ("malformed_return", "method_malformed_return"):
         detail = f"returned {type(returned_value).__name__}: {returned_value!r:.200}"
-    _trace_collector.record(depth=depth, item=item, status=status, detail=detail)
+    snapshot = None
+    if _trace_state and state is not None:
+        # A plain copy.deepcopy, deliberately not State.copy(): the latter
+        # renames the copy and bumps the global _next_state_number, which
+        # would make merely *observing* a search change the auto-generated
+        # names of states produced after it.
+        try:
+            snapshot = copy.deepcopy(state)
+        except Exception:
+            # An uncopyable object in a state variable must not take down
+            # the search being diagnosed; the event is still worth having
+            # without its snapshot.
+            snapshot = None
+    _trace_collector.record(depth=depth, item=item, status=status, detail=detail,
+                            state=snapshot)
 
 
 def _apply_action_and_continue_recursive(state, task1, todo_list, plan, depth):
@@ -1054,19 +1082,19 @@ def _apply_action_and_continue_recursive(state, task1, todo_list, plan, depth):
             if verbose >= 3:
                 print('applied')
                 newstate.display()
-            _record_trace_event(depth, task1, "applied")
+            _record_trace_event(depth, task1, "applied", state=state)
             return seek_plan_recursive(newstate, todo_list, plan+[task1], depth+1)
         else:
             # action didn't change the state: don't record it in the plan
             if verbose >= 3:
                 print('idempotent')
                 newstate.display()
-            _record_trace_event(depth, task1, "idempotent")
+            _record_trace_event(depth, task1, "idempotent", state=state)
             return seek_plan_recursive(newstate, todo_list, plan, depth+1)
 
     if verbose >= 3:
         print('not applicable')
-    _record_trace_event(depth, task1, "not_applicable" if newstate is False else "malformed_return", newstate)
+    _record_trace_event(depth, task1, "not_applicable" if newstate is False else "malformed_return", newstate, state=state)
     return False
 
 
@@ -1093,17 +1121,17 @@ def _refine_task_and_continue_recursive(state, task1, todo_list, plan, depth):
                 print(f'depth {depth} subtasks: {subtasks}')
             _record_trace_event(depth, task1,
                 "method_applicable" if isinstance(subtasks, list) else "method_malformed_return",
-                subtasks)
+                subtasks, state=state)
             result = seek_plan_recursive(state, subtasks+todo_list, plan, depth+1)
             if result != False and result != None:
                 return result
         else:
             if verbose >= 3:
                 print(f'not applicable')
-            _record_trace_event(depth, task1, "method_not_applicable")
+            _record_trace_event(depth, task1, "method_not_applicable", state=state)
     if verbose >= 3:
         print(f'depth {depth} could not accomplish task {task1}')
-    _record_trace_event(depth, task1, "task_exhausted")
+    _record_trace_event(depth, task1, "task_exhausted", state=state)
     return False
 
 
@@ -1138,7 +1166,7 @@ def _refine_unigoal_and_continue_recursive(state, goal1, todo_list, plan, depth)
                 print(f'depth {depth} subgoals: {subgoals}')
             _record_trace_event(depth, goal1,
                 "method_applicable" if isinstance(subgoals, list) else "method_malformed_return",
-                subgoals)
+                subgoals, state=state)
             if verify_goals:
                 verification = [('_verify_g', method.__name__, \
                                  state_var_name, arg, val, depth)]
@@ -1151,10 +1179,10 @@ def _refine_unigoal_and_continue_recursive(state, goal1, todo_list, plan, depth)
         else:
             if verbose >= 3:
                 print(f'not applicable')
-            _record_trace_event(depth, goal1, "method_not_applicable")
+            _record_trace_event(depth, goal1, "method_not_applicable", state=state)
     if verbose >= 3:
         print(f'depth {depth} could not achieve goal {goal1}')
-    _record_trace_event(depth, goal1, "goal_exhausted")
+    _record_trace_event(depth, goal1, "goal_exhausted", state=state)
     return False
 
 
@@ -1184,7 +1212,7 @@ def _refine_multigoal_and_continue_recursive(state, goal1, todo_list, plan, dept
                 print(f'depth {depth} subgoals: {subgoals}')
             _record_trace_event(depth, goal1,
                 "method_applicable" if isinstance(subgoals, list) else "method_malformed_return",
-                subgoals)
+                subgoals, state=state)
             if verify_goals:
                 verification = [('_verify_mg', method.__name__, goal1, depth)]
             else:
@@ -1196,10 +1224,10 @@ def _refine_multigoal_and_continue_recursive(state, goal1, todo_list, plan, dept
         else:
             if verbose >= 3:
                 print(f'not applicable')
-            _record_trace_event(depth, goal1, "method_not_applicable")
+            _record_trace_event(depth, goal1, "method_not_applicable", state=state)
     if verbose >= 3:
         print(f'depth {depth} could not achieve multigoal {goal1}')
-    _record_trace_event(depth, goal1, "multigoal_exhausted")
+    _record_trace_event(depth, goal1, "multigoal_exhausted", state=state)
     return False
 
 def seek_plan_recursive(state, todo_list, plan, depth):
@@ -1263,21 +1291,21 @@ def _apply_action_and_continue_iterative(state, task1, todo_list, plan, depth):
                 newstate.display()
             _log_if_available("debug", "apply_action", "Action applied successfully",
                              action_name=task1[0], depth=depth)
-            _record_trace_event(depth, task1, "applied")
+            _record_trace_event(depth, task1, "applied", state=state)
             return (newstate, todo_list, plan + [task1], depth + 1)
         else:
             # action didn't change the state: don't record it in the plan
             if verbose >= 3:
                 print('idempotent')
                 newstate.display()
-            _record_trace_event(depth, task1, "idempotent")
+            _record_trace_event(depth, task1, "idempotent", state=state)
             return (newstate, todo_list, plan, depth + 1)
 
     if verbose >= 3:
         print('not applicable')
     _log_if_available("debug", "apply_action", "Action not applicable",
                      action_name=task1[0], depth=depth)
-    _record_trace_event(depth, task1, "not_applicable" if newstate is False else "malformed_return", newstate)
+    _record_trace_event(depth, task1, "not_applicable" if newstate is False else "malformed_return", newstate, state=state)
     return None
 
 def _refine_task_and_continue_iterative(state, task1, todo_list, plan, depth):
@@ -1310,7 +1338,7 @@ def _refine_task_and_continue_iterative(state, task1, todo_list, plan, depth):
             # first so the malformed_return event survives that crash.
             _record_trace_event(depth, task1,
                 "method_applicable" if isinstance(subtasks, list) else "method_malformed_return",
-                subtasks)
+                subtasks, state=state)
             _log_if_available("debug", "refine_task", "Method applicable",
                              method_name=method.__name__, subtask_count=len(subtasks))
             result = (state, subtasks + todo_list, plan, depth + 1)
@@ -1320,12 +1348,12 @@ def _refine_task_and_continue_iterative(state, task1, todo_list, plan, depth):
                 print(f'not applicable')
             _log_if_available("debug", "refine_task", "Method not applicable",
                              method_name=method.__name__)
-            _record_trace_event(depth, task1, "method_not_applicable")
+            _record_trace_event(depth, task1, "method_not_applicable", state=state)
     if verbose >= 3:
         _verbose_print_and_log(f'depth {depth} could not accomplish task {task1}', 3, "refine_task")
     _log_if_available("debug", "refine_task", "Task refinement failed",
                      task_name=task1[0], depth=depth)
-    _record_trace_event(depth, task1, "task_exhausted")
+    _record_trace_event(depth, task1, "task_exhausted", state=state)
     return None
 
 def _refine_unigoal_and_continue_iterative(state, goal1, todo_list, plan, depth):
@@ -1354,7 +1382,7 @@ def _refine_unigoal_and_continue_iterative(state, goal1, todo_list, plan, depth)
                 print(f'depth {depth} subgoals: {subgoals}')
             _record_trace_event(depth, goal1,
                 "method_applicable" if isinstance(subgoals, list) else "method_malformed_return",
-                subgoals)
+                subgoals, state=state)
             if verify_goals:
                 verification = [('_verify_g', method.__name__, state_var_name, arg, val, depth)]
             else:
@@ -1364,10 +1392,10 @@ def _refine_unigoal_and_continue_iterative(state, goal1, todo_list, plan, depth)
         else:
             if verbose >= 3:
                 print(f'not applicable')
-            _record_trace_event(depth, goal1, "method_not_applicable")
+            _record_trace_event(depth, goal1, "method_not_applicable", state=state)
     if verbose >= 3:
         print(f'depth {depth} could not achieve goal {goal1}')
-    _record_trace_event(depth, goal1, "goal_exhausted")
+    _record_trace_event(depth, goal1, "goal_exhausted", state=state)
     return None
 
 def _refine_multigoal_and_continue_iterative(state, goal1, todo_list, plan, depth):
@@ -1391,7 +1419,7 @@ def _refine_multigoal_and_continue_iterative(state, goal1, todo_list, plan, dept
                 print(f'depth {depth} subgoals: {subgoals}')
             _record_trace_event(depth, goal1,
                 "method_applicable" if isinstance(subgoals, list) else "method_malformed_return",
-                subgoals)
+                subgoals, state=state)
             if verify_goals:
                 verification = [('_verify_mg', method.__name__, goal1, depth)]
             else:
@@ -1401,10 +1429,10 @@ def _refine_multigoal_and_continue_iterative(state, goal1, todo_list, plan, dept
         else:
             if verbose >= 3:
                 print(f'not applicable')
-            _record_trace_event(depth, goal1, "method_not_applicable")
+            _record_trace_event(depth, goal1, "method_not_applicable", state=state)
     if verbose >= 3:
         print(f'depth {depth} could not achieve multigoal {goal1}')
-    _record_trace_event(depth, goal1, "multigoal_exhausted")
+    _record_trace_event(depth, goal1, "multigoal_exhausted", state=state)
     return None
 
 ################################################################################
@@ -1440,7 +1468,7 @@ def _refine_task_and_continue_iterative_bt(state, task1, todo_list, plan, depth)
             # first so the malformed_return event survives that crash.
             _record_trace_event(depth, task1,
                 "method_applicable" if isinstance(subtasks, list) else "method_malformed_return",
-                subtasks)
+                subtasks, state=state)
             _log_if_available("debug", "refine_task_bt", "Method applicable",
                              method_name=method.__name__, subtask_count=len(subtasks))
             continuations.append((state, subtasks + todo_list, plan, depth + 1))
@@ -1449,14 +1477,14 @@ def _refine_task_and_continue_iterative_bt(state, task1, todo_list, plan, depth)
                 print(f'not applicable')
             _log_if_available("debug", "refine_task_bt", "Method not applicable",
                              method_name=method.__name__)
-            _record_trace_event(depth, task1, "method_not_applicable")
+            _record_trace_event(depth, task1, "method_not_applicable", state=state)
 
     if not continuations:
         if verbose >= 3:
             _verbose_print_and_log(f'depth {depth} could not accomplish task {task1}', 3, "refine_task_bt")
         _log_if_available("debug", "refine_task_bt", "Task refinement failed",
                          task_name=task1[0], depth=depth)
-        _record_trace_event(depth, task1, "task_exhausted")
+        _record_trace_event(depth, task1, "task_exhausted", state=state)
     return continuations
 
 
@@ -1487,7 +1515,7 @@ def _refine_unigoal_and_continue_iterative_bt(state, goal1, todo_list, plan, dep
                 print(f'depth {depth} subgoals: {subgoals}')
             _record_trace_event(depth, goal1,
                 "method_applicable" if isinstance(subgoals, list) else "method_malformed_return",
-                subgoals)
+                subgoals, state=state)
             if verify_goals:
                 verification = [('_verify_g', method.__name__, state_var_name, arg, val, depth)]
             else:
@@ -1497,12 +1525,12 @@ def _refine_unigoal_and_continue_iterative_bt(state, goal1, todo_list, plan, dep
         else:
             if verbose >= 3:
                 print(f'not applicable')
-            _record_trace_event(depth, goal1, "method_not_applicable")
+            _record_trace_event(depth, goal1, "method_not_applicable", state=state)
 
     if not continuations:
         if verbose >= 3:
             print(f'depth {depth} could not achieve goal {goal1}')
-        _record_trace_event(depth, goal1, "goal_exhausted")
+        _record_trace_event(depth, goal1, "goal_exhausted", state=state)
     return continuations
 
 
@@ -1528,7 +1556,7 @@ def _refine_multigoal_and_continue_iterative_bt(state, goal1, todo_list, plan, d
                 print(f'depth {depth} subgoals: {subgoals}')
             _record_trace_event(depth, goal1,
                 "method_applicable" if isinstance(subgoals, list) else "method_malformed_return",
-                subgoals)
+                subgoals, state=state)
             if verify_goals:
                 verification = [('_verify_mg', method.__name__, goal1, depth)]
             else:
@@ -1538,12 +1566,12 @@ def _refine_multigoal_and_continue_iterative_bt(state, goal1, todo_list, plan, d
         else:
             if verbose >= 3:
                 print(f'not applicable')
-            _record_trace_event(depth, goal1, "method_not_applicable")
+            _record_trace_event(depth, goal1, "method_not_applicable", state=state)
 
     if not continuations:
         if verbose >= 3:
             print(f'depth {depth} could not achieve multigoal {goal1}')
-        _record_trace_event(depth, goal1, "multigoal_exhausted")
+        _record_trace_event(depth, goal1, "multigoal_exhausted", state=state)
     return continuations
 
 ################################################################################
@@ -2039,11 +2067,24 @@ class TraceEvent:
     unigoal, or Multigoal for the method_*/*_exhausted statuses. This mirrors
     GTPyhop's own internal naming (`item1 = todo_list[0]`) for exactly this
     "todo-list entry of unknown-until-dispatched type" concept.
+
+    state holds a deep copy of the state this item was attempted against --
+    for an action, the state its preconditions were evaluated on (not the
+    state the action returned); for a method_*/*_exhausted event, the state
+    the method(s) were called on. It is None unless the search was run with
+    find_plan(..., trace_state=True), and also None if the state could not
+    be deep-copied (a domain may put an uncopyable object into a state
+    variable; a diagnostic facility must not crash the planner it is
+    diagnosing). Snapshots are what let a consumer move from "action a_foo
+    was not applicable" to "action a_foo was not applicable *because*
+    state.door_open was False": the static analysis gives the candidate
+    preconditions, the snapshot says which of them actually did not hold.
     """
     depth: int
     item: Any
     status: str
     detail: Optional[str] = None
+    state: Optional['State'] = None
 
 
 class PlanTrace:
@@ -2058,15 +2099,20 @@ class PlanTrace:
     reaching into Domain's private _action_dict / _task_method_dict /
     _unigoal_method_dict / _multigoal_method_list. This class provides only
     mechanical facts (which action or method, at what depth, with what
-    status) -- it does not attribute failure to a specific precondition or
-    state variable; that remains a source-level analysis for the caller.
+    status, and -- with trace_state=True -- the state it was attempted
+    against) -- it does not itself attribute failure to a specific
+    precondition or state variable; that remains a source-level analysis for
+    the caller, for which TraceEvent.state supplies the missing half of the
+    evidence (see TraceEvent).
     """
 
     def __init__(self):
         self.events: List[TraceEvent] = []
 
-    def record(self, depth: int, item: Any, status: str, detail: Optional[str] = None):
-        self.events.append(TraceEvent(depth=depth, item=item, status=status, detail=detail))
+    def record(self, depth: int, item: Any, status: str, detail: Optional[str] = None,
+               state: Optional['State'] = None):
+        self.events.append(TraceEvent(depth=depth, item=item, status=status, detail=detail,
+                                      state=state))
 
     @property
     def dead_end(self) -> Optional[TraceEvent]:
@@ -2708,7 +2754,7 @@ class PlannerSession:
             self.logger.info("session", f"Operation: {operation}", **context)
 
     @contextmanager
-    def isolated_execution(self, trace: bool = False):
+    def isolated_execution(self, trace: bool = False, trace_state: bool = False):
         """
         Context manager for isolated execution with state restoration.
         Saves and restores global GTPyhop state (domain, verbose, strategy,
@@ -2720,14 +2766,23 @@ class PlannerSession:
                 (find_plan(..., trace=True) reads this into result.trace).
                 Default False costs nothing beyond the save/restore of a
                 single global already performed for domain/verbose/strategy.
+            trace_state: If True, additionally snapshot the state each
+                recorded event was attempted against (TraceEvent.state).
+                Implies trace, since a snapshot without an event to attach
+                it to is meaningless. Costs one deep copy of the state per
+                recorded event, so it is off by default even when tracing.
         """
-        global _current_seek_plan, _trace_collector
+        global _current_seek_plan, _trace_collector, _trace_state
+
+        # A snapshot has nowhere to live unless events are being recorded.
+        trace = trace or trace_state
 
         # Save current global state
         saved_domain = current_domain
         saved_verbose = verbose
         saved_strategy = _current_seek_plan
         saved_trace_collector = _trace_collector
+        saved_trace_state = _trace_state
 
         try:
             # Set session-specific state
@@ -2736,6 +2791,7 @@ class PlannerSession:
             set_verbose_level(self.verbose)
             set_recursive_planning(self._strategy)
             _trace_collector = PlanTrace() if trace else None
+            _trace_state = trace_state
 
             self._log_operation("isolated_execution_start",
                               saved_domain=saved_domain.__name__ if saved_domain else None,
@@ -2755,13 +2811,15 @@ class PlannerSession:
             set_verbose_level(saved_verbose)
             _current_seek_plan = saved_strategy
             _trace_collector = saved_trace_collector
+            _trace_state = saved_trace_state
 
             self._log_operation("isolated_execution_end")
 
     def find_plan(self, state: 'State', todo_list: List, *,
                   timeout_ms: Optional[int] = None,
                   max_expansions: Optional[int] = None,
-                  trace: bool = False) -> PlanResult:
+                  trace: bool = False,
+                  trace_state: bool = False) -> PlanResult:
         """
         Generate a plan for the given state and todo list.
 
@@ -2774,6 +2832,13 @@ class PlannerSession:
                 every action-application attempt made during the search
                 (depth, action, status). Default False; costs nothing when
                 not requested. See PlanTrace for details.
+            trace_state: If True, also record on each traced event a deep
+                copy of the state that event was attempted against
+                (TraceEvent.state), which is what lets a caller determine
+                *which* precondition of a failing action did not hold rather
+                than only that it failed. Implies trace. Default False:
+                unlike trace, this one is not free even during a traced
+                search -- it deep-copies the state once per recorded event.
 
         Returns:
             PlanResult with success status, plan, logs, and statistics
@@ -2804,19 +2869,19 @@ class PlannerSession:
                     @ResourceManager.with_timeout(timeout_ms, self.session_id)
                     def timed_planning():
                         if self._strategy == "recursive_dfs":
-                            return self._plan_recursive(state, todo_list, trace=trace)
+                            return self._plan_recursive(state, todo_list, trace=trace, trace_state=trace_state)
                         elif self._strategy == "iterative_dfs_backtracking":
-                            return self._plan_iterative_bt(state, todo_list, trace=trace)
+                            return self._plan_iterative_bt(state, todo_list, trace=trace, trace_state=trace_state)
                         else:
-                            return self._plan_iterative(state, todo_list, trace=trace)
+                            return self._plan_iterative(state, todo_list, trace=trace, trace_state=trace_state)
                     plan = timed_planning()
                 else:
                     if self._strategy == "recursive_dfs":
-                        plan = self._plan_recursive(state, todo_list, trace=trace)
+                        plan = self._plan_recursive(state, todo_list, trace=trace, trace_state=trace_state)
                     elif self._strategy == "iterative_dfs_backtracking":
-                        plan = self._plan_iterative_bt(state, todo_list, trace=trace)
+                        plan = self._plan_iterative_bt(state, todo_list, trace=trace, trace_state=trace_state)
                     else:
-                        plan = self._plan_iterative(state, todo_list, trace=trace)
+                        plan = self._plan_iterative(state, todo_list, trace=trace, trace_state=trace_state)
 
                 # Process results
                 duration_ms = int((time.time() - start_time) * 1000)
@@ -2885,19 +2950,22 @@ class PlannerSession:
 
             return result
 
-    def _plan_recursive(self, state: 'State', todo_list: List, trace: bool = False) -> Optional[List[Tuple]]:
+    def _plan_recursive(self, state: 'State', todo_list: List, trace: bool = False,
+                        trace_state: bool = False) -> Optional[List[Tuple]]:
         """Session-specific recursive planning implementation."""
-        with self.isolated_execution(trace=trace):
+        with self.isolated_execution(trace=trace, trace_state=trace_state):
             return seek_plan_recursive(state, todo_list, [], 0)
 
-    def _plan_iterative(self, state: 'State', todo_list: List, trace: bool = False) -> Optional[List[Tuple]]:
+    def _plan_iterative(self, state: 'State', todo_list: List, trace: bool = False,
+                        trace_state: bool = False) -> Optional[List[Tuple]]:
         """Session-specific iterative planning implementation."""
-        with self.isolated_execution(trace=trace):
+        with self.isolated_execution(trace=trace, trace_state=trace_state):
             return seek_plan_iterative(state, todo_list, [], 0)
 
-    def _plan_iterative_bt(self, state: 'State', todo_list: List, trace: bool = False) -> Optional[List[Tuple]]:
+    def _plan_iterative_bt(self, state: 'State', todo_list: List, trace: bool = False,
+                           trace_state: bool = False) -> Optional[List[Tuple]]:
         """Session-specific iterative backtracking planning implementation."""
-        with self.isolated_execution(trace=trace):
+        with self.isolated_execution(trace=trace, trace_state=trace_state):
             return seek_plan_iterative_backtracking(state, todo_list, [], 0)
 
     def run_lazy_lookahead(self, state: 'State', todo_list: List, *,
