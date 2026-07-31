@@ -98,12 +98,18 @@ def _legacy_owns_colliding_files(dist):
         files = dist.files
     except Exception:  # pragma: no cover - defensive
         files = None
-    if not files:
-        # RECORD missing or unreadable: fall back to the editable marker.
-        # An editable install is the known-benign case; anything else is
-        # treated as a possible collision, since being wrong in that
-        # direction merely asks the user to check, while the opposite lets
-        # silently overwritten files cause confusing failures later.
+    if files is None:
+        # RECORD missing or unreadable, so ownership cannot be determined:
+        # fall back to the editable marker. An editable install is the
+        # known-benign case; anything else is treated as a possible
+        # collision, since being wrong in that direction merely asks the
+        # user to check, while the opposite lets silently overwritten files
+        # cause confusing failures later.
+        #
+        # Note `files is None`, not `not files`: an EMPTY list is a readable
+        # RECORD that lists nothing, which is a definitive "owns no files"
+        # and must fall through to the scan below rather than be treated as
+        # undeterminable.
         return not _is_editable_install(dist)
 
     for path in files:
@@ -257,6 +263,11 @@ from .main import (
     verbose,
     set_verbose_level,
     get_verbose_level,
+    # verify_goals itself is deliberately NOT re-exported: rebinding a package
+    # attribute would not reach the planner, so `gtpyhop.verify_goals = False`
+    # would look like it worked while doing nothing. Use these instead.
+    set_verify_goals,
+    get_verify_goals,
     set_recursive_planning,
     get_recursive_planning,
     reset_planning_strategy,
@@ -372,6 +383,7 @@ __all__ = [
 
     # Configuration
     "verbose", "set_verbose_level", "get_verbose_level",
+    "set_verify_goals", "get_verify_goals",
     "set_recursive_planning", "get_recursive_planning", "reset_planning_strategy",
 ]
 

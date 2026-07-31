@@ -71,12 +71,6 @@ visibly shrink as the bound rises), so it reads better after 2.1 than before it.
   settling what one "expansion" is — the two iterative strategies count main-loop
   iterations, while `PlanTrace.applied_before_dead_end` counts applied actions.
 - **`result.stats["expansions"]` is always `0`** and will stay so until the above lands.
-- **`verify_goals` cannot be set the obvious way.** `gtpyhop.verify_goals = False`
-  silently creates an unread attribute, because the flag is not re-exported at package
-  level; the planner reads `gtpyhop.main.verify_goals`. It wants a
-  `set_verify_goals()` accessor matching `set_verbose_level()`, and arguably a
-  `PlannerSession(verify_goals=...)` setting — it is the last planning global that
-  escapes session isolation.
 
 ## Further out
 

@@ -40,6 +40,28 @@ Both GTPyhop precondition idioms are handled, which matters because they are str
 
 Deliberately **not** versioned in lockstep with the other three: it is `0.1.0`, depends on `gtpyhop-core>=2.0.0` rather than an exact pin, and publishes under its own `diagnostics-v*` tag namespace via its own workflow, so the `v2.0.0` tag sequence is untouched. `publish-one-package.yml` gained an optional `tag_prefix` input (defaulting to `v`) so the tag-vs-`pyproject.toml` version guard still works for a prefixed tag instead of silently skipping. See [its README](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-diagnostics/README.md) for usage, coverage and the degradation table.
 
+### `verify_goals` is now settable, and session-scoped
+
+`verify_goals` has always been documented as a knob, but there was no way to turn it.
+`gtpyhop.verify_goals = False` — the obvious spelling, and the one the flag's own
+docstring implied — silently did nothing: it is not re-exported at package level, so the
+assignment created a new attribute on the package that nothing reads, while the planner
+went on reading `gtpyhop.main.verify_goals`. Verification stayed on, quietly.
+
+Two additions fix that:
+
+- **`set_verify_goals(value)` / `get_verify_goals()`**, matching the existing
+  `set_verbose_level` / `get_verbose_level` pair. The setter returns the previous value,
+  so it composes in a `try`/`finally`.
+- **`PlannerSession(verify_goals=...)`**, saved and restored by `isolated_execution`
+  exactly as the domain, verbosity, strategy and trace collector already are. This was
+  the last planning global that escaped session isolation, which sat badly with a release
+  whose theme is that sessions isolate what planning touches. Default `None` means "leave
+  the process-wide setting alone", so nothing changes for existing callers.
+
+The module attribute still works for anyone who was already setting
+`gtpyhop.main.verify_goals` directly.
+
 ### One shared dispatch for every planning strategy
 
 Each of the three `seek_plan_*` functions carried its own copy of "what kind of thing is

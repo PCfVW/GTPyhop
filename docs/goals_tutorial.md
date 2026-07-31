@@ -235,18 +235,26 @@ The planner caught the lie. This is on by default, and it is why a goal is often
 to state than the equivalent task: a task method that does the wrong thing produces a
 wrong plan, whereas a goal method that does the wrong thing is caught.
 
-You can switch it off for speed once a domain is trusted — but note **where** the switch
-lives:
+You can switch it off for speed once a domain is trusted. Prefer doing it per session,
+so the setting cannot leak into other planning:
 
 ```python
-import gtpyhop.main
-gtpyhop.main.verify_goals = False       # NOT gtpyhop.verify_goals
+with gtpyhop.PlannerSession(domain=domain, verbose=0, verify_goals=False) as session:
+    result = session.find_plan(initial_state(), [('loc', 'box1', 'kitchen')])
 ```
 
-Setting `gtpyhop.verify_goals` appears to work and silently does nothing: the flag is
-not re-exported at package level, so you would only be creating a new, unread attribute.
-With verification genuinely off, the broken method above returns an empty plan and
-reports success — wrong, and quietly so.
+The session restores the previous setting on exit, exactly as it does for the domain,
+verbosity and strategy. To change it process-wide instead, use the accessor:
+
+```python
+previous = gtpyhop.set_verify_goals(False)   # returns what it was
+gtpyhop.get_verify_goals()                   # -> False
+```
+
+Do **not** write `gtpyhop.verify_goals = False`. The flag is not re-exported at package
+level, so that only creates a new attribute nothing reads, and verification quietly
+stays on. With verification genuinely off, the broken method above returns an empty plan
+and reports success — wrong, and quietly so.
 
 ## Traps
 

@@ -899,7 +899,39 @@ The purpose of the verification task is to raise an exception if the
 refinement produced by m doesn't achieve the goal or multigoal that it is
 supposed to achieve. The verification task won't insert anything into the
 final plan; it just will verify whether m did what it was supposed to do.
+
+Set it with set_verify_goals() rather than by assignment. Assigning
+`gtpyhop.verify_goals = False` does NOT work: the flag is not re-exported at
+package level, so that only creates a new attribute on the package which
+nothing reads, and verification quietly stays on. Per-session control is
+available as PlannerSession(verify_goals=...).
 """
+
+
+def set_verify_goals(value):
+    """
+    Turn goal verification on or off, and return the previous setting.
+
+    When on (the default), refining a unigoal or multigoal inserts a check
+    that raises if the method did not actually achieve what it promised.
+    Turning it off is a speed/safety trade for domains you already trust: a
+    method that silently fails to achieve its goal will then produce a plan
+    that looks fine and isn't.
+
+    Use this rather than assigning to the module attribute directly -- see
+    the note in verify_goals' documentation for why the obvious spelling
+    silently does nothing. Prefer PlannerSession(verify_goals=...) in new
+    code, so the setting is scoped to one session instead of the process.
+    """
+    global verify_goals
+    previous = verify_goals
+    verify_goals = bool(value)
+    return previous
+
+
+def get_verify_goals():
+    """Return whether goal verification is currently on."""
+    return verify_goals
 
 
 def _m_verify_g(state, method, state_var, arg, desired_val, depth):
@@ -2787,7 +2819,8 @@ class PlannerSession:
                  structured_logging: bool = True,
                  auto_cleanup: bool = True,
                  memory_tracking: bool = False,
-                 memory_sampling_interval: Optional[float] = None):
+                 memory_sampling_interval: Optional[float] = None,
+                 verify_goals: Optional[bool] = None):
         """
         Initialize a new planning session.
 
@@ -2806,10 +2839,16 @@ class PlannerSession:
                 monitoring for accurate peak detection (default: False)
             memory_sampling_interval: Seconds between memory samples when tracking
                 is enabled (default: 0.1s). Lower values capture faster peaks.
+            verify_goals: Whether refining a unigoal or multigoal inserts a check
+                that the method actually achieved it. Default None means "leave
+                the global setting alone"; True or False overrides it for the
+                duration of this session's planning and restores it afterward,
+                exactly as domain, verbosity and strategy already are.
         """
         self.session_id = session_id or f"session_{uuid.uuid4().hex[:8]}"
         self.domain = domain
         self.verbose = verbose
+        self.verify_goals = verify_goals
         self.structured_logging = structured_logging
         self.auto_cleanup = auto_cleanup
         self.memory_tracking = memory_tracking
@@ -2894,7 +2933,7 @@ class PlannerSession:
                 it to is meaningless. Costs one deep copy of the state per
                 recorded event, so it is off by default even when tracing.
         """
-        global _current_seek_plan, _trace_collector, _trace_state
+        global _current_seek_plan, _trace_collector, _trace_state, verify_goals
 
         # A snapshot has nowhere to live unless events are being recorded.
         trace = trace or trace_state
@@ -2905,6 +2944,7 @@ class PlannerSession:
         saved_strategy = _current_seek_plan
         saved_trace_collector = _trace_collector
         saved_trace_state = _trace_state
+        saved_verify_goals = verify_goals
 
         try:
             # Set session-specific state
@@ -2914,6 +2954,9 @@ class PlannerSession:
             set_recursive_planning(self._strategy)
             _trace_collector = PlanTrace() if trace else None
             _trace_state = trace_state
+            # None means "leave the process-wide setting alone".
+            if self.verify_goals is not None:
+                verify_goals = bool(self.verify_goals)
 
             self._log_operation("isolated_execution_start",
                               saved_domain=saved_domain.__name__ if saved_domain else None,
@@ -2934,6 +2977,7 @@ class PlannerSession:
             _current_seek_plan = saved_strategy
             _trace_collector = saved_trace_collector
             _trace_state = saved_trace_state
+            verify_goals = saved_verify_goals
 
             self._log_operation("isolated_execution_end")
 
