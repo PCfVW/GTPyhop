@@ -135,6 +135,7 @@ def a_search_disease(state: State, query: str, size: int = 25) -> Union[State, b
         - Disease search results stored (state.disease_info) [DATA]
         - Disease ID extracted (state.disease_id) [DATA]
         - Disease search completed flag (state.disease_search_completed) [ENABLER]
+        - Store the search query (state.target_disease) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -208,6 +209,7 @@ def a_get_disease_targets(state: State, disease_id: str, size: int = 50) -> Unio
     Effects:
         - Target list stored (state.disease_targets) [DATA]
         - Targets retrieved flag (state.targets_retrieved) [ENABLER]
+        - Track the query parameters (state.targets_query) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -415,7 +417,7 @@ def a_find_pathways_by_gene(state: State, gene: str, species: str = "Homo sapien
 
     Effects:
         - Pathway information added (state.pathways) [DATA]
-        - Pathways analyzed flag set (state.pathways_analyzed) [ENABLER]
+        - Pathways analyzed flag set (state.pathways_analyzed) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -457,7 +459,7 @@ def a_find_pathways_by_gene(state: State, gene: str, species: str = "Homo sapien
     }
     state.pathways.append(pathway_info)
 
-    # [ENABLER] Gates m_get_structures
+    # [DATA] Gates m_get_structures
     state.pathways_analyzed = True
     # END: Effects
 
@@ -486,7 +488,7 @@ def a_get_kegg_pathway(state: State, pathway_id: str) -> Union[State, bool]:
 
     Effects:
         - Pathway details stored (state.pathway_details) [DATA]
-        - Pathways analyzed flag set (state.pathways_analyzed) [ENABLER]
+        - Pathways analyzed flag set (state.pathways_analyzed) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -523,7 +525,7 @@ def a_get_kegg_pathway(state: State, pathway_id: str) -> Union[State, bool]:
         "source": "kegg"
     }
 
-    # [ENABLER] Gates m_get_structures
+    # [DATA] Gates m_get_structures
     state.pathways_analyzed = True
     # END: Effects
 
@@ -552,7 +554,7 @@ def a_get_pdb_structures(state: State, uniprot_accession: str) -> Union[State, b
 
     Effects:
         - PDB structure information stored (state.pdb_structures) [DATA]
-        - Structures retrieved flag set (state.structures_retrieved) [ENABLER]
+        - Structures retrieved flag set (state.structures_retrieved) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -590,7 +592,7 @@ def a_get_pdb_structures(state: State, uniprot_accession: str) -> Union[State, b
     }
     state.pdb_structures.append(structure_info)
 
-    # [ENABLER] Gates m_find_compounds
+    # [DATA] Gates m_find_compounds
     state.structures_retrieved = True
     # END: Effects
 
@@ -619,7 +621,7 @@ def a_get_alphafold_structure(state: State, uniprot_accession: str) -> Union[Sta
 
     Effects:
         - AlphaFold structure information stored (state.alphafold_structures) [DATA]
-        - Structures retrieved flag set (state.structures_retrieved) [ENABLER]
+        - Structures retrieved flag set (state.structures_retrieved) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -656,7 +658,7 @@ def a_get_alphafold_structure(state: State, uniprot_accession: str) -> Union[Sta
     }
     state.alphafold_structures.append(structure_info)
 
-    # [ENABLER] Gates m_find_compounds
+    # [DATA] Gates m_find_compounds
     state.structures_retrieved = True
     # END: Effects
 
@@ -685,7 +687,7 @@ def a_get_compounds_for_target(state: State, uniprot_accession: str) -> Union[St
 
     Effects:
         - Compound information stored (state.compounds) [DATA]
-        - Compounds found flag set (state.compounds_found) [ENABLER]
+        - Compounds found flag set (state.compounds_found) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -723,7 +725,7 @@ def a_get_compounds_for_target(state: State, uniprot_accession: str) -> Union[St
     }
     state.compounds.append(compound_info)
 
-    # [ENABLER] Gates m_gather_literature
+    # [DATA] Gates m_gather_literature
     state.compounds_found = True
     # END: Effects
 
@@ -753,7 +755,7 @@ def a_search_literature(state: State, query: str, max_results: int = 20) -> Unio
 
     Effects:
         - Literature results stored (state.literature) [DATA]
-        - Literature gathered flag set (state.literature_gathered) [ENABLER]
+        - Literature gathered flag set (state.literature_gathered) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -792,7 +794,7 @@ def a_search_literature(state: State, query: str, max_results: int = 20) -> Unio
     }
     state.literature.append(search_result)
 
-    # [ENABLER] Workflow completion indicator
+    # [DATA] Workflow completion indicator
     state.literature_gathered = True
     # END: Effects
 

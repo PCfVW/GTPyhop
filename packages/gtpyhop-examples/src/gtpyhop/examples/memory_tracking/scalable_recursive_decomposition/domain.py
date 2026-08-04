@@ -224,7 +224,7 @@ def a_finalize_recursion(state: State) -> Union[State, bool]:
         - State is initialized (state.initialized)
 
     Effects:
-        - Execution complete flag (state.execution_complete) [ENABLER]
+        - Execution complete flag (state.execution_complete) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -243,7 +243,7 @@ def a_finalize_recursion(state: State) -> Union[State, bool]:
     # END: Preconditions
 
     # BEGIN: Effects
-    # [ENABLER] Execution completed
+    # [DATA] Execution completed
     state.execution_complete = True
     # END: Effects
 

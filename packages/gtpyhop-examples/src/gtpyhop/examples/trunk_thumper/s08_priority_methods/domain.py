@@ -103,7 +103,7 @@ def _h_pick_available_trunk(state: State) -> Optional[str]:
 
 
 # ============================================================================
-# ACTIONS (13)
+# ACTIONS (9)
 # ============================================================================
 
 def a_navigate_to_enemy(state: State) -> Union[State, bool]:

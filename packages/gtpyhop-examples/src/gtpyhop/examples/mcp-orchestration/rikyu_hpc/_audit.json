@@ -1,0 +1,15 @@
+{
+  "_comment": [
+    "Declared exemptions for python -m gtpyhop.examples.audit.",
+    "Every entry needs a reason. The audit also reports an exemption that has",
+    "gone stale, i.e. state that is now read after all, or no longer written."
+  ],
+  "intentionally_unread": {
+    "doc_sections": "list_doc_sections' actual return value; recorded because the tool returns it, not because anything gates on it",
+    "docs_listed": "bookkeeping; search_docs works whether or not you listed sections first, so gating on it would invent a rule Rikyu does not have",
+    "docs_grounded": "bookkeeping; the scheduler accepts a JobSpec written without reading the guide, so this must not become a gate",
+    "max_wall_time": "the raw Slurm duration string get_facility returns; every precondition compares the parsed max_wall_time_hours instead",
+    "server_1_ready": "server 1 is the HTN planner running this domain, so no action can meaningfully gate on it",
+    "rikyu_session_initialized": "summary of the per-server flags, which are the real gates; kept for state dumps"
+  }
+}

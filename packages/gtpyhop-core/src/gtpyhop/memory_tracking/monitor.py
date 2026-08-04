@@ -157,7 +157,7 @@ class MemoryMonitor:
         Example:
             >>> import psutil
             >>> baseline = psutil.Process().memory_info().rss / 1024 / 1024
-            >>> monitor.start_monitoring("my_session", baseline)
+            >>> monitor.start_monitoring("my_session", baseline)  # doctest: +SKIP
         """
         with self._lock:
             # Initialize monitoring data for this session
@@ -201,8 +201,8 @@ class MemoryMonitor:
             are still being monitored. It stops when no sessions remain.
 
         Example:
-            >>> stats = monitor.stop_monitoring("my_session")
-            >>> print(f"Peak: {stats['peak_memory_mb']:.2f} MB")
+            >>> stats = monitor.stop_monitoring("my_session")  # doctest: +SKIP
+            >>> print(f"Peak: {stats['peak_memory_mb']:.2f} MB")  # doctest: +SKIP
             Peak: 3134.81 MB
         """
         with self._lock:
@@ -321,7 +321,7 @@ class MemoryMonitor:
                        If None, sample all active sessions.
 
         Example:
-            >>> monitor.sample_now("my_session")  # Force a sample
+            >>> monitor.sample_now("my_session")  # Force a sample  # doctest: +SKIP
         """
         try:
             current_memory = self.process.memory_info().rss / 1024 / 1024

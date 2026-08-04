@@ -1,6 +1,120 @@
 # GTPyhop Version History
 
-## 2.0.0 — gtpyhop-core / gtpyhop-examples / gtpyhop Package Split (Latest, Recommended)
+## 2.0.1 — Rikyu HPC example, example auditor, `gtpyhop.examples` on editable installs (Latest, Recommended)
+
+No planner algorithm changes. One real bug fix, one new tool, one new example,
+and a consistency sweep over every bundled example.
+
+### `import gtpyhop.examples` now works on an editable install (bug fix)
+
+`pip install -e packages/gtpyhop-core -e packages/gtpyhop-examples` produced an
+environment where `import gtpyhop` worked but **`import gtpyhop.examples` raised
+`ModuleNotFoundError`**. Each editable install writes a bare `.pth` adding its own
+`src/` to `sys.path`; `gtpyhop-core/src/gtpyhop/` has an `__init__.py` and is a
+regular package, while `gtpyhop-examples/src/gtpyhop/` has none and is a namespace
+portion — and the import system resolves the regular package in full, discarding
+namespace portions. Installed wheels were never affected, because both
+distributions unpack into the same `site-packages/gtpyhop/` directory and the merge
+happens on disk, so **PyPI users of 2.0.0 saw nothing wrong**. Contributors saw it
+constantly: it broke the `from gtpyhop.examples.X import ...` line inside every
+bundled example's doctests, and with it the `python -m doctest .../problems.py`
+workflow that `docs/gtpyhop_example_style_guide.md` §6–7 and
+`docs/gtpyhop_problems_style_guide.md` §2.3 both prescribe.
+
+`gtpyhop-core/__init__.py` now calls `pkgutil.extend_path`, letting `gtpyhop` span
+every directory of that name on `sys.path`. Doctests across the bundled examples
+went from **9 of 33 files clean to 33 of 33**.
+
+### New: `gtpyhop.examples.audit` — an auditor for example domains
+
+`python -m gtpyhop.examples.audit --all`, or `python tools/domain_audit.py --all`
+from a checkout. It answers one question — *does this example still say what it
+does?* — in three enforced families: **STRUCTURE** (the domain style guide,
+mechanised), **SEMANTICS** (code and documentation disagreeing), and **BEHAVIOUR**
+(opt-in `--plan`: every problem must plan, every trap must not, every `-> N actions`
+claim must be true). Two further families, **HYGIENE** and **INFO**, are reported
+but advisory unless `--strict`.
+
+Adoption aids for trees with a backlog: `--fail-on N` to ratchet a count down, and
+`--write-baseline`/`--baseline` to accept today's findings by identity while still
+failing on anything new. Per-example exemptions live in an `_audit.json` beside
+`domain.py`, each requiring a reason; a stale exemption is itself reported.
+§11 of the domain style guide now opens with it.
+
+The auditor has its own tests: `python -m gtpyhop.examples.audit.selftest`. A checker
+is wrong when it reports too much as surely as when it reports too little, and one
+that cries wolf gets ignored — so each of its 16 fixtures is a minimal domain with a
+single planted defect, asserting both that the expected finding **is** reported and
+that **nothing else** is. Five are regression fixtures for bugs this auditor actually
+had: a `)` inside a `declare_actions` comment (44 false positives), a UTF-8 BOM, a
+trailing `# END:` marker sitting outside `ast`'s `node.end_lineno`, an intentionally
+empty `Effects` block, and a `hasattr`-guarded optional read.
+
+### New: repository checks run on every push
+
+`.github/workflows/checks.yml`. The three existing workflows are publish-only, so
+nothing ran on an ordinary push: a broken link, a domain drifted from its own
+documentation, or a failing doctest could sit in a branch until release day. The new
+job installs both packages **editable** — deliberately, since that is what a
+contributor has, and it is the configuration in which `import gtpyhop.examples` was
+broken — then runs the auditor self-test, the example audit, the link audit, the
+doctests and the example regression tests. Every step is offline and deterministic.
+
+### New: `tools/doctest_audit.py`, and a corrected doctests badge
+
+The README badge claimed **789 passing**. The real figure is **855**, and nine of
+them were failing. The nine were illustrative `Example:` snippets in
+`gtpyhop-core`'s `memory_tracking/{monitor,tracker}.py` that referenced an undefined
+`monitor`/`tracker` object — documentation that had never been runnable, quietly
+counted as tests. They are now marked `# doctest: +SKIP`, which keeps them readable
+as examples without letting them masquerade as passing tests, and without starting
+background threads inside a doctest run.
+
+`tools/doctest_audit.py` imports each module by its real dotted name rather than by
+filename, so a module importable only through its package is tested instead of being
+mistaken for a failure, and reports what it genuinely could not import. It prints the
+total, so the badge is now a number anyone can recompute:
+`python tools/doctest_audit.py --count`.
+
+### Consistency sweep: 343 findings across the bundled examples, resolved
+
+The auditor's first run reported 343 findings; the tree now stands at zero enforced.
+291 were repaired in the files and 52 reclassified as advisory on evidence.
+
+- **Stale section headers**, including `trunk_thumper/s07_expected_effects_chase`
+  (`# ACTIONS (10)` against 11) and `s08_priority_methods` (`(13)` against 9) — `s07`
+  being the example the domain style guide cites as its `[EXPECTED_EFFECT]` reference.
+- **84 `Effects:` sections** that had stopped naming state their action assigns, and
+  **66 `[ENABLER]` tags** on properties no precondition tests, which is worse than an
+  untagged property because it tells a reader the sequencing is enforced when it is not.
+- **Missing `# BEGIN:`/`# END:` blocks** and `Task decomposition:` docstring sections.
+- Repairs touched **only comments and docstrings**, never an executable statement, and
+  no added prose was invented: each line was derived from the author's own inline
+  `# [TAG] ...` comment or from the target action's `Action purpose:`. Verified by
+  re-running every benchmark suite and all doctests; the 13 benchmark failures that
+  remain are pre-existing and deliberate (greedy-planner demonstrations,
+  `[EXPECTED_EFFECT]` negative controls, and two known-unsolvable IPC instances),
+  each confirmed identical against pristine `HEAD`.
+- **50 of the 52 reclassified** findings were write-once *terminal effects* —
+  `state.grasp_force`, `state.thermocycler_block_temp` — which an action exists in
+  order to change and nothing later reads. Correct in a planning domain, so HYGIENE
+  is advisory by default rather than deleted.
+
+### New example: `mcp-orchestration/rikyu_hpc` — Rikyu HPC and backend routing
+
+An MCP orchestration example modelling HPC job orchestration on the RIKEN R-CCS
+Rikyu system, built on the tool surface of the
+[RIKEN-RCCS/Rikyu-Agent](https://github.com/RIKEN-RCCS/Rikyu-Agent) servers.
+38 actions, 42 methods over 35 task names, 11 scenarios and 16 traps.
+
+- **Three-way backend routing from one goal task.** Scenarios 9, 10 and 11 issue identical goal tasks with identical arguments and reach three different backends. Rikyu runs containers (Apptainer 1.4.5, unprivileged, behind a `singularity` symlink) but advertises this in neither the facility metadata, the bundled guide, nor `module avail` — so the plan probes the login node, and the probe is modelled as *succeeding with a negative result*, since learning a runtime is absent is how a plan discovers it must go elsewhere. Once known, the image architecture decides: an x86_64 image converts to SIF perfectly cleanly and dies only at `exec` on the aarch64 Grace nodes.
+- **Traps as a separate instrument.** 16 deliberately unsolvable problems exposed through `get_trap_problems()` rather than `get_problems()`, so `benchmarking.py` still reports 11 successes rather than 11 successes and 16 failures. Each violates exactly one documented rule, and each is *falsifiable*: repair the single datum it names and the plan appears (verified 16/16). The set covers unsupported GPU counts, `scancel` on a finished job, collecting a file an ACTIVE job is still writing, computation on the login node, `srun` for MPI, MPI without `processes_per_node`, an x86_64 wheel on Grace nodes, a 40 GB dataset into a 5 GiB `/home`, an x86_64 SIF, an Apptainer cache left on the home tier, a container job reading unbound group storage, `exec` with no explicit command, the `docker-daemon:` transport, an unresizable vast.ai disk, and destroying a rented instance before its results have been retrieved.
+- **Safety by precondition.** `a_vast_destroy_instance` requires the results to have been copied out. A free-running agent can emit a destroy at any turn; a planner cannot *produce a plan* that destroys before collecting.
+- **Four `[EXPECTED_EFFECT]` uses**, all workflow-gating: Slurm advancing a job, a completed job's outputs appearing on Lustre, the vast.ai control plane bringing a container up, and a training run writing its checkpoint before exit.
+- **Non-idempotent polling.** Every polling action increments a counter. Without it, a poll that observes no state change is idempotent, and GTPyhop elides idempotent actions from the returned plan — the plan would silently under-report how many times the agent has to look.
+- Ships a provenance table mapping every encoded facility constant and operating rule back to its source file, and 53 doctests.
+
+## 2.0.0 — gtpyhop-core / gtpyhop-examples / gtpyhop Package Split
 
 This is a packaging-only major release: no planner algorithm changes. GTPyhop is now published as three coordinated PyPI distributions instead of one — plus the optional, independently versioned `gtpyhop-diagnostics`, described below, which is not part of this lockstep release. `pip install gtpyhop` is unaffected and remains a full install, byte-identical to pre-2.0 installs; `pip install gtpyhop-core` is new and gives a lean, examples-free install.
 

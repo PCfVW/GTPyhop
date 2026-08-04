@@ -488,7 +488,10 @@ def a_cleanup_memory(state: State) -> Union[State, bool]:
         - Operations are complete (state.operations_complete)
 
     Effects:
-        - Memory cleaned flag (state.memory_cleaned) [ENABLER]
+        - Memory cleaned flag (state.memory_cleaned) [DATA]
+        - Large dataset (state.large_dataset) [ENABLER]
+        - Memory structure (state.memory_structure) [ENABLER]
+        - Processed chunks (state.processed_chunks) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -510,7 +513,7 @@ def a_cleanup_memory(state: State) -> Union[State, bool]:
     # Read configuration - whether to actually clean up
     do_cleanup = getattr(state, 'config_cleanup', True)
 
-    # [ENABLER] Memory cleanup completed
+    # [DATA] Memory cleanup completed
     state.memory_cleaned = True
 
     # Only release memory if configured to do so

@@ -1,4 +1,4 @@
-﻿# ============================================================================
+# ============================================================================
 # MCP Orchestration - TNF Cancer Modelling Domain
 # ============================================================================
 
@@ -949,7 +949,7 @@ def a_execute_multiscale_simulation(state: State, project_path: str, run_paramet
         - Cancer population dynamics captured flag is set (state.cancer_population_dynamics_captured)
         - TNF-induced cell fate changes captured flag is set (state.tnf_induced_cell_fate_changes_captured)
         - Workflow step is updated (state.current_workflow_step)
-        - Workflow complete flag is set (state.workflow_complete) [ENABLER]
+        - Workflow complete flag is set (state.workflow_complete) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -996,7 +996,7 @@ def a_execute_multiscale_simulation(state: State, project_path: str, run_paramet
     # [DATA] Workflow tracking
     state.current_workflow_step = "multiscale_simulation_completed"
 
-    # [ENABLER] Workflow complete - final step
+    # [DATA] Workflow complete - final step
     state.workflow_complete = True
     # END: Effects
 
@@ -1057,11 +1057,17 @@ def m_multiscale_tnf_cancer_modeling(state: State) -> Union[List[Tuple], bool]:
         return False
     # END: Type Checking
 
+    # BEGIN: State-Type Checks
+    # No state-type checks needed
+    # END: State-Type Checks
+
     # BEGIN: Preconditions
     # Initial state requirements
     if not (hasattr(state, 'tnf_gene_list') and state.tnf_gene_list and
             hasattr(state, 'omnipath_available') and state.omnipath_available):
+    # BEGIN: Task Decomposition
         return False
+    # END: Task Decomposition
     # END: Preconditions
 
     return [
@@ -1104,10 +1110,16 @@ def m_phase1_boolean_network_development(state: State) -> Union[List[Tuple], boo
         return False
     # END: Type Checking
 
+    # BEGIN: State-Type Checks
+    # No state-type checks needed
+    # END: State-Type Checks
+
     # BEGIN: Preconditions
     if not (hasattr(state, 'tnf_gene_list') and state.tnf_gene_list and
             hasattr(state, 'omnipath_available') and state.omnipath_available):
+    # BEGIN: Task Decomposition
         return False
+    # END: Task Decomposition
     # END: Preconditions
 
     return [
@@ -1153,11 +1165,17 @@ def m_phase2_multicellular_integration(state: State) -> Union[List[Tuple], bool]
         return False
     # END: Type Checking
 
+    # BEGIN: State-Type Checks
+    # No state-type checks needed
+    # END: State-Type Checks
+
     # BEGIN: Preconditions
     # Phase 1 must be complete
     if not (hasattr(state, 'boolean_modeling_phase_complete') and state.boolean_modeling_phase_complete and
             hasattr(state, 'model_validation_status') and state.model_validation_status == "passed"):
+    # BEGIN: Task Decomposition
         return False
+    # END: Task Decomposition
     # END: Preconditions
 
     return [
@@ -1205,6 +1223,10 @@ def m_network_construction(state: State) -> Union[List[Tuple], bool]:
         return False
     # END: Type Checking
 
+    # BEGIN: State-Type Checks
+    # No state-type checks needed
+    # END: State-Type Checks
+
     # BEGIN: Auxiliary Parameter Inference
     gene_list = state.tnf_gene_list if hasattr(state, 'tnf_gene_list') else None
     organism = "human"
@@ -1216,7 +1238,9 @@ def m_network_construction(state: State) -> Union[List[Tuple], bool]:
     # BEGIN: Preconditions
     if not (hasattr(state, 'tnf_gene_list') and state.tnf_gene_list and
             hasattr(state, 'omnipath_available') and state.omnipath_available):
+    # BEGIN: Task Decomposition
         return False
+    # END: Task Decomposition
     # END: Preconditions
 
     return [
@@ -1255,6 +1279,10 @@ def m_network_preprocessing(state: State) -> Union[List[Tuple], bool]:
         return False
     # END: Type Checking
 
+    # BEGIN: State-Type Checks
+    # No state-type checks needed
+    # END: State-Type Checks
+
     # BEGIN: Auxiliary Parameter Inference
     network_file_path = state.raw_network_file if hasattr(state, 'raw_network_file') else None
 
@@ -1265,7 +1293,9 @@ def m_network_preprocessing(state: State) -> Union[List[Tuple], bool]:
     # BEGIN: Preconditions
     # Network creation must be complete
     if not (hasattr(state, 'network_creation_status') and state.network_creation_status == "completed"):
+    # BEGIN: Task Decomposition
         return False
+    # END: Task Decomposition
     # END: Preconditions
 
     return [
@@ -1305,6 +1335,10 @@ def m_check_network_connectivity_and_export(state: State) -> Union[List[Tuple], 
         return False
     # END: Type Checking
 
+    # BEGIN: State-Type Checks
+    # No state-type checks needed
+    # END: State-Type Checks
+
     # BEGIN: Auxiliary Parameter Inference
     network_file_path = state.cleaned_network_file if hasattr(state, 'cleaned_network_file') else None
 
@@ -1315,7 +1349,9 @@ def m_check_network_connectivity_and_export(state: State) -> Union[List[Tuple], 
     # BEGIN: Preconditions
     # Bimodal interactions must be removed
     if not (hasattr(state, 'bimodal_interactions_removed') and state.bimodal_interactions_removed):
+    # BEGIN: Task Decomposition
         return False
+    # END: Task Decomposition
     # END: Preconditions
 
     return [
@@ -1356,6 +1392,10 @@ def m_maboss_model_preparation(state: State) -> Union[List[Tuple], bool]:
         return False
     # END: Type Checking
 
+    # BEGIN: State-Type Checks
+    # No state-type checks needed
+    # END: State-Type Checks
+
     # BEGIN: Auxiliary Parameter Inference
     bnet_file_path = getattr(state, 'bnet_file_path', None)
     thread_count = 10
@@ -1368,7 +1408,9 @@ def m_maboss_model_preparation(state: State) -> Union[List[Tuple], bool]:
     # BNET export must be complete
     if not (hasattr(state, 'bnet_format_ready') and state.bnet_format_ready and
             hasattr(state, 'boolean_modeling_ready') and state.boolean_modeling_ready):
+    # BEGIN: Task Decomposition
         return False
+    # END: Task Decomposition
     # END: Preconditions
 
     return [
@@ -1408,6 +1450,10 @@ def m_boolean_model_validation(state: State) -> Union[List[Tuple], bool]:
         return False
     # END: Type Checking
 
+    # BEGIN: State-Type Checks
+    # No state-type checks needed
+    # END: State-Type Checks
+
     # BEGIN: Auxiliary Parameter Inference
     bnd_file_path = getattr(state, 'maboss_bnd_file', None)
     cfg_file_path = getattr(state, 'maboss_cfg_file', None)
@@ -1419,7 +1465,9 @@ def m_boolean_model_validation(state: State) -> Union[List[Tuple], bool]:
     # BEGIN: Preconditions
     # MaBoSS files must be created
     if not (hasattr(state, 'maboss_files_created') and state.maboss_files_created):
+    # BEGIN: Task Decomposition
         return False
+    # END: Task Decomposition
     # END: Preconditions
 
     return [
@@ -1458,6 +1506,10 @@ def m_analyze_maboss_results_task(state: State) -> Union[List[Tuple], bool]:
         return False
     # END: Type Checking
 
+    # BEGIN: State-Type Checks
+    # No state-type checks needed
+    # END: State-Type Checks
+
     # BEGIN: Auxiliary Parameter Inference
     results_file_path = getattr(state, 'maboss_simulation_results', None)
 
@@ -1468,7 +1520,9 @@ def m_analyze_maboss_results_task(state: State) -> Union[List[Tuple], bool]:
     # BEGIN: Preconditions
     # MaBoSS simulation must be complete
     if not (hasattr(state, 'maboss_simulation_completed') and state.maboss_simulation_completed):
+    # BEGIN: Task Decomposition
         return False
+    # END: Task Decomposition
     # END: Preconditions
 
     return [
@@ -1512,6 +1566,10 @@ def m_physicell_project_setup(state: State) -> Union[List[Tuple], bool]:
         return False
     # END: Type Checking
 
+    # BEGIN: State-Type Checks
+    # No state-type checks needed
+    # END: State-Type Checks
+
     # BEGIN: Auxiliary Parameter Inference
     project_name = "TNF_Cancer_Multiscale_Model"
     template = "cancer_biorobots"
@@ -1521,7 +1579,9 @@ def m_physicell_project_setup(state: State) -> Union[List[Tuple], bool]:
     # Phase 1 must be complete
     if not (hasattr(state, 'boolean_modeling_phase_complete') and state.boolean_modeling_phase_complete and
             hasattr(state, 'model_validation_status') and state.model_validation_status == "passed"):
+    # BEGIN: Task Decomposition
         return False
+    # END: Task Decomposition
     # END: Preconditions
 
     return [
@@ -1560,6 +1620,10 @@ def m_microenvironment_configuration(state: State) -> Union[List[Tuple], bool]:
         return False
     # END: Type Checking
 
+    # BEGIN: State-Type Checks
+    # No state-type checks needed
+    # END: State-Type Checks
+
     # BEGIN: Auxiliary Parameter Inference
     project_path = state.physicell_project_directory if hasattr(state, 'physicell_project_directory') else None
     # Default TNF substrate configuration
@@ -1574,7 +1638,9 @@ def m_microenvironment_configuration(state: State) -> Union[List[Tuple], bool]:
     # BEGIN: Preconditions
     # PhysiCell project must exist
     if not (hasattr(state, 'physicell_project_created') and state.physicell_project_created):
+    # BEGIN: Task Decomposition
         return False
+    # END: Task Decomposition
     # END: Preconditions
 
     return [
@@ -1614,6 +1680,10 @@ def m_cell_type_configuration(state: State) -> Union[List[Tuple], bool]:
         return False
     # END: Type Checking
 
+    # BEGIN: State-Type Checks
+    # No state-type checks needed
+    # END: State-Type Checks
+
     # BEGIN: Auxiliary Parameter Inference
     project_path = state.physicell_project_directory if hasattr(state, 'physicell_project_directory') else None
     cell_type_name = "cancer_cell"
@@ -1631,7 +1701,9 @@ def m_cell_type_configuration(state: State) -> Union[List[Tuple], bool]:
     # BEGIN: Preconditions
     # Microenvironment must be configured
     if not (hasattr(state, 'microenvironment_configured') and state.microenvironment_configured):
+    # BEGIN: Task Decomposition
         return False
+    # END: Task Decomposition
     # END: Preconditions
 
     return [
@@ -1672,6 +1744,10 @@ def m_maboss_physicell_integration(state: State) -> Union[List[Tuple], bool]:
         return False
     # END: Type Checking
 
+    # BEGIN: State-Type Checks
+    # No state-type checks needed
+    # END: State-Type Checks
+
     # BEGIN: Auxiliary Parameter Inference
     project_path = state.physicell_project_directory if hasattr(state, 'physicell_project_directory') else None
     cell_type_name = getattr(state, 'cancer_cell_type_name', "cancer_cell")  # Default to "cancer_cell"
@@ -1688,7 +1764,9 @@ def m_maboss_physicell_integration(state: State) -> Union[List[Tuple], bool]:
     # Cancer cell type must be added
     if not (hasattr(state, 'cancer_cell_type_added') and state.cancer_cell_type_added and
             hasattr(state, 'model_validation_status') and state.model_validation_status == "passed"):
+    # BEGIN: Task Decomposition
         return False
+    # END: Task Decomposition
     # END: Preconditions
 
     return [
@@ -1728,6 +1806,10 @@ def m_multiscale_simulation_execution(state: State) -> Union[List[Tuple], bool]:
         return False
     # END: Type Checking
 
+    # BEGIN: State-Type Checks
+    # No state-type checks needed
+    # END: State-Type Checks
+
     # BEGIN: Auxiliary Parameter Inference
     project_path = state.physicell_project_directory if hasattr(state, 'physicell_project_directory') else None
     # Default simulation parameters (must match action's expected values)
@@ -1744,7 +1826,9 @@ def m_multiscale_simulation_execution(state: State) -> Union[List[Tuple], bool]:
     # MaBoSS integration must be complete
     if not (hasattr(state, 'boolean_network_integrated') and state.boolean_network_integrated and
             hasattr(state, 'tnf_sensing_enabled') and state.tnf_sensing_enabled):
+    # BEGIN: Task Decomposition
         return False
+    # END: Task Decomposition
     # END: Preconditions
 
     return [

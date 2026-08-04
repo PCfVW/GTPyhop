@@ -1,6 +1,6 @@
 # GTPyhop HTN Planning Examples
 
-This document provides pedagogical details about all HTN Planning examples bundled with GTPyhop, as of 2.0.0. Each example demonstrates different aspects of hierarchical task network planning, from basic concepts to advanced techniques.
+This document provides pedagogical details about all HTN Planning examples bundled with GTPyhop, as of 2.0.1. Each example demonstrates different aspects of hierarchical task network planning, from basic concepts to advanced techniques.
 
 Version markers below — "added in 1.9.4", "extended in 1.9.7" and so on — record when each example or feature first shipped, and are left as written.
 
@@ -310,6 +310,29 @@ MCP (Model Context Protocol) is an open-source standard from Anthropic for conne
 - **Methods (3):** Workflow orchestration
 
 **Documentation:** [TNF Cancer Modelling README](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/mcp-orchestration/tnf_cancer_modelling/README.md)
+
+### Rikyu HPC — Containerized Training and Backend Routing (unreleased)
+**Purpose:** HPC job orchestration on the RIKEN R-CCS Rikyu system, and choosing where a containerized training run can actually execute
+**Location:** `mcp-orchestration/rikyu_hpc/`
+**Scenarios:** 11 scenarios (4 to 18 actions), plus 16 traps that must *not* produce a plan
+
+**Key Learning Points:**
+- Routing one goal task to different backends according to facts the plan had to fetch
+- Modelling a real MCP tool surface faithfully enough that its owners can audit it
+- Preconditions as safety invariants, and unsolvable problems as a test instrument
+
+**Core Concepts Demonstrated:**
+- **Four servers:** HTN planning, `rikyu-hpc` (Slurm, filesystem, login node), `rikyu-docs` (guide search), and vast.ai for rented GPUs
+- **Actions (38):** facility and resources, jobs, filesystem, documentation, Apptainer, container images, rented instances
+- **Methods (42, over 35 task names):** seven task names carry two competing methods with mutually exclusive preconditions
+- **Three-way routing:** scenarios 9, 10 and 11 issue **identical goal tasks with identical arguments** and reach three different backends — Rikyu's Lmod modules, Rikyu's own Apptainer runtime, or a rented GPU. Rikyu runs containers but advertises this nowhere, so the plan must probe the login node; then the image architecture decides, because an x86_64 image converts to SIF cleanly and only fails at `exec`
+- **`[EXPECTED_EFFECT]`:** four sensor-driven changes — Slurm advancing a job, a completed job's output files appearing, the vast.ai control plane bringing a container up, and a training run writing its checkpoint. Drop any one and the corresponding downstream precondition can never be satisfied
+- **Non-idempotent polling:** every polling action increments a counter, because GTPyhop elides idempotent actions and the plan would otherwise under-report how many times the agent must look
+- **Traps as an instrument:** exposed through a separate `get_trap_problems()`, so benchmarking still reports 11 successes. Each violates exactly one documented rule and is *falsifiable*: repair the single datum it names and the plan appears (verified 16/16)
+
+**Doctests:** 53, covering plan lengths, the routing trio, and the safety invariant
+
+**Documentation:** [Rikyu HPC README](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/mcp-orchestration/rikyu_hpc/README.md) — includes a provenance table mapping every encoded facility constant and operating rule back to its source file
 
 ---
 

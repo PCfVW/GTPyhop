@@ -62,10 +62,26 @@ correctly support bool(result) (previously always True regardless of .success).
 """
 
 import os
+import pkgutil
 import warnings
 
+# Let `gtpyhop` span every directory of that name on sys.path, so that
+# `gtpyhop.examples` (shipped by the separate gtpyhop-examples distribution)
+# is importable alongside this package.
+#
+# Installed wheels do not need this: both distributions unpack into the same
+# site-packages/gtpyhop/ directory, and the merge happens on disk. An EDITABLE
+# install does, because each distribution only adds its own src/ to sys.path,
+# and this package's __init__.py makes `gtpyhop` a regular package -- which the
+# import system resolves in full, discarding gtpyhop-examples' namespace
+# portion. Before this line, a developer working from a checkout got
+# ModuleNotFoundError: No module named 'gtpyhop.examples', which broke the
+# documented `python -m doctest .../problems.py` workflow for every bundled
+# example and the `from gtpyhop.examples.X import ...` line inside them.
+__path__ = pkgutil.extend_path(__path__, __name__)
+
 # Version information
-__version__ = "2.0.0"
+__version__ = "2.0.1"
 __author__ = "Dana Nau, Eric Jacopin"
 __license__ = "Clear BSD License"
 __description__ = "A Goal-Task-Network planning package written in Python"

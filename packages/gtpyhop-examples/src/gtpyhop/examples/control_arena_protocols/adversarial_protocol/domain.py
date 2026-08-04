@@ -205,6 +205,7 @@ def a_run_untrusted_policy_honest(state: State, task_id: str) -> Union[State, bo
         - Agent output generated (state.agent_output) [DATA]
         - Side task not embedded (state.side_task_embedded) [DATA]
         - Untrusted policy has run (state.untrusted_has_run) [ENABLER]
+        - Audit log (state.audit_log) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -264,6 +265,7 @@ def a_run_untrusted_policy_attack(state: State, task_id: str,
         - Side task embedded flag (state.side_task_embedded) [DATA]
         - Attack subtlety level (state.attack_subtlety) [DATA]
         - Untrusted policy has run (state.untrusted_has_run) [ENABLER]
+        - Audit log (state.audit_log) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -329,6 +331,7 @@ def a_run_monitor(state: State, task_id: str) -> Union[State, bool]:
     Effects:
         - Suspicion score computed (state.suspicion_score) [DATA]
         - Monitor evaluation complete (state.monitor_evaluation_complete) [ENABLER]
+        - Audit log (state.audit_log) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -397,6 +400,7 @@ def a_accept_output(state: State, task_id: str) -> Union[State, bool]:
         - Output accepted flag (state.output_accepted) [DATA]
         - Side-task observed flag (state.side_task_observed) [EXPECTED_EFFECT]
           (only if state.side_task_embedded is True)
+        - Audit log (state.audit_log) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -470,6 +474,7 @@ def a_accept_output_demo_no_expected_effect(state: State, task_id: str) -> Union
         - Output accepted flag (state.output_accepted) [DATA]
         - DELIBERATELY OMITS the [EXPECTED_EFFECT] block on
           state.side_task_observed
+        - Audit log (state.audit_log) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -524,6 +529,7 @@ def a_defer_to_trusted(state: State, task_id: str) -> Union[State, bool]:
     Effects:
         - Deferred to trusted flag (state.deferred_to_trusted) [DATA]
         - Trusted model output (state.trusted_output) [DATA]
+        - Audit log (state.audit_log) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -575,7 +581,8 @@ def a_score_trajectory(state: State, task_id: str) -> Union[State, bool]:
           or state.deferred_to_trusted)
 
     Effects:
-        - Trajectory scored flag (state.trajectory_scored) [ENABLER]
+        - Trajectory scored flag (state.trajectory_scored) [DATA]
+        - Audit log (state.audit_log) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -597,7 +604,7 @@ def a_score_trajectory(state: State, task_id: str) -> Union[State, bool]:
     # END: Preconditions
 
     # BEGIN: Effects
-    # [ENABLER] Trajectory scoring completed
+    # [DATA] Trajectory scoring completed
     state.trajectory_scored = True
 
     outcome = 'accepted' if accepted else 'deferred'

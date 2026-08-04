@@ -247,6 +247,17 @@ def a_initialize_analysis(state: State, model_name: str, prompt_text: str) -> Un
         - Tracking structures initialized (state.hypothesized_stages, etc.) [DATA]
         - Stage count recorded (state.num_stages) [DATA]
         - Analysis initialized flag set (state.analysis_initialized) [ENABLER]
+        - Workflow flags (initially False) (state.baseline_recorded) [DATA]
+        - Hypothesis and validation structures (initially empty) (state.experiment_results) [DATA]
+        - Model and prompt configuration (state.model_name) [DATA]
+        - Stage tracking (state.num_stages_formulated) [DATA]
+        - Workflow flags (initially False) (state.planning_site_identified) [DATA]
+        - Model and prompt configuration (state.prompt_text) [DATA]
+        - Hypothesis complete (state.hypothesis_complete) [ENABLER]
+        - Num stages validated (state.num_stages_validated) [DATA]
+        - Report compiled (state.report_compiled) [DATA]
+        - Stage evaluations (state.stage_evaluations) [ENABLER]
+        - Validation complete (state.validation_complete) [ENABLER]
 
     Returns:
         Updated state if successful, False otherwise
@@ -693,7 +704,7 @@ def a_compile_report(state: State) -> Union[State, bool]:
     Effects:
         - Formal mechanism model assembled (state.mechanism_model) [DATA]
         - Overall correspondence score computed (state.correspondence_score) [DATA]
-        - Report compiled flag set (state.report_compiled) [ENABLER]
+        - Report compiled flag set (state.report_compiled) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -731,7 +742,7 @@ def a_compile_report(state: State) -> Union[State, bool]:
         f"evaluations={list(state.stage_evaluations.keys())}}}"
     )
 
-    # [ENABLER] Workflow complete
+    # [DATA] Workflow complete
     state.report_compiled = True
     # END: Effects
 
