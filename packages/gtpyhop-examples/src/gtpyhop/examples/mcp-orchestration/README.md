@@ -15,6 +15,7 @@ These domains illustrate how a single HTN planner can coordinate actions across 
 | **Drug Target Discovery** | `drug_target_discovery/` | Drug target discovery pipeline using OpenTargets platform |
 | **TNF Cancer Modelling** | `tnf_cancer_modelling/` | Multiscale TNF cancer modeling (MaBoSS + PhysiCell) |
 | **Cross-Server** | `cross_server/` | Cross-server robot orchestration (pick-and-place) |
+| **Rikyu HPC** | `rikyu_hpc/` | HPC job orchestration with containerized training routed to a rented GPU |
 
 ### 1. Bio-Opentrons
 
@@ -59,6 +60,24 @@ Cross-server robot orchestration:
 
 **Use case**: Demonstrating cross-server coordination for robotic pick-and-place tasks.
 
+### 6. Rikyu HPC
+
+HPC job orchestration on the RIKEN R-CCS Rikyu system, modelled on the
+[Rikyu-Agent](https://github.com/RIKEN-RCCS/Rikyu-Agent) MCP tool surface:
+- 11 scenarios, 4-18 actions, plus 16 traps that must *not* produce a plan
+- Four-server architecture: HTN planning, `rikyu-hpc`, `rikyu-docs`, and
+  vast.ai for rented GPUs
+- Scenarios 9, 10 and 11 issue **identical goal tasks** and reach three
+  different backends. Rikyu runs Apptainer but advertises it nowhere, so the
+  plan probes the login node; then the image architecture decides, because an
+  x86_64 image converts to SIF cleanly and only fails at `exec`
+- Traps are exposed through `get_trap_problems()`, not `get_problems()`, and
+  each is falsifiable: repair the one datum it names and the plan appears
+
+**Use case**: Demonstrating backend routing driven by facts the plan had to
+fetch and probe, and safety invariants that a planner enforces by construction
+— a rented instance cannot be destroyed before its results have been retrieved.
+
 ## Directory Structure
 
 ```
@@ -88,9 +107,14 @@ mcp-orchestration/
 |   +-- problems.py                             # 1 scenario
 |   +-- README.md
 +-- cross_server/
+|   +-- __init__.py
+|   +-- domain.py                               # 9 actions, 6 methods
+|   +-- problems.py                             # 2 scenarios
+|   +-- README.md
++-- rikyu_hpc/
     +-- __init__.py
-    +-- domain.py                               # 9 actions, 6 methods
-    +-- problems.py                             # 2 scenarios
+    +-- domain.py                               # 38 actions, 42 methods / 35 tasks
+    +-- problems.py                             # 11 scenarios + 16 traps
     +-- README.md
 ```
 
@@ -108,10 +132,14 @@ python benchmarking.py omega_hdq_dna_bacteria_flex_96_channel
 python benchmarking.py drug_target_discovery
 python benchmarking.py tnf_cancer_modelling
 python benchmarking.py cross_server
+python benchmarking.py rikyu_hpc
 
 # Run with verbose output
 python benchmarking.py tnf_cancer_modelling --verbose 2
 ```
+
+Note that `benchmarking.py` runs `get_problems()` only. The `rikyu_hpc` traps
+live in `get_trap_problems()` and are exercised by that example's doctests.
 
 ## Requirements
 
@@ -127,6 +155,8 @@ python benchmarking.py tnf_cancer_modelling --verbose 2
 - [drug_target_discovery/README.md](drug_target_discovery/README.md) - Drug discovery pipeline details
 - [tnf_cancer_modelling/README.md](tnf_cancer_modelling/README.md) - Cancer modeling workflow details
 - [cross_server/README.md](cross_server/README.md) - Cross-server orchestration details
+- [rikyu_hpc/README.md](rikyu_hpc/README.md) - Rikyu HPC details, including the
+  provenance table for every encoded facility constant and rule
 
 ---
-*Generated 2026-02-12*
+*Generated 2026-02-12, updated 2026-08-04*
