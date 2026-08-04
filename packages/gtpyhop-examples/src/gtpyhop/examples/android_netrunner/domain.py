@@ -773,6 +773,7 @@ def a_approach_ice(state: State, idx: int) -> Union[State, bool]:
         - Corp may rez this ice and pay rez cost (state.ice_rezzed, state.corp_credits) [ENABLER]
         - May rez server upgrades (e.g., Akitaro) if Corp policy directs
         - If approached ice is rezzed at end, encounter begins (state.current_encounter) [ENABLER]
+        - Upgrade rezzed (state.upgrade_rezzed) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -1731,6 +1732,7 @@ def a_steal_agenda(state: State, agenda_name: str) -> Union[State, bool]:
         - agenda_points_runner increased by agenda's points (state.agenda_points_runner) [DATA]
         - Agenda removed from server contents (state.servers) [DATA]
         - Jinteki PE identity: 1 net damage applied if applicable (state.grip_count, state.heap_count) [DATA]
+        - Flatlined (state.flatlined) [ENABLER]
 
     Returns:
         Updated state if successful, False otherwise

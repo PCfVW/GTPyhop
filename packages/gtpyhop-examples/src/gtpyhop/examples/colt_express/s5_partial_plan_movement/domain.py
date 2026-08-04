@@ -363,6 +363,7 @@ def a_fire(state: State, shooter: str, target: str) -> Union[State, bool]:
     Effects:
         - target.bandit_bullets_taken += 1 [DATA]
         - Anti-idempotence counter incremented [DATA]
+        - Anti-idempotence counter (state.actions_resolved) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -428,6 +429,7 @@ def a_punch(state: State, puncher: str, target: str) -> Union[State, bool]:
     Effects:
         - target.bandit_purse -= 250 [DATA]
         - Anti-idempotence counter incremented [DATA]
+        - Anti-idempotence counter (state.actions_resolved) [DATA]
 
     Returns:
         Updated state if successful, False otherwise

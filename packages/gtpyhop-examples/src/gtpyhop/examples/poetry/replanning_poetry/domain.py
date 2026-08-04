@@ -234,6 +234,18 @@ def a_initialize_poem(state: State, poem_form: str, topic: str) -> Union[State, 
         - Line buffers initialized (state.lines, state.line_targets) [DATA]
         - Lines requiring revision computed (state.lines_requiring_revision) [DATA]
         - Poem initialized flag set (state.poem_initialized) [ENABLER]
+        - Tracking dictionaries (state.line_generated) [DATA]
+        - Form specification (state.poem_form) [DATA]
+        - Tracking dictionaries (state.rhyme_target_selected) [DATA]
+        - Form specification (state.topic) [DATA]
+        - Line evaluated (state.line_evaluated) [DATA]
+        - Line steered (state.line_steered) [DATA]
+        - Line verified (state.line_verified) [ENABLER]
+        - Meter (state.meter) [DATA]
+        - Num lines (state.num_lines) [ENABLER]
+        - Rhyme scheme (state.rhyme_scheme) [DATA]
+        - Syllables per line (state.syllables_per_line) [DATA]
+        - Verification errors (state.verification_errors) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -578,7 +590,7 @@ def a_evaluate_line(state: State, line_idx: int) -> Union[State, bool]:
         - Line must NOT require revision (line_idx not in lines_requiring_revision)
 
     Effects:
-        - Line evaluated flag set (state.line_evaluated[line_idx]) [ENABLER]
+        - Line evaluated flag set (state.line_evaluated[line_idx]) [DATA]
 
     Returns:
         Updated state if line accepted, False if revision needed (triggers backtracking)
@@ -604,7 +616,7 @@ def a_evaluate_line(state: State, line_idx: int) -> Union[State, bool]:
     # END: Preconditions
 
     # BEGIN: Effects
-    # [ENABLER] Line quality accepted
+    # [DATA] Line quality accepted
     state.line_evaluated[line_idx] = True
     # END: Effects
 
@@ -637,7 +649,7 @@ def a_steer_target(state: State, line_idx: int, rhyme_label: str) -> Union[State
         - Target word replaced with alternative (state.line_targets[line_idx]) [DATA]
         - Line generated flag reset (state.line_generated[line_idx]) [DATA]
         - Line verified flag reset (state.line_verified[line_idx]) [DATA]
-        - Line steered flag set (state.line_steered[line_idx]) [ENABLER]
+        - Line steered flag set (state.line_steered[line_idx]) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -672,7 +684,7 @@ def a_steer_target(state: State, line_idx: int, rhyme_label: str) -> Union[State
     state.line_generated[line_idx] = False
     state.line_verified[line_idx] = False
 
-    # [ENABLER] Gates regeneration in the revision path
+    # [DATA] Gates regeneration in the revision path
     state.line_steered[line_idx] = True
     # END: Effects
 
@@ -699,7 +711,7 @@ def a_assemble_poem(state: State) -> Union[State, bool]:
 
     Effects:
         - Final poem text assembled (state.final_poem) [DATA]
-        - Poem complete flag set (state.poem_complete) [ENABLER]
+        - Poem complete flag set (state.poem_complete) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -724,7 +736,7 @@ def a_assemble_poem(state: State) -> Union[State, bool]:
     # [DATA] Final assembled poem
     state.final_poem = "\n".join(state.lines)
 
-    # [ENABLER] Workflow complete
+    # [DATA] Workflow complete
     state.poem_complete = True
     # END: Effects
 

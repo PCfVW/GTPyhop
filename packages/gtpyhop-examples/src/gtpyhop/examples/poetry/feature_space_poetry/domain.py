@@ -376,6 +376,21 @@ def a_initialize_intervention(state: State, model_name: str, prompt_text: str) -
         - Activation space initialized (state.active_features, etc.) [DATA]
         - Tracking counters reset (state.num_layers_encoded, etc.) [DATA]
         - Intervention initialized flag set (state.intervention_initialized) [ENABLER]
+        - Workflow flags (initially False) (state.baseline_measured) [DATA]
+        - Model and prompt configuration (state.model_name) [DATA]
+        - Tracking counters (state.num_candidates_tried) [DATA]
+        - Workflow flags (initially False) (state.planning_site_located) [DATA]
+        - Model and prompt configuration (state.prompt_text) [DATA]
+        - Activation space (the "world" -- initially empty) (state.residual_stream) [DATA]
+        - Effect measured (state.effect_measured) [ENABLER]
+        - Encoding complete (state.encoding_complete) [ENABLER]
+        - Injection complete (state.injection_complete) [ENABLER]
+        - Injection history (state.injection_history) [DATA]
+        - Intervention complete (state.intervention_complete) [DATA]
+        - Suppressed features (state.suppressed_features) [DATA]
+        - Suppression complete (state.suppression_complete) [ENABLER]
+        - Target distribution (state.target_distribution) [DATA]
+        - Threshold met (state.threshold_met) [ENABLER]
 
     Returns:
         Updated state if successful, False otherwise
@@ -922,7 +937,7 @@ def a_compile_intervention_report(state: State) -> Union[State, bool]:
 
     Effects:
         - Intervention report assembled (state.intervention_report) [DATA]
-        - Intervention complete flag set (state.intervention_complete) [ENABLER]
+        - Intervention complete flag set (state.intervention_complete) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -956,7 +971,7 @@ def a_compile_intervention_report(state: State) -> Union[State, bool]:
         "num_candidates_tried": state.num_candidates_tried,
     }
 
-    # [ENABLER] Workflow complete
+    # [DATA] Workflow complete
     state.intervention_complete = True
     # END: Effects
 

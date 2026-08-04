@@ -135,7 +135,7 @@ def a_initialize_servers(state: State) -> Union[State, bool]:
         None (initialization action)
 
     Effects:
-        - Server 1 (mcp-python-ingestion) is ready (state.server_1_ready) [ENABLER]
+        - Server 1 (mcp-python-ingestion) is ready (state.server_1_ready) [DATA]
         - Server 2 (robot-server) is ready (state.server_2_ready) [ENABLER]
         - Server 3 (motion-server) is ready (state.server_3_ready) [ENABLER]
         - Cross-server orchestration is initialized (state.cross_server_initialized) [ENABLER]
@@ -156,7 +156,7 @@ def a_initialize_servers(state: State) -> Union[State, bool]:
     # END: Preconditions
 
     # BEGIN: Effects
-    # [ENABLER] Server 1 ready - HTN planning server
+    # [DATA] Server 1 ready - HTN planning server
     state.server_1_ready = True
 
     # [ENABLER] Server 2 ready - Robot gripper server
@@ -557,7 +557,7 @@ def a_execute_planned_motion(state: State) -> Union[State, bool]:
 
     Effects:
         - Arm position is updated to final position (state.arm_position) [DATA]
-        - Motion execution is complete (state.motion_execution_complete) [ENABLER]
+        - Motion execution is complete (state.motion_execution_complete) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -586,7 +586,7 @@ def a_execute_planned_motion(state: State) -> Union[State, bool]:
     # [DATA] Update arm position to final position in path
     state.arm_position = state.planned_path[-1]
 
-    # [ENABLER] Motion execution complete
+    # [DATA] Motion execution complete
     state.motion_execution_complete = True
     # END: Effects
 
@@ -613,7 +613,7 @@ def a_verify_grasp(state: State) -> Union[State, bool]:
         - Server 2 is ready (state.server_2_ready)
 
     Effects:
-        - Grasp is verified (state.grasp_verified) [ENABLER]
+        - Grasp is verified (state.grasp_verified) [DATA]
         - Grasp force is measured (state.grasp_force) [DATA]
 
     Returns:
@@ -637,7 +637,7 @@ def a_verify_grasp(state: State) -> Union[State, bool]:
     # END: Preconditions
 
     # BEGIN: Effects
-    # [ENABLER] Grasp verified
+    # [DATA] Grasp verified
     state.grasp_verified = True
 
     # [DATA] Grasp force (simulated value)
@@ -671,6 +671,10 @@ def m_cross_server_orchestration(state: State, object_id: str, target_location: 
 
     Preconditions:
         - Cross-server system is initialized (state.cross_server_initialized)
+
+    Task decomposition:
+        - m_pick_object: Decompose pick task into: move to object → open gripper (if needed) → grasp → close gripper → verify
+        - m_place_object: Decompose place task into: move to location → release object
 
     Returns:
         List of subtasks if successful, False otherwise
@@ -717,6 +721,13 @@ def m_pick_object(state: State, object_id: str) -> Union[List[Tuple], bool]:
         - Object exists in object_location (state.object_location[object_id])
         - Not currently holding anything (state.holding is None)
         - Gripper is closed
+
+    Task decomposition:
+        - a_move_arm_to_position: Move robot arm to a target position
+        - a_open_gripper: Open the robot gripper to prepare for grasping
+        - a_grasp_object: Grasp an object with the robot gripper
+        - a_close_gripper: Close the robot gripper to secure a grasped object
+        - a_verify_grasp: Verify that the object is securely grasped
 
     Returns:
         List of subtasks if successful, False otherwise
@@ -775,6 +786,12 @@ def m_pick_object_gripper_open(state: State, object_id: str) -> Union[List[Tuple
         - Not currently holding anything (state.holding is None)
         - Gripper is already open
 
+    Task decomposition:
+        - a_move_arm_to_position: Move robot arm to a target position
+        - a_grasp_object: Grasp an object with the robot gripper
+        - a_close_gripper: Close the robot gripper to secure a grasped object
+        - a_verify_grasp: Verify that the object is securely grasped
+
     Returns:
         List of subtasks if successful, False otherwise
     """
@@ -828,6 +845,11 @@ def m_place_object(state: State, object_id: str, target_location: str) -> Union[
         - Currently holding the specified object (state.holding == object_id)
         - Gripper is closed (state.gripper_state == "closed")
 
+    Task decomposition:
+        - a_move_arm_to_position: Move robot arm to a target position
+        - a_release_object: Release the currently held object at a target location
+        - a_open_gripper: Open the robot gripper to prepare for grasping
+
     Returns:
         List of subtasks if successful, False otherwise
     """
@@ -877,6 +899,10 @@ def m_initialize_and_orchestrate(state: State, object_id: str, target_location: 
     Preconditions:
         None (top-level method)
 
+    Task decomposition:
+        - a_initialize_servers: Initialize all three MCP servers for cross-server orchestration
+        - m_cross_server_orchestration: Top-level method for cross-server pick-and-place orchestration
+
     Returns:
         List of subtasks if successful, False otherwise
     """
@@ -919,6 +945,10 @@ def m_move_with_planning(state: State, start_pos: str, end_pos: str) -> Union[Li
 
     Preconditions:
         - Server 3 is ready (state.server_3_ready)
+
+    Task decomposition:
+        - a_plan_motion_path: Plan a collision-free motion path for the robot arm
+        - a_execute_planned_motion: Execute the previously planned motion path
 
     Returns:
         List of subtasks if successful, False otherwise

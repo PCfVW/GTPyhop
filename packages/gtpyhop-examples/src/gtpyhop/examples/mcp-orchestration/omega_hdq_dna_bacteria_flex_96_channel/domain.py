@@ -31,8 +31,8 @@
 #   - Imports (with secure path handling)
 #   - Domain (1)
 #   - State Property Map
-#   - Actions (18)
-#   - Methods (17)
+#   - Actions (17)
+#   - Methods (14)
 # ============================================================================
 
 # ============================================================================
@@ -154,7 +154,7 @@ set_current_domain(the_domain)
 # ============================================================================
 
 # ============================================================================
-# ACTIONS (18)
+# ACTIONS (17)
 # ----------------------------------------------------------------------------
 
 # ============================================================================
@@ -506,7 +506,7 @@ def a_mix(state: State, pipette: str, reps: int, volume: float, labware: str, we
         - Pipette has a tip (state.has_tip[pipette] == True)
 
     Effects:
-        - Well is marked as mixed (state.well_mixed[labware][well]) [ENABLER]
+        - Well is marked as mixed (state.well_mixed[labware][well]) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -609,7 +609,7 @@ def a_home(state: State, pipette: str) -> Union[State, bool]:
         None
 
     Effects:
-        - Pipette is homed (state.pipette_homed[pipette]) [ENABLER]
+        - Pipette is homed (state.pipette_homed[pipette]) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -628,7 +628,7 @@ def a_home(state: State, pipette: str) -> Union[State, bool]:
     # END: Preconditions
 
     # BEGIN: Effects
-    # [ENABLER] Pipette is homed
+    # [DATA] Pipette is homed
     state.pipette_homed[pipette] = True
     # END: Effects
 
@@ -658,7 +658,7 @@ def a_hs_set_temperature(state: State, temperature: float) -> Union[State, bool]
 
     Effects:
         - Target temperature set (state.hs_target_temp) [DATA]
-        - Heater-shaker at temperature (state.hs_at_temp) [ENABLER]
+        - Heater-shaker at temperature (state.hs_at_temp) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -680,7 +680,7 @@ def a_hs_set_temperature(state: State, temperature: float) -> Union[State, bool]
     # BEGIN: Effects
     # [DATA] Set target temperature
     state.hs_target_temp = temperature
-    # [ENABLER] At temperature
+    # [DATA] At temperature
     state.hs_at_temp = True
     # END: Effects
 
@@ -802,7 +802,7 @@ def a_hs_open_latch(state: State) -> Union[State, bool]:
         - Heater-shaker is not shaking (state.hs_shaking == False)
 
     Effects:
-        - Latch is open (state.hs_latch_open) [ENABLER]
+        - Latch is open (state.hs_latch_open) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -821,7 +821,7 @@ def a_hs_open_latch(state: State) -> Union[State, bool]:
     # END: Preconditions
 
     # BEGIN: Effects
-    # [ENABLER] Latch is open
+    # [DATA] Latch is open
     state.hs_latch_open = True
     # END: Effects
 
@@ -847,7 +847,7 @@ def a_hs_close_latch(state: State) -> Union[State, bool]:
         None
 
     Effects:
-        - Latch is closed (state.hs_latch_open) [ENABLER]
+        - Latch is closed (state.hs_latch_open) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -865,7 +865,7 @@ def a_hs_close_latch(state: State) -> Union[State, bool]:
     # END: Preconditions
 
     # BEGIN: Effects
-    # [ENABLER] Latch is closed
+    # [DATA] Latch is closed
     state.hs_latch_open = False
     # END: Effects
 
@@ -892,7 +892,7 @@ def a_temp_set_temperature(state: State, temperature: float) -> Union[State, boo
 
     Effects:
         - Temperature set (state.temp_module_temp) [DATA]
-        - Module at temperature (state.temp_at_temp) [ENABLER]
+        - Module at temperature (state.temp_at_temp) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -914,7 +914,7 @@ def a_temp_set_temperature(state: State, temperature: float) -> Union[State, boo
     # BEGIN: Effects
     # [DATA] Set temperature
     state.temp_module_temp = temperature
-    # [ENABLER] At temperature
+    # [DATA] At temperature
     state.temp_at_temp = True
     # END: Effects
 
@@ -994,7 +994,7 @@ def a_move_labware(state: State, labware: str, destination: str, use_gripper: bo
 
     Effects:
         - Labware position updated (state.labware_position[labware]) [DATA]
-        - Magnet status updated if moving to/from magblock (state.on_magnet[labware]) [ENABLER]
+        - Magnet status updated if moving to/from magblock (state.on_magnet[labware]) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -1045,7 +1045,7 @@ declare_actions(
 )
 
 # ============================================================================
-# METHODS (17)
+# METHODS (14)
 # ----------------------------------------------------------------------------
 
 # ============================================================================

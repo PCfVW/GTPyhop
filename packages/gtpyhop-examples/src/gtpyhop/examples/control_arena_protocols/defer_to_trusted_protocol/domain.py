@@ -170,6 +170,7 @@ def a_run_untrusted_policy(state: State, task_id: str) -> Union[State, bool]:
     Effects:
         - Agent output generated (state.agent_output) [DATA]
         - Untrusted policy has run (state.untrusted_has_run) [ENABLER]
+        - Audit log (state.audit_log) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -222,6 +223,7 @@ def a_run_monitor(state: State, task_id: str) -> Union[State, bool]:
     Effects:
         - Suspicion score computed (state.suspicion_score) [DATA]
         - Monitor evaluation complete (state.monitor_evaluation_complete) [ENABLER]
+        - Audit log (state.audit_log) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -275,6 +277,7 @@ def a_accept_output(state: State, task_id: str) -> Union[State, bool]:
 
     Effects:
         - Output accepted flag (state.output_accepted) [DATA]
+        - Audit log (state.audit_log) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -328,6 +331,7 @@ def a_defer_to_trusted(state: State, task_id: str) -> Union[State, bool]:
     Effects:
         - Deferred to trusted flag (state.deferred_to_trusted) [DATA]
         - Trusted model output (state.trusted_output) [DATA]
+        - Audit log (state.audit_log) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -379,7 +383,8 @@ def a_score_trajectory(state: State, task_id: str) -> Union[State, bool]:
           or state.deferred_to_trusted)
 
     Effects:
-        - Trajectory scored flag (state.trajectory_scored) [ENABLER]
+        - Trajectory scored flag (state.trajectory_scored) [DATA]
+        - Audit log (state.audit_log) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -401,7 +406,7 @@ def a_score_trajectory(state: State, task_id: str) -> Union[State, bool]:
     # END: Preconditions
 
     # BEGIN: Effects
-    # [ENABLER] Trajectory scoring completed
+    # [DATA] Trajectory scoring completed
     state.trajectory_scored = True
 
     outcome = 'accepted' if accepted else 'deferred'

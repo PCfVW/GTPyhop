@@ -216,6 +216,18 @@ def a_initialize_poem(state: State, poem_form: str, topic: str) -> Union[State, 
         - Candidate buffers initialized (state.candidates, state.ranked_candidates) [DATA]
         - Candidate count set (state.num_candidates) [DATA]
         - Poem initialized flag set (state.poem_initialized) [ENABLER]
+        - Tracking dictionaries (state.candidates_generated) [DATA]
+        - Tracking dictionaries (state.candidates_ranked) [DATA]
+        - Form specification (state.poem_form) [DATA]
+        - Form specification (state.topic) [DATA]
+        - Line generated (state.line_generated) [ENABLER]
+        - Line verified (state.line_verified) [ENABLER]
+        - Meter (state.meter) [DATA]
+        - Num lines (state.num_lines) [ENABLER]
+        - Rhyme scheme (state.rhyme_scheme) [DATA]
+        - Rhyme target selected (state.rhyme_target_selected) [ENABLER]
+        - Syllables per line (state.syllables_per_line) [DATA]
+        - Verification errors (state.verification_errors) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -670,7 +682,7 @@ def a_assemble_poem(state: State) -> Union[State, bool]:
 
     Effects:
         - Final poem text assembled (state.final_poem) [DATA]
-        - Poem complete flag set (state.poem_complete) [ENABLER]
+        - Poem complete flag set (state.poem_complete) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -695,7 +707,7 @@ def a_assemble_poem(state: State) -> Union[State, bool]:
     # [DATA] Final assembled poem
     state.final_poem = "\n".join(state.lines)
 
-    # [ENABLER] Workflow complete
+    # [DATA] Workflow complete
     state.poem_complete = True
     # END: Effects
 

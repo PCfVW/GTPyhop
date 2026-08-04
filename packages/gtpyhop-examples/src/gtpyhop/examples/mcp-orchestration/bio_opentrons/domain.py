@@ -210,6 +210,16 @@ def a_initialize_servers(state: State) -> Union[State, bool]:
         - Liquid server is ready (state.liquid_server_ready) [ENABLER]
         - Module server is ready (state.module_server_ready) [ENABLER]
         - Cross-server orchestration is initialized (state.cross_server_initialized) [ENABLER]
+        - Deck slots occupied (state.deck_slots_occupied) [ENABLER]
+        - Has tip (state.has_tip) [ENABLER]
+        - Labware loaded (state.labware_loaded) [ENABLER]
+        - Pipette loaded (state.pipette_loaded) [ENABLER]
+        - Pipette position (state.pipette_position) [DATA]
+        - Pipette ready (state.pipette_ready) [ENABLER]
+        - Pipette volume (state.pipette_volume) [ENABLER]
+        - Tips used (state.tips_used) [DATA]
+        - Well mixed (state.well_mixed) [DATA]
+        - Well volume (state.well_volume) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -218,14 +228,22 @@ def a_initialize_servers(state: State) -> Union[State, bool]:
     if not isinstance(state, State): return False
     # END: Type Checking
 
+    # BEGIN: State-Type Checks
+    # No state-type checks needed
+    # END: State-Type Checks
+
     # BEGIN: Preconditions
     # No preconditions for initialization action
     # END: Preconditions
 
     # BEGIN: Effects
+    # [ENABLER] Movement server ready
     state.movement_server_ready = True
+    # [ENABLER] Liquid server ready
     state.liquid_server_ready = True
+    # [ENABLER] Module server ready
     state.module_server_ready = True
+    # [ENABLER] Cross server initialized
     state.cross_server_initialized = True
 
     # Initialize data structures
@@ -281,6 +299,7 @@ def a_load_labware(state: State, slot: str, labware_type: str) -> Union[State, b
     Effects:
         - Labware is loaded at slot (state.labware_loaded[slot]) [DATA]
         - Slot is marked as occupied (state.deck_slots_occupied[slot]) [ENABLER]
+        - Well volume (state.well_volume) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -306,15 +325,18 @@ def a_load_labware(state: State, slot: str, labware_type: str) -> Union[State, b
     # BEGIN: Effects
     if not hasattr(state, 'labware_loaded'):
         state.labware_loaded = {}
+    # [ENABLER] Labware loaded
     state.labware_loaded[slot] = labware_type
 
     if not hasattr(state, 'deck_slots_occupied'):
         state.deck_slots_occupied = {}
+    # [ENABLER] Deck slots occupied
     state.deck_slots_occupied[slot] = True
 
     # Initialize well volumes for this labware
     if not hasattr(state, 'well_volume'):
         state.well_volume = {}
+    # [DATA] Well volume
     state.well_volume[slot] = {}
     # END: Effects
 
@@ -345,6 +367,7 @@ def a_load_pipette(state: State, mount: str, pipette_type: str) -> Union[State, 
         - Pipette is loaded at mount (state.pipette_loaded[mount]) [DATA]
         - Pipette is ready (state.pipette_ready[mount]) [ENABLER]
         - Tip state initialized (state.has_tip[mount] = False)
+        - Pipette volume (state.pipette_volume) [ENABLER]
 
     Returns:
         Updated state if successful, False otherwise
@@ -370,18 +393,22 @@ def a_load_pipette(state: State, mount: str, pipette_type: str) -> Union[State, 
     # BEGIN: Effects
     if not hasattr(state, 'pipette_loaded'):
         state.pipette_loaded = {}
+    # [ENABLER] Pipette loaded
     state.pipette_loaded[mount] = pipette_type
 
     if not hasattr(state, 'pipette_ready'):
         state.pipette_ready = {}
+    # [ENABLER] Pipette ready
     state.pipette_ready[mount] = True
 
     if not hasattr(state, 'has_tip'):
         state.has_tip = {}
+    # [ENABLER] Has tip
     state.has_tip[mount] = False
 
     if not hasattr(state, 'pipette_volume'):
         state.pipette_volume = {}
+    # [ENABLER] Pipette volume
     state.pipette_volume[mount] = 0.0
     # END: Effects
 
@@ -414,7 +441,7 @@ def a_pick_up_tip(state: State, mount: str, tiprack_slot: str) -> Union[State, b
 
     Effects:
         - Pipette has tip (state.has_tip[mount] = True) [ENABLER]
-        - Tips used counter incremented
+        - Tips used counter incremented (state.tips_used) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -442,9 +469,11 @@ def a_pick_up_tip(state: State, mount: str, tiprack_slot: str) -> Union[State, b
     # END: Preconditions
 
     # BEGIN: Effects
+    # [ENABLER] Has tip
     state.has_tip[mount] = True
     if not hasattr(state, 'tips_used'):
         state.tips_used = 0
+    # [DATA] Tips used
     state.tips_used += 1
     # END: Effects
 
@@ -472,6 +501,7 @@ def a_drop_tip(state: State, mount: str) -> Union[State, bool]:
 
     Effects:
         - Pipette no longer has tip (state.has_tip[mount] = False) [ENABLER]
+        - Pipette volume (state.pipette_volume) [ENABLER]
 
     Returns:
         Updated state if successful, False otherwise
@@ -493,7 +523,9 @@ def a_drop_tip(state: State, mount: str) -> Union[State, bool]:
     # END: Preconditions
 
     # BEGIN: Effects
+    # [ENABLER] Has tip
     state.has_tip[mount] = False
+    # [ENABLER] Pipette volume
     state.pipette_volume[mount] = 0.0
     # END: Effects
 
@@ -553,6 +585,7 @@ def a_move_to_well(state: State, mount: str, labware_slot: str, well: str) -> Un
     # BEGIN: Effects
     if not hasattr(state, 'pipette_position'):
         state.pipette_position = {}
+    # [DATA] Pipette position
     state.pipette_position[mount] = (labware_slot, well)
     # END: Effects
 
@@ -617,6 +650,7 @@ def a_aspirate(state: State, mount: str, volume: float, labware_slot: str, well:
     if not hasattr(state, 'pipette_volume'):
         state.pipette_volume = {}
     current_vol = state.pipette_volume.get(mount, 0.0)
+    # [ENABLER] Pipette volume
     state.pipette_volume[mount] = current_vol + volume
 
     # Update well volume tracking
@@ -625,6 +659,7 @@ def a_aspirate(state: State, mount: str, volume: float, labware_slot: str, well:
     if labware_slot not in state.well_volume:
         state.well_volume[labware_slot] = {}
     current_well_vol = state.well_volume[labware_slot].get(well, 0.0)
+    # [DATA] Well volume
     state.well_volume[labware_slot][well] = max(0, current_well_vol - volume)
     # END: Effects
 
@@ -687,6 +722,7 @@ def a_dispense(state: State, mount: str, volume: float, labware_slot: str, well:
     # END: Preconditions
 
     # BEGIN: Effects
+    # [ENABLER] Pipette volume
     state.pipette_volume[mount] = current_vol - volume
 
     if not hasattr(state, 'well_volume'):
@@ -694,6 +730,7 @@ def a_dispense(state: State, mount: str, volume: float, labware_slot: str, well:
     if labware_slot not in state.well_volume:
         state.well_volume[labware_slot] = {}
     current_well_vol = state.well_volume[labware_slot].get(well, 0.0)
+    # [DATA] Well volume
     state.well_volume[labware_slot][well] = current_well_vol + volume
     # END: Effects
 
@@ -724,7 +761,7 @@ def a_mix(state: State, mount: str, repetitions: int, volume: float, labware_slo
         - Pipette has a tip
 
     Effects:
-        - Well is marked as mixed (state.well_mixed[slot][well]) [ENABLER]
+        - Well is marked as mixed (state.well_mixed[slot][well]) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -756,6 +793,7 @@ def a_mix(state: State, mount: str, repetitions: int, volume: float, labware_slo
         state.well_mixed = {}
     if labware_slot not in state.well_mixed:
         state.well_mixed[labware_slot] = {}
+    # [DATA] Well mixed
     state.well_mixed[labware_slot][well] = True
     # END: Effects
 
@@ -806,6 +844,7 @@ def a_blow_out(state: State, mount: str) -> Union[State, bool]:
     # BEGIN: Effects
     if not hasattr(state, 'pipette_volume'):
         state.pipette_volume = {}
+    # [ENABLER] Pipette volume
     state.pipette_volume[mount] = 0.0
     # END: Effects
 
@@ -846,6 +885,10 @@ def a_open_thermocycler_lid(state: State) -> Union[State, bool]:
     if not isinstance(state, State): return False
     # END: Type Checking
 
+    # BEGIN: State-Type Checks
+    # No state-type checks needed
+    # END: State-Type Checks
+
     # BEGIN: Preconditions
     if not (hasattr(state, 'module_server_ready') and state.module_server_ready):
         return False
@@ -855,6 +898,7 @@ def a_open_thermocycler_lid(state: State) -> Union[State, bool]:
     # Idempotent: if lid is already open, just succeed
     if hasattr(state, 'thermocycler_lid_open') and state.thermocycler_lid_open:
         return state
+    # [ENABLER] Thermocycler lid open
     state.thermocycler_lid_open = True
     # END: Effects
 
@@ -890,6 +934,10 @@ def a_close_thermocycler_lid(state: State) -> Union[State, bool]:
     if not isinstance(state, State): return False
     # END: Type Checking
 
+    # BEGIN: State-Type Checks
+    # No state-type checks needed
+    # END: State-Type Checks
+
     # BEGIN: Preconditions
     if not (hasattr(state, 'module_server_ready') and state.module_server_ready):
         return False
@@ -898,6 +946,7 @@ def a_close_thermocycler_lid(state: State) -> Union[State, bool]:
     # END: Preconditions
 
     # BEGIN: Effects
+    # [ENABLER] Thermocycler lid open
     state.thermocycler_lid_open = False
     # END: Effects
 
@@ -926,7 +975,8 @@ def a_set_thermocycler_temperature(state: State, temperature: float, hold_time: 
 
     Effects:
         - Thermocycler block temperature set (state.thermocycler_block_temp) [DATA]
-        - Thermocycler at temperature (state.thermocycler_at_temp) [ENABLER]
+        - Thermocycler at temperature (state.thermocycler_at_temp) [DATA]
+        - Thermocycler active (state.thermocycler_active) [ENABLER]
 
     Returns:
         Updated state if successful, False otherwise
@@ -950,8 +1000,11 @@ def a_set_thermocycler_temperature(state: State, temperature: float, hold_time: 
     # END: Preconditions
 
     # BEGIN: Effects
+    # [DATA] Thermocycler block temp
     state.thermocycler_block_temp = temperature
+    # [DATA] Thermocycler at temp
     state.thermocycler_at_temp = True
+    # [ENABLER] Thermocycler active
     state.thermocycler_active = True
     # END: Effects
 
@@ -981,8 +1034,9 @@ def a_execute_thermocycler_profile(state: State, profile_name: str, num_cycles: 
         - Thermocycler is active
 
     Effects:
-        - Thermocycler profile complete (state.thermocycler_profile_complete) [ENABLER]
+        - Thermocycler profile complete (state.thermocycler_profile_complete) [DATA]
         - PCR cycles completed (state.pcr_cycles_completed) [DATA]
+        - Thermocycler profile name (state.thermocycler_profile_name) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -1008,8 +1062,11 @@ def a_execute_thermocycler_profile(state: State, profile_name: str, num_cycles: 
     # END: Preconditions
 
     # BEGIN: Effects
+    # [DATA] Thermocycler profile complete
     state.thermocycler_profile_complete = True
+    # [DATA] Pcr cycles completed
     state.pcr_cycles_completed = num_cycles
+    # [DATA] Thermocycler profile name
     state.thermocycler_profile_name = profile_name
     # END: Effects
 
@@ -1036,6 +1093,7 @@ def a_deactivate_thermocycler(state: State) -> Union[State, bool]:
 
     Effects:
         - Thermocycler is deactivated (state.thermocycler_active = False) [ENABLER]
+        - Thermocycler block temp (state.thermocycler_block_temp) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -1044,13 +1102,19 @@ def a_deactivate_thermocycler(state: State) -> Union[State, bool]:
     if not isinstance(state, State): return False
     # END: Type Checking
 
+    # BEGIN: State-Type Checks
+    # No state-type checks needed
+    # END: State-Type Checks
+
     # BEGIN: Preconditions
     if not (hasattr(state, 'module_server_ready') and state.module_server_ready):
         return False
     # END: Preconditions
 
     # BEGIN: Effects
+    # [ENABLER] Thermocycler active
     state.thermocycler_active = False
+    # [DATA] Thermocycler block temp
     state.thermocycler_block_temp = None
     # END: Effects
 
@@ -1077,7 +1141,7 @@ def a_set_temperature_module(state: State, temperature: float) -> Union[State, b
 
     Effects:
         - Temperature module temperature set (state.temp_module_temp) [DATA]
-        - Temperature module at temperature (state.temp_module_at_temp) [ENABLER]
+        - Temperature module at temperature (state.temp_module_at_temp) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -1097,7 +1161,9 @@ def a_set_temperature_module(state: State, temperature: float) -> Union[State, b
     # END: Preconditions
 
     # BEGIN: Effects
+    # [DATA] Temp module temp
     state.temp_module_temp = temperature
+    # [DATA] Temp module at temp
     state.temp_module_at_temp = True
     # END: Effects
 
@@ -1126,7 +1192,7 @@ def a_set_heater_shaker(state: State, temperature: float, speed: int) -> Union[S
     Effects:
         - Heater-shaker temperature set (state.heater_shaker_temp) [DATA]
         - Heater-shaker speed set (state.heater_shaker_speed) [DATA]
-        - Heater-shaker active (state.heater_shaker_active) [ENABLER]
+        - Heater-shaker active (state.heater_shaker_active) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -1148,8 +1214,11 @@ def a_set_heater_shaker(state: State, temperature: float, speed: int) -> Union[S
     # END: Preconditions
 
     # BEGIN: Effects
+    # [DATA] Heater shaker temp
     state.heater_shaker_temp = temperature
+    # [DATA] Heater shaker speed
     state.heater_shaker_speed = speed
+    # [DATA] Heater shaker active
     state.heater_shaker_active = True
     # END: Effects
 
@@ -1175,7 +1244,9 @@ def a_deactivate_heater_shaker(state: State) -> Union[State, bool]:
         - Module server is ready
 
     Effects:
-        - Heater-shaker is deactivated (state.heater_shaker_active = False) [ENABLER]
+        - Heater-shaker is deactivated (state.heater_shaker_active = False) [DATA]
+        - Heater shaker speed (state.heater_shaker_speed) [DATA]
+        - Heater shaker temp (state.heater_shaker_temp) [DATA]
 
     Returns:
         Updated state if successful, False otherwise
@@ -1184,14 +1255,21 @@ def a_deactivate_heater_shaker(state: State) -> Union[State, bool]:
     if not isinstance(state, State): return False
     # END: Type Checking
 
+    # BEGIN: State-Type Checks
+    # No state-type checks needed
+    # END: State-Type Checks
+
     # BEGIN: Preconditions
     if not (hasattr(state, 'module_server_ready') and state.module_server_ready):
         return False
     # END: Preconditions
 
     # BEGIN: Effects
+    # [DATA] Heater shaker active
     state.heater_shaker_active = False
+    # [DATA] Heater shaker temp
     state.heater_shaker_temp = None
+    # [DATA] Heater shaker speed
     state.heater_shaker_speed = 0
     # END: Effects
 
@@ -1200,7 +1278,7 @@ def a_deactivate_heater_shaker(state: State) -> Union[State, bool]:
 
 
 # ============================================================================
-# METHODS (15)
+# METHODS (14)
 # ----------------------------------------------------------------------------
 
 # ============================================================================
@@ -1224,6 +1302,13 @@ def m_complete_pcr_workflow(state: State, num_samples: int, num_cycles: int) -> 
 
     Preconditions:
         - Cross-server system is initialized (state.cross_server_initialized)
+
+    Task decomposition:
+        - m_phase1_deck_initialization: Phase 1: Initialize deck with all required labware and pipettes
+        - m_phase2_reagent_preparation: Phase 2: Prepare master mix and distribute to PCR plate
+        - m_phase3_sample_loading: Phase 3: Load samples into PCR plate wells containing master mix
+        - m_phase4_thermocycling: Phase 4: Execute thermocycling protocol for PCR amplification
+        - m_phase5_post_processing: Phase 5: Post-processing after PCR completion
 
     Returns:
         List of subtasks (phase methods) if successful, False otherwise
@@ -1280,6 +1365,10 @@ def m_initialize_and_run_pcr(state: State, num_samples: int, num_cycles: int) ->
     Preconditions:
         None (entry-point method)
 
+    Task decomposition:
+        - a_initialize_servers: Initialize all three MCP servers for cross-server PCR workflow orchestration
+        - m_complete_pcr_workflow: Top-level method for complete PCR workflow orchestration across three servers
+
     Returns:
         List of subtasks if successful, False otherwise
     """
@@ -1293,6 +1382,10 @@ def m_initialize_and_run_pcr(state: State, num_samples: int, num_cycles: int) ->
     if num_samples <= 0: return False
     if num_cycles <= 0: return False
     # END: State-Type Checks
+
+    # BEGIN: Preconditions
+    # No preconditions
+    # END: Preconditions
 
     # BEGIN: Task Decomposition
     return [
@@ -1323,6 +1416,10 @@ def m_phase1_deck_initialization(state: State) -> Union[List[Tuple], bool]:
     Preconditions:
         - Movement server is ready
 
+    Task decomposition:
+        - m_setup_labware: Load all required labware onto the Opentrons Flex deck for PCR workflow
+        - m_setup_instruments: Load pipettes and initialize temperature modules for PCR workflow
+
     Returns:
         List of subtasks if successful, False otherwise
 
@@ -1334,6 +1431,10 @@ def m_phase1_deck_initialization(state: State) -> Union[List[Tuple], bool]:
     # BEGIN: Type Checking
     if not isinstance(state, State): return False
     # END: Type Checking
+
+    # BEGIN: State-Type Checks
+    # No state-type checks needed
+    # END: State-Type Checks
 
     # BEGIN: Preconditions
     if not (hasattr(state, 'movement_server_ready') and state.movement_server_ready):
@@ -1364,12 +1465,19 @@ def m_setup_labware(state: State) -> Union[List[Tuple], bool]:
     Preconditions:
         - Movement server is ready
 
+    Task decomposition:
+        - a_load_labware: Load labware onto the Opentrons Flex deck at specified slot
+
     Returns:
         List of actions if successful, False otherwise
     """
     # BEGIN: Type Checking
     if not isinstance(state, State): return False
     # END: Type Checking
+
+    # BEGIN: State-Type Checks
+    # No state-type checks needed
+    # END: State-Type Checks
 
     # BEGIN: Preconditions
     if not (hasattr(state, 'movement_server_ready') and state.movement_server_ready):
@@ -1411,12 +1519,21 @@ def m_setup_instruments(state: State) -> Union[List[Tuple], bool]:
         - Movement server is ready
         - Module server is ready
 
+    Task decomposition:
+        - a_load_pipette: Load a pipette onto the specified mount of the Opentrons Flex
+        - a_set_temperature_module: Set temperature module to hold reagents at specific temperature
+        - a_open_thermocycler_lid: Open the thermocycler lid to allow plate access
+
     Returns:
         List of actions if successful, False otherwise
     """
     # BEGIN: Type Checking
     if not isinstance(state, State): return False
     # END: Type Checking
+
+    # BEGIN: State-Type Checks
+    # No state-type checks needed
+    # END: State-Type Checks
 
     # BEGIN: Preconditions
     if not (hasattr(state, 'movement_server_ready') and state.movement_server_ready):
@@ -1456,6 +1573,10 @@ def m_phase2_reagent_preparation(state: State, num_samples: int) -> Union[List[T
     Preconditions:
         - Liquid server is ready
         - Deck is initialized
+
+    Task decomposition:
+        - m_prepare_master_mix: Prepare PCR master mix in the reservoir by combining reagents
+        - m_distribute_master_mix: Distribute master mix to PCR plate wells using 8-channel pipette
 
     Returns:
         List of subtasks if successful, False otherwise
@@ -1504,6 +1625,13 @@ def m_prepare_master_mix(state: State, num_samples: int) -> Union[List[Tuple], b
         - Liquid server is ready
         - Pipette is ready
 
+    Task decomposition:
+        - a_pick_up_tip: Pick up a tip from the specified tiprack
+        - a_aspirate: Aspirate liquid from a well into the pipette
+        - a_dispense: Dispense liquid from the pipette into a well
+        - a_mix: Mix contents of a well by repeated aspiration and dispensing
+        - a_drop_tip: Drop the current tip into the trash
+
     Returns:
         List of actions if successful, False otherwise
     """
@@ -1511,6 +1639,10 @@ def m_prepare_master_mix(state: State, num_samples: int) -> Union[List[Tuple], b
     if not isinstance(state, State): return False
     if not isinstance(num_samples, int): return False
     # END: Type Checking
+
+    # BEGIN: State-Type Checks
+    # No state-type checks needed
+    # END: State-Type Checks
 
     # BEGIN: Preconditions
     if not (hasattr(state, 'liquid_server_ready') and state.liquid_server_ready):
@@ -1555,6 +1687,13 @@ def m_distribute_master_mix(state: State, num_samples: int) -> Union[List[Tuple]
         - Liquid server is ready
         - Pipette is ready
 
+    Task decomposition:
+        - a_pick_up_tip: Pick up a tip from the specified tiprack
+        - a_aspirate: Aspirate liquid from a well into the pipette
+        - a_dispense: Dispense liquid from the pipette into a well
+        - a_blow_out: Blow out any remaining liquid from the pipette tip
+        - a_drop_tip: Drop the current tip into the trash
+
     Returns:
         List of actions if successful, False otherwise
     """
@@ -1562,6 +1701,10 @@ def m_distribute_master_mix(state: State, num_samples: int) -> Union[List[Tuple]
     if not isinstance(state, State): return False
     if not isinstance(num_samples, int): return False
     # END: Type Checking
+
+    # BEGIN: State-Type Checks
+    # No state-type checks needed
+    # END: State-Type Checks
 
     # BEGIN: Preconditions
     if not (hasattr(state, 'liquid_server_ready') and state.liquid_server_ready):
@@ -1627,6 +1770,9 @@ def m_phase3_sample_loading(state: State, num_samples: int) -> Union[List[Tuple]
         - Liquid server is ready
         - Master mix distributed
 
+    Task decomposition:
+        - m_transfer_samples: Transfer DNA samples from source plate to PCR plate with mixing
+
     Returns:
         List of subtasks if successful, False otherwise
 
@@ -1638,6 +1784,10 @@ def m_phase3_sample_loading(state: State, num_samples: int) -> Union[List[Tuple]
     if not isinstance(state, State): return False
     if not isinstance(num_samples, int): return False
     # END: Type Checking
+
+    # BEGIN: State-Type Checks
+    # No state-type checks needed
+    # END: State-Type Checks
 
     # BEGIN: Preconditions
     if not (hasattr(state, 'liquid_server_ready') and state.liquid_server_ready):
@@ -1668,6 +1818,13 @@ def m_transfer_samples(state: State, num_samples: int) -> Union[List[Tuple], boo
         - Liquid server is ready
         - Pipette is ready
 
+    Task decomposition:
+        - a_pick_up_tip: Pick up a tip from the specified tiprack
+        - a_aspirate: Aspirate liquid from a well into the pipette
+        - a_dispense: Dispense liquid from the pipette into a well
+        - a_mix: Mix contents of a well by repeated aspiration and dispensing
+        - a_drop_tip: Drop the current tip into the trash
+
     Returns:
         List of actions if successful, False otherwise
     """
@@ -1675,6 +1832,10 @@ def m_transfer_samples(state: State, num_samples: int) -> Union[List[Tuple], boo
     if not isinstance(state, State): return False
     if not isinstance(num_samples, int): return False
     # END: Type Checking
+
+    # BEGIN: State-Type Checks
+    # No state-type checks needed
+    # END: State-Type Checks
 
     # BEGIN: Preconditions
     if not (hasattr(state, 'liquid_server_ready') and state.liquid_server_ready):
@@ -1727,6 +1888,10 @@ def m_phase4_thermocycling(state: State, num_cycles: int) -> Union[List[Tuple], 
         - Module server is ready
         - Samples are loaded
 
+    Task decomposition:
+        - m_prepare_thermocycler: Prepare thermocycler for PCR: close lid and set initial temperature
+        - m_run_pcr_profile: Execute the PCR thermal profile (denaturation → annealing → extension cycles)
+
     Returns:
         List of subtasks if successful, False otherwise
 
@@ -1774,12 +1939,20 @@ def m_prepare_thermocycler(state: State) -> Union[List[Tuple], bool]:
         - Module server is ready
         - Thermocycler lid is open (for plate loading)
 
+    Task decomposition:
+        - a_close_thermocycler_lid: Close the thermocycler lid for thermal cycling
+        - a_set_thermocycler_temperature: Set thermocycler block to a specific temperature
+
     Returns:
         List of actions if successful, False otherwise
     """
     # BEGIN: Type Checking
     if not isinstance(state, State): return False
     # END: Type Checking
+
+    # BEGIN: State-Type Checks
+    # No state-type checks needed
+    # END: State-Type Checks
 
     # BEGIN: Preconditions
     if not (hasattr(state, 'module_server_ready') and state.module_server_ready):
@@ -1812,6 +1985,10 @@ def m_run_pcr_profile(state: State, num_cycles: int) -> Union[List[Tuple], bool]
         - Thermocycler lid is closed
         - Thermocycler is at temperature
 
+    Task decomposition:
+        - a_execute_thermocycler_profile: Execute a thermocycler profile for PCR amplification
+        - a_set_thermocycler_temperature: Set thermocycler block to a specific temperature
+
     Returns:
         List of actions if successful, False otherwise
     """
@@ -1819,6 +1996,10 @@ def m_run_pcr_profile(state: State, num_cycles: int) -> Union[List[Tuple], bool]
     if not isinstance(state, State): return False
     if not isinstance(num_cycles, int): return False
     # END: Type Checking
+
+    # BEGIN: State-Type Checks
+    # No state-type checks needed
+    # END: State-Type Checks
 
     # BEGIN: Preconditions
     if not (hasattr(state, 'module_server_ready') and state.module_server_ready):
@@ -1859,12 +2040,20 @@ def m_phase5_post_processing(state: State) -> Union[List[Tuple], bool]:
         - Module server is ready
         - Thermocycler profile complete
 
+    Task decomposition:
+        - a_deactivate_thermocycler: Deactivate the thermocycler after completing thermal cycling
+        - a_open_thermocycler_lid: Open the thermocycler lid to allow plate access
+
     Returns:
         List of actions if successful, False otherwise
     """
     # BEGIN: Type Checking
     if not isinstance(state, State): return False
     # END: Type Checking
+
+    # BEGIN: State-Type Checks
+    # No state-type checks needed
+    # END: State-Type Checks
 
     # BEGIN: Preconditions
     if not (hasattr(state, 'module_server_ready') and state.module_server_ready):
