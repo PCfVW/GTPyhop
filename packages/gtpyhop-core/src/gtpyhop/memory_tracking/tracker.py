@@ -99,9 +99,9 @@ class MemoryTracker:
             False if session is already being tracked
 
         Example:
-            >>> tracker.start_session_tracking("my_session")
+            >>> tracker.start_session_tracking("my_session")  # doctest: +SKIP
             True
-            >>> tracker.start_session_tracking("my_session")  # Already tracking
+            >>> tracker.start_session_tracking("my_session")  # Already tracking  # doctest: +SKIP
             False
         """
         with self._lock:
@@ -185,9 +185,9 @@ class MemoryTracker:
             Final memory statistics (same format as get_session_memory)
 
         Example:
-            >>> stats = tracker.stop_session_tracking("my_session")
-            >>> print(f"Final memory: {stats['memory_mb']:.2f} MB")
-            >>> print(f"Peak memory: {stats['peak_memory_mb']:.2f} MB")
+            >>> stats = tracker.stop_session_tracking("my_session")  # doctest: +SKIP
+            >>> print(f"Final memory: {stats['memory_mb']:.2f} MB")  # doctest: +SKIP
+            >>> print(f"Peak memory: {stats['peak_memory_mb']:.2f} MB")  # doctest: +SKIP
         """
         # Get final stats before cleanup
         final_stats = self.get_session_memory(session_id)
