@@ -770,7 +770,35 @@ def m_drug_discovery(state: State, disease: str) -> Union[List[Tuple], bool]:
 
 ## 11. Validation Checklist
 
-Use this checklist before committing any action or method:
+**Most of this checklist is mechanised.** Rather than walk it by hand, run the
+auditor over your example:
+
+```bash
+python -m gtpyhop.examples.audit path/to/your_example          # structure + semantics
+python -m gtpyhop.examples.audit path/to/your_example --plan   # ... and behaviour
+python tools/domain_audit.py --all                             # from a checkout
+```
+
+It decides everything below that a machine can decide — the required docstring
+sections, the `# BEGIN:`/`# END:` markers, type annotations and return types,
+`[DATA]`/`[ENABLER]`/`[EXPECTED_EFFECT]` tags, and the `a_`/`m_` prefix rule of
+§10.7 — and adds three checks this document implies but never states outright:
+
+- the counts quoted in your section headers still match the file;
+- an action's `Effects:` section names **every** state variable the action
+  actually assigns (§6.3 rule 3 in force, not merely recommended);
+- an `[ENABLER]` tag is only correct when some precondition really tests that
+  property (§8.2). A tag no precondition reads is worse than no tag at all,
+  because it tells a reader the sequencing is enforced when it is not.
+
+Exit status is 1 if anything is reported, so it works as a pre-commit or CI
+check. State that is deliberately written and never read — a value a tool
+genuinely returns, or bookkeeping kept for state dumps — goes in an
+`_audit.json` beside `domain.py` with a reason each; the audit then reports
+that exemption if it ever goes stale. See
+[the auditor's README](../packages/gtpyhop-examples/src/gtpyhop/examples/audit/README.md).
+
+Use the checklist below for the judgment the tool cannot make:
 
 ### 11.1 Action Checklist
 

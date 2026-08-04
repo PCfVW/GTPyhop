@@ -299,7 +299,9 @@ Before submitting an example, verify:
 pip install -e packages/gtpyhop-core -e packages/gtpyhop-examples
 ```
 
-Since 2.0.0 the planner and the examples are separate distributions with separate `src/` trees, which only merge into a single `gtpyhop` import namespace once installed. Without this, a new example under `packages/gtpyhop-examples/` is not importable as `gtpyhop.examples.your_example`, and the commands below will fail with `ModuleNotFoundError`.
+Since 2.0.0 the planner and the examples are separate distributions with separate `src/` trees, which merge into a single `gtpyhop` import namespace once installed. Without this, a new example under `packages/gtpyhop-examples/` is not importable as `gtpyhop.examples.your_example`, and the commands below will fail with `ModuleNotFoundError`.
+
+> **Requires 2.0.1 or later.** On 2.0.0 the editable install alone was not enough: `import gtpyhop` worked but `import gtpyhop.examples` did not, because `gtpyhop-core` shipped `gtpyhop` as a regular package and the import system therefore discarded `gtpyhop-examples`' namespace portion. Step 6 and step 8 below both failed with `ModuleNotFoundError: No module named 'gtpyhop.examples'`. `gtpyhop-core` 2.0.1 calls `pkgutil.extend_path`, so both now work from a checkout. Installed wheels were never affected.
 
 To create a new example:
 

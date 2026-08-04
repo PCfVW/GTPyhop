@@ -59,7 +59,7 @@ Location: `packages/gtpyhop-examples/src/gtpyhop/examples/ipc-2020-total-order/`
 
 ### MCP Orchestration Examples (1.5.0+)
 
-Five examples demonstrating MCP (Model Context Protocol) orchestration:
+Six examples demonstrating MCP (Model Context Protocol) orchestration:
 
 | Example | Description | Scenarios | Actions |
 |---------|-------------|-----------|---------|
@@ -67,7 +67,16 @@ Five examples demonstrating MCP (Model Context Protocol) orchestration:
 | `cross_server/` | Cross-server HTN plan execution | 2 | 9 |
 | `drug_target_discovery/` | Drug target discovery pipeline | 3 | 8 |
 | `omega_hdq_dna_bacteria_flex_96_channel/` | DNA extraction workflow | 3 | 17 |
+| `rikyu_hpc/` | HPC jobs and containerized training on Rikyu | 11 (+16 traps) | 38 |
 | `tnf_cancer_modelling/` | Multiscale cancer modeling workflow | 1 | 12 |
+
+`rikyu_hpc` also ships 16 deliberately unsolvable *trap* problems. They are
+returned by `get_trap_problems()`, not `get_problems()`, so `benchmarking.py`
+reports its 11 solvable scenarios without 16 expected failures alongside them:
+
+```bash
+python -c "from rikyu_hpc import get_trap_problems; print(len(get_trap_problems()))"
+```
 
 Location: `packages/gtpyhop-examples/src/gtpyhop/examples/mcp-orchestration/`
 
@@ -76,6 +85,7 @@ Location: `packages/gtpyhop-examples/src/gtpyhop/examples/mcp-orchestration/`
 - [Cross-Server README](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/mcp-orchestration/cross_server/README.md)
 - [Drug Target Discovery README](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/mcp-orchestration/drug_target_discovery/README.md)
 - [Omega HDQ README](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/mcp-orchestration/omega_hdq_dna_bacteria_flex_96_channel/README.md)
+- [Rikyu HPC README](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/mcp-orchestration/rikyu_hpc/README.md)
 - [TNF Cancer Modelling README](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/mcp-orchestration/tnf_cancer_modelling/README.md)
 - [MCP Benchmarking Guide](https://github.com/PCfVW/GTPyhop/blob/pip/packages/gtpyhop-examples/src/gtpyhop/examples/mcp-orchestration/benchmarking_quickstart.md)
 

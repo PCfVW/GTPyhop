@@ -71,6 +71,36 @@ visibly shrink as the bound rises), so it reads better after 2.1 than before it.
   settling what one "expansion" is — the two iterative strategies count main-loop
   iterations, while `PlanTrace.applied_before_dead_end` counts applied actions.
 - **`result.stats["expansions"]` is always `0`** and will stay so until the above lands.
+- **`gtpyhop-diagnostics`' doctests are unverified by anything.** `tools/doctest_audit.py`
+  reports 855 doctests passing across `gtpyhop-core` and `gtpyhop-examples`, and skips
+  `gtpyhop.diagnostics` with `ModuleNotFoundError` — the CI job in
+  `.github/workflows/checks.yml` installs only the two lockstep packages, so the
+  fourth distribution is never imported and its examples are never run. The skip is
+  reported rather than silent (that was deliberate), but reported-and-ignored is still
+  a hole: nothing would notice a `gtpyhop-diagnostics` doctest going stale.
+
+  Two ways to close it, neither done: add `-e packages/gtpyhop-diagnostics` to the
+  checks workflow, which is one line but couples an independently versioned package to
+  the lockstep CI; or give it its own checks job pinned to a released `gtpyhop-core`,
+  which is more faithful to how it actually ships. The second is probably right.
+  Deferred deliberately from 2.0.1 — the package was not otherwise touched by that
+  release, and its `gtpyhop-core>=2.0.0` pin is satisfied by 2.0.1.
+
+- **A documentation auditor, to sit beside the example auditor.**
+  `gtpyhop.examples.audit` (2.0.1) answers *"does this example still say what it
+  does"* by reading `domain.py` and `problems.py`. It cannot answer the same
+  question about `docs/`. Nothing checks that `all_examples.md` still quotes the
+  right action count, that a README's scenario table matches measured plan
+  lengths, or that a `-> N actions` claim in prose survived a domain change.
+  Every one of those went stale at least once while `rikyu_hpc` was being
+  written, and each was caught only by a throwaway script.
+
+  Deliberately a **separate tool**, not a fourth family inside the example
+  auditor: it audits prose against code, so its inputs are the Markdown tree
+  and a planning run, not one example directory. Sketch: extract numeric claims
+  near a known example name, resolve them against the live domain and measured
+  plans, report mismatches with file and line. The precedent to follow is
+  `tools/link_audit.py`, which already does exactly this shape of job for links.
 
 ## Further out
 

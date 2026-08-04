@@ -220,7 +220,7 @@ def get_problems():
 - **`verbose=0`**: Prevents planner messages from interfering with doctest output
 - **Narrative text between tests**: Explains what each scenario verifies (does not need `>>>` prefix)
 
-**Running doctests** (from the repository root, with both packages installed — `pip install -e packages/gtpyhop-core -e packages/gtpyhop-examples`):
+**Running doctests** (from the repository root, with both packages installed — `pip install -e packages/gtpyhop-core -e packages/gtpyhop-examples`; requires `gtpyhop-core` 2.0.1 or later, since on 2.0.0 an editable install could not resolve the `from gtpyhop.examples.X import ...` line these doctests open with):
 
 ```bash
 python -m doctest -v packages/gtpyhop-examples/src/gtpyhop/examples/poetry/feature_space_poetry/problems.py
