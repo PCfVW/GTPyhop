@@ -81,7 +81,7 @@ import warnings
 __path__ = pkgutil.extend_path(__path__, __name__)
 
 # Version information
-__version__ = "2.0.1"
+__version__ = "2.0.2"
 __author__ = "Dana Nau, Eric Jacopin"
 __license__ = "Clear BSD License"
 __description__ = "A Goal-Task-Network planning package written in Python"

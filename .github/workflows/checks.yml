@@ -58,6 +58,13 @@ jobs:
       - name: Audit internal documentation links
         run: python tools/link_audit.py
 
+      - name: Session persistence round trip
+        # A saved session must be loadable by the release that saved it. It was
+        # not in 2.0.0 or 2.0.1: the version stamp written by save_to_file was
+        # rejected by the gate in load_from_file, and nothing exercised the
+        # round trip, so it shipped twice.
+        run: python tools/session_persistence_check.py
+
       - name: Doctests
         # Imports each module by its real dotted name rather than by filename,
         # so a module that is only importable through its package is tested

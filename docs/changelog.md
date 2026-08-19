@@ -1,6 +1,59 @@
 # GTPyhop Version History
 
-## 2.0.1 — Rikyu HPC example, example auditor, `gtpyhop.examples` on editable installs (Latest, Recommended)
+## 2.0.2 — session persistence round-trips again (Latest, Recommended)
+
+A single bug fix, plus the checks whose absence let it ship twice.
+
+### A saved session could not be loaded back (bug fix)
+
+`PlannerSession.save_to_file()` wrote a `version` field and
+`SessionSerializer.validate_session_data()` gated on `version.startswith('1.')`.
+Session persistence shipped in 1.3.0 stamping `'1.3.0'`, so the two agreed for
+four years. The 2.0.0 packaging split bumped the stamp to a hard-coded
+`'2.0.0'` and left the gate alone, so **from 2.0.0 every session file the
+library wrote was refused by the library that wrote it**.
+
+The failure was silent in both directions: `save_to_file` returned `True` and
+produced a perfectly well-formed file, while `load_from_file` returned `None`
+rather than raising, because the resulting `SessionPersistenceError` was caught
+by a broad `except`. `auto_save_sessions()` wrote one such file per live
+session at interpreter exit, none of them loadable. Affected 2.0.0 and 2.0.1;
+1.x was never affected.
+
+The root cause was conflating two different things in one field: the *package*
+version and the *file-format* version. The on-disk layout has not changed since
+1.3.0. Sessions now carry an explicit `schema_version`
+(`SESSION_SCHEMA_VERSION`), bumped only when the layout changes, while
+`version` remains for information and now reports the real package version
+rather than a hard-coded literal.
+
+Files written by earlier releases are **read, not orphaned**. Validation
+prefers `schema_version`; where it is absent it falls back to the old `version`
+field and accepts both the `1.x` stamp and the `2.0.x` stamp, since all three
+describe the same layout. So a session saved by the broken releases loads
+correctly under 2.0.2.
+
+### The checks that were missing
+
+Nothing exercised the round trip — no test, no doctest, no example referenced
+`save_to_file` or `load_from_file` anywhere outside `main.py` — which is why a
+bug this total survived two releases and was found by review rather than by
+running anything.
+
+- **`tools/session_persistence_check.py`**, wired into `checks.yml`. Nine cases:
+  JSON and pickle round trips through the filesystem, a 1.x file, a file
+  written by the broken 2.0.x releases, an unknown schema refused, structural
+  damage still refused, an auto-saved file, and a corrupt file. Verified to
+  have teeth by re-introducing the bug: 6 of the 9 fail, including the general
+  invariant.
+- **The general invariant** is its first case: *whatever `serialize_session`
+  stamps, `validate_session_data` must accept*. That formulation catches this
+  class of mistake without anyone having to anticipate the particular one.
+- **Doctests** on `save_to_file` (round trip, both formats, asserting the load
+  is not `None`) and on `validate_session_data` (the full compatibility matrix,
+  including that the 2.0.x stamp is accepted). Doctests total 855 to 873.
+
+## 2.0.1 — Rikyu HPC example, example auditor, `gtpyhop.examples` on editable installs
 
 No planner algorithm changes. One real bug fix, one new tool, one new example,
 and a consistency sweep over every bundled example.
