@@ -228,6 +228,7 @@ from .main import (
     ResourceManager,
 
     # === PERSISTENCE (New in 1.3) ===
+    SESSION_SCHEMA_VERSION,
     SessionPersistenceError,
     SessionSerializer,
     restore_session,
@@ -370,7 +371,8 @@ __all__ = [
     # Resource management (New in 1.3)
     "ResourceManager",
 
-    # Persistence (New in 1.3)
+    # Persistence (New in 1.3; SESSION_SCHEMA_VERSION new in 2.0.2)
+    "SESSION_SCHEMA_VERSION",
     "SessionPersistenceError", "SessionSerializer",
     "restore_session", "restore_all_sessions",
     "set_persistence_directory", "get_persistence_directory",

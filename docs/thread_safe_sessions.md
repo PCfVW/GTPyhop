@@ -300,11 +300,27 @@ Concurrent use of the classic global API is effectively unsafe:
 
 | API | Description |
 |-----|-------------|
+| `session.save_to_file(path)` | Write a session to disk (`json` or `pickle`) |
+| `PlannerSession.load_from_file(path)` | Read one back, or `None` on any failure |
+| `SESSION_SCHEMA_VERSION` | On-disk layout version (2.0.2+) |
 | `SessionSerializer` | Serialize/deserialize sessions |
 | `restore_session(session_id)` | Restore a saved session |
 | `restore_all_sessions()` | Restore all saved sessions |
 | `set_persistence_directory(path)` | Configure auto-save location |
 | `get_persistence_directory()` | Get persistence location |
+
+> **Sessions saved by 2.0.0 or 2.0.1 need 2.0.2 to be read.** Those two releases
+> stamped the package version into the field their own validator gated on, so
+> `save_to_file` succeeded and `load_from_file` returned `None` for every file
+> they wrote — including everything `auto_save_sessions()` left at exit. 2.0.2
+> separates the on-disk layout version (`SESSION_SCHEMA_VERSION`) from the
+> package version and **reads those files rather than orphaning them**, so
+> upgrading is enough; nothing has to be re-saved. 1.x files were never
+> affected and still load.
+>
+> Note that `load_from_file` returns `None` for *any* failure — absent file,
+> corrupt file, unreadable schema — so it cannot currently distinguish them.
+> That is tracked in the [roadmap](ROADMAP.md); fixing it is a breaking change.
 
 ### Memory Tracking APIs (1.8.0+)
 

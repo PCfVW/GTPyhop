@@ -27,6 +27,9 @@ version and the *file-format* version. The on-disk layout has not changed since
 `version` remains for information and now reports the real package version
 rather than a hard-coded literal.
 
+`SESSION_SCHEMA_VERSION` is exported from `gtpyhop` (an addition; nothing was
+removed or renamed), so a caller can check what layout a release understands.
+
 Files written by earlier releases are **read, not orphaned**. Validation
 prefers `schema_version`; where it is absent it falls back to the old `version`
 field and accepts both the `1.x` stamp and the `2.0.x` stamp, since all three
@@ -54,6 +57,8 @@ running anything.
   including that the 2.0.x stamp is accepted). Doctests total 855 to 873.
 
 ## 2.0.1 — Rikyu HPC example, example auditor, `gtpyhop.examples` on editable installs
+
+> **Session persistence is broken in this release.** `save_to_file` writes a file that `load_from_file` refuses, returning `None`; see 2.0.2. Files written here are readable by 2.0.2 and later, so upgrading is enough.
 
 No planner algorithm changes. One real bug fix, one new tool, one new example,
 and a consistency sweep over every bundled example.
@@ -168,6 +173,8 @@ Rikyu system, built on the tool surface of the
 - Ships a provenance table mapping every encoded facility constant and operating rule back to its source file, and 53 doctests.
 
 ## 2.0.0 — gtpyhop-core / gtpyhop-examples / gtpyhop Package Split
+
+> **Session persistence is broken in this release.** `save_to_file` writes a file that `load_from_file` refuses, returning `None`; see 2.0.2. Files written here are readable by 2.0.2 and later, so upgrading is enough.
 
 This is a packaging-only major release: no planner algorithm changes. GTPyhop is now published as three coordinated PyPI distributions instead of one — plus the optional, independently versioned `gtpyhop-diagnostics`, described below, which is not part of this lockstep release. `pip install gtpyhop` is unaffected and remains a full install, byte-identical to pre-2.0 installs; `pip install gtpyhop-core` is new and gives a lean, examples-free install.
 
