@@ -71,8 +71,25 @@ visibly shrink as the bound rises), so it reads better after 2.1 than before it.
   settling what one "expansion" is — the two iterative strategies count main-loop
   iterations, while `PlanTrace.applied_before_dead_end` counts applied actions.
 - **`result.stats["expansions"]` is always `0`** and will stay so until the above lands.
+- **`PlannerSession.load_from_file` reports every failure as `None`.** A missing file,
+  a corrupt file, a missing required field and an unknown schema version are all
+  indistinguishable to a caller: the `SessionPersistenceError` raised inside is caught
+  by a broad `except` and swallowed. That is what kept the 2.0.0 session-persistence
+  bug invisible for two releases — `load_from_file` returned `None` and looked like
+  "no session there" rather than "this release cannot read what it just wrote".
+
+  The fix is to let the error out, or return a result object carrying the reason. Both
+  are **breaking API changes** for anyone currently testing `is None`, so this cannot
+  ride in a patch release; it wants a 2.1 or 3.0. The narrower half — not swallowing
+  the error when the file exists but fails validation — could land sooner, since
+  "file absent" is the only case a caller plausibly treats as normal.
+
+  Same shape as the `bool(result)` footgun fixed in 2.0.0: a failure that presents as
+  an ordinary empty value. `tools/session_persistence_check.py` pins the current
+  behaviour, so a change here will show up there deliberately rather than by surprise.
+
 - **`gtpyhop-diagnostics`' doctests are unverified by anything.** `tools/doctest_audit.py`
-  reports 855 doctests passing across `gtpyhop-core` and `gtpyhop-examples`, and skips
+  reports 873 doctests passing across `gtpyhop-core` and `gtpyhop-examples`, and skips
   `gtpyhop.diagnostics` with `ModuleNotFoundError` — the CI job in
   `.github/workflows/checks.yml` installs only the two lockstep packages, so the
   fourth distribution is never imported and its examples are never run. The skip is

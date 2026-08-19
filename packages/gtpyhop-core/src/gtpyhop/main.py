@@ -3506,6 +3506,15 @@ class PlannerSession:
             return session
 
         except Exception as e:
+            # KNOWN LIMITATION, tracked in docs/ROADMAP.md under "Smaller,
+            # tracked": every failure collapses to None here, so a caller
+            # cannot tell "no such session" from "this file is corrupt" or
+            # "this release cannot read that schema". That is precisely what
+            # hid the 2.0.0 version-stamp bug for two releases -- an unreadable
+            # file looked like an absent one. Fixing it means letting the error
+            # out or returning a reason, both breaking changes for callers that
+            # test `is None`, so it is deferred out of the 2.0.x line.
+            #
             # Try to log error if possible, but don't fail if logging fails
             try:
                 if _global_logger:
