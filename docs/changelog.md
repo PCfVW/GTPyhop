@@ -54,7 +54,15 @@ running anything.
   class of mistake without anyone having to anticipate the particular one.
 - **Doctests** on `save_to_file` (round trip, both formats, asserting the load
   is not `None`) and on `validate_session_data` (the full compatibility matrix,
-  including that the 2.0.x stamp is accepted). Doctests total 855 to 873.
+  including that the 2.0.x stamp is accepted).
+- **`gtpyhop-diagnostics` is now checked too.** `checks.yml` installs it
+  alongside the two lockstep packages, so its doctests run rather than being
+  reported as skipped. It is versioned independently and is not part of this
+  release; it is installed because this job exists to catch a working-tree
+  change breaking something, and testing it against a *released* core would not
+  do that. That closes the last module `tools/doctest_audit.py` was skipping.
+
+Doctests total 855 to 876, and nothing is skipped.
 
 ## 2.0.1 — Rikyu HPC example, example auditor, `gtpyhop.examples` on editable installs
 

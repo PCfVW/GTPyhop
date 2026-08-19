@@ -32,14 +32,20 @@ jobs:
         with:
           python-version: '3.x'
 
-      - name: Install both packages (editable)
+      - name: Install all source packages (editable)
         # Editable on purpose: it is what a contributor has, and it is the
         # configuration in which `import gtpyhop.examples` was broken before
         # gtpyhop-core 2.0.1. Installing wheels here would hide that class of
         # regression, because wheels merge the two trees on disk.
+        #
+        # gtpyhop-diagnostics is versioned independently and is not part of the
+        # lockstep release, but it is installed here deliberately: this job
+        # exists to catch a working-tree change breaking something, and testing
+        # diagnostics against a *released* core would not do that. Its pin
+        # (gtpyhop-core>=2.0.0) is satisfied by the checkout.
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -e packages/gtpyhop-core -e packages/gtpyhop-examples
+          python -m pip install -e packages/gtpyhop-core -e packages/gtpyhop-examples                                  -e packages/gtpyhop-diagnostics
 
       - name: gtpyhop.examples resolves on an editable install
         run: python -c "import gtpyhop, gtpyhop.examples; print(gtpyhop.__version__, gtpyhop.examples.__path__[0])"
