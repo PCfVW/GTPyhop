@@ -2378,6 +2378,42 @@ class SessionPersistenceError(Exception):
     """Raised when session persistence operations fail."""
     pass
 
+def _package_version():
+    """
+    The package version, for information only.
+
+    Imported lazily: gtpyhop/__init__.py imports this module, so a top-level
+    `from . import __version__` here would be circular. By the time a session
+    is serialized the package is fully imported, so this is safe.
+    """
+    try:
+        from . import __version__
+        return __version__
+    except Exception:                                    # pragma: no cover
+        return "unknown"
+
+
+# ----------------------------------------------------------------------------
+# Session file format
+# ----------------------------------------------------------------------------
+# SESSION_SCHEMA_VERSION describes the LAYOUT of a serialized session, and is
+# bumped only when that layout changes -- never because the package version
+# changed. Conflating the two is what broke session persistence in 2.0.0:
+# serialize_session stamped the package version ('2.0.0') into the same field
+# validate_session_data gated on with startswith('1.'), so every file the
+# library wrote was rejected by the library that wrote it, and load_from_file
+# returned None. The layout itself had not changed since 1.3.0 and still has
+# not, which is why files written by the broken releases are readable and are
+# accepted below rather than orphaned.
+SESSION_SCHEMA_VERSION = "1"
+
+# Package versions that stamped 'version' before 'schema_version' existed, all
+# of whose files use the schema-1 layout:
+#   "1."   1.3.0 through 1.9.7, which stamped a literal '1.3.0'
+#   "2.0." 2.0.0 and 2.0.1, which stamped a literal '2.0.0'
+_LEGACY_SESSION_VERSIONS = ("1.", "2.0.")
+
+
 class SessionSerializer:
     """Handles session state serialization and deserialization."""
 
@@ -2410,7 +2446,8 @@ class SessionSerializer:
                     'last_used': session._last_used,
                     'stats': session._stats.copy(),
                     'domain_name': session.domain.__name__ if session.domain else None,
-                    'version': '2.0.0',
+                    'schema_version': SESSION_SCHEMA_VERSION,
+                    'version': _package_version(),
                     'timestamp': time.time()
                 }
 
@@ -2468,12 +2505,52 @@ class SessionSerializer:
 
         Returns:
             True if data is valid, False otherwise
+
+        A file carrying the current schema version is accepted:
+
+        >>> base = {'session_id': 's', 'verbose': 0, 'recursive': False,
+        ...         'created_at': 0.0,
+        ...         'stats': {'plans_generated': 0,
+        ...                   'total_planning_time_ms': 0, 'errors': 0}}
+        >>> SessionSerializer.validate_session_data(
+        ...     dict(base, schema_version=SESSION_SCHEMA_VERSION))
+        True
+
+        So are files from releases that predate the schema_version field. The
+        layout has not changed since 1.3.0, so both the 1.x stamp and the
+        '2.0.0' stamp written by 2.0.0/2.0.1 describe readable files:
+
+        >>> SessionSerializer.validate_session_data(dict(base, version='1.3.0'))
+        True
+        >>> SessionSerializer.validate_session_data(dict(base, version='2.0.0'))
+        True
+
+        A schema this release does not know is refused, which is the check the
+        version gate was always meant to be:
+
+        >>> SessionSerializer.validate_session_data(
+        ...     dict(base, schema_version='99'))
+        False
+
+        Structural problems are still refused whatever the version says:
+
+        >>> SessionSerializer.validate_session_data(
+        ...     dict(base, schema_version=SESSION_SCHEMA_VERSION, stats={}))
+        False
         """
         try:
-            # Check version compatibility
-            version = session_data.get('version', '1.0.0')
-            if not version.startswith('1.'):
-                return False
+            # Check schema compatibility. Prefer the explicit schema_version;
+            # fall back to the package version for files written before that
+            # field existed. See SESSION_SCHEMA_VERSION for why both are
+            # accepted rather than only the current one.
+            schema_version = session_data.get('schema_version')
+            if schema_version is not None:
+                if str(schema_version) != SESSION_SCHEMA_VERSION:
+                    return False
+            else:
+                version = session_data.get('version', '1.0.0')
+                if not str(version).startswith(_LEGACY_SESSION_VERSIONS):
+                    return False
 
             # Check required fields and types
             checks = [
@@ -3321,6 +3398,37 @@ class PlannerSession:
 
         Returns:
             True if successful, False otherwise
+
+        A saved session must be loadable by the release that saved it. In
+        2.0.0 and 2.0.1 it was not: the file was written correctly and
+        save_to_file returned True, but load_from_file returned None because
+        the version gate rejected the stamp this method had just written.
+        Both halves are asserted here, since the write succeeding was never
+        the part that broke.
+
+        >>> import os, tempfile
+        >>> path = os.path.join(tempfile.mkdtemp(), 'session.json')
+        >>> session = PlannerSession(domain=Domain('doctest_roundtrip_json'),
+        ...                          verbose=0)
+        >>> session.save_to_file(path)
+        True
+        >>> restored = PlannerSession.load_from_file(path)
+        >>> restored is None            # None here is the 2.0.0/2.0.1 bug
+        False
+        >>> restored.session_id == session.session_id
+        True
+        >>> restored.verbose == session.verbose
+        True
+
+        The pickle format round-trips too:
+
+        >>> ppath = os.path.join(tempfile.mkdtemp(), 'session.pickle')
+        >>> s2 = PlannerSession(domain=Domain('doctest_roundtrip_pickle'),
+        ...                     verbose=0)
+        >>> s2.save_to_file(ppath, format='pickle')
+        True
+        >>> PlannerSession.load_from_file(ppath, format='pickle') is not None
+        True
         """
         try:
             start_time = time.time()
