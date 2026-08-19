@@ -4,7 +4,7 @@
 [![License](https://img.shields.io/badge/license-Clear%20BSD-green.svg)](https://github.com/PCfVW/GTPyhop/blob/pip/LICENSE.txt)
 [![PyPI](https://img.shields.io/pypi/v/gtpyhop)](https://pypi.org/project/gtpyhop/)
 <!-- UPDATE MANUALLY when doctests are added or removed -->
-[![Doctests](https://img.shields.io/badge/doctests-855%20passing-brightgreen)](docs/changelog.md)
+[![Doctests](https://img.shields.io/badge/doctests-873%20passing-brightgreen)](docs/changelog.md)
 
 GTPyhop is an HTN planning system based on [Pyhop](https://bitbucket.org/dananau/pyhop/src/master/), but generalized to plan for both goals and tasks. You describe a world as **actions** that change state and **methods** that break tasks into smaller ones; GTPyhop searches for a sequence of actions that accomplishes what you asked for.
 
@@ -164,7 +164,7 @@ the guard that did hold. Walked through step by step in the
 ```
 GTPyhop/
 ├── docs/                        guides, style guides, changelog
-├── tools/                       repository utilities (link_audit.py, domain_audit.py)
+├── tools/                       repository utilities (link, domain, doctest and persistence checks)
 └── packages/                    one folder per published distribution
     ├── gtpyhop-core/            the planner
     ├── gtpyhop-examples/        the bundled example domains
