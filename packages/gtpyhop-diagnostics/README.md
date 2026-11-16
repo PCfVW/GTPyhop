@@ -114,6 +114,13 @@ A disjunction in the requirement is deliberately **not** split: with `A or B` it
 combination that fails, so naming one side as "the blocking precondition" would be false.
 Such an expression is kept whole.
 
+An `if` is a guard only when every path on which the action succeeds passes it. A check
+that only applies in some cases is not a precondition of the action. So
+`if launcher is not None: if launcher != 'mpirun': return False` yields no atom for the
+inner test (the action requires `not (C and T)`, not `not T`), and neither do alternative
+success branches, guards behind an early `return state`, or a bail inside a loop, which
+may run zero times and reads a loop variable that no trace binds.
+
 ### Coverage
 
 Measured against the 293 actions declared across all bundled `gtpyhop-examples`
