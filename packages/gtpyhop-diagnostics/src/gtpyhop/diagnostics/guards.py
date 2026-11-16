@@ -26,8 +26,10 @@ idioms, and this module handles both:
   The `if` *wraps the effects*, so the requirement is the test itself, and
   failure falls off the end of the function as None.
 
-Each requirement is then split on `and` into atoms, so a report can name the
-single conjunct that did not hold rather than the whole boolean expression.
+Each requirement is then split on its `and`s into atoms, so a report can name
+the single conjunct that did not hold rather than the whole boolean
+expression. A bail's test is the *negation* of the requirement, so it is not
+split on its own `and`s; see _requirement_atoms.
 
 Rendering uses ast.get_source_segment (3.8+) rather than ast.unparse (3.9+),
 for the same reason this package parses with stdlib ast instead of LibCST:
@@ -101,19 +103,41 @@ def _returns_name(node, name):
     return False
 
 
-def _split_conjuncts(test):
-    """Break `a and b and c` into [a, b, c]; anything else stays whole.
-
-    `or` is deliberately NOT split: with a disjunction it is the combination
-    that fails, so naming one side as "the blocking precondition" would be a
-    lie. The whole expression is kept as a single atom instead.
+def _requirement_atoms(test, negated):
     """
+    Split one requirement into atoms whose conjunction is exactly it.
+
+    The requirement is `test` itself when `negated` is False, and `not test`
+    when it is True (the `if` bails). Only a *conjunction* may be split: each
+    conjunct is then necessary on its own, so whichever one evaluates false
+    really did block the action. Anything else is kept whole as one atom.
+
+        requirement `A and B`         ->  A, B
+        requirement `not (not X)`     ->  the atoms of X  (`if not X: return False`)
+        requirement `not (A and B)`   ->  kept whole: it is `not A or not B`,
+                                          so neither negation is required alone
+        requirement `A or B`          ->  kept whole: with a disjunction it is
+                                          the combination that fails, and naming
+                                          one side would be a lie
+
+    The third line is why a bail's test must not be split on its `and`s: a
+    bail on `A and B` fires only when both hold, so splitting it as if its
+    requirement were `not A and not B` reports atoms the action never needed.
+
+    Returns [(node, negated), ...], every node a sub-expression of `test`, so
+    each atom can still be rendered from and evaluated as the domain's own
+    source.
+    """
+    if negated:
+        if isinstance(test, ast.UnaryOp) and isinstance(test.op, ast.Not):
+            return _requirement_atoms(test.operand, False)
+        return [(test, True)]
     if isinstance(test, ast.BoolOp) and isinstance(test.op, ast.And):
         atoms = []
         for value in test.values:
-            atoms.extend(_split_conjuncts(value))
+            atoms.extend(_requirement_atoms(value, False))
         return atoms
-    return [test]
+    return [(test, False)]
 
 
 def _state_vars_in(node, state_param):
@@ -178,25 +202,15 @@ def extract_action_guards(func, source):
 
         if _returns_falsey(node.body):
             # Guard-and-bail: the requirement is the negation of the test.
-            #
-            # The dominant form is `if not (A and B): return False`, where
-            # the requirement is plainly `A and B` -- so unwrap the `not`
-            # first and split *that*. Otherwise the whole conjunction would
-            # be reported as one opaque atom and the report could only say
-            # "not (A and B) failed", when it could say which of A or B did.
-            if isinstance(node.test, ast.UnaryOp) and isinstance(node.test.op, ast.Not):
-                for conjunct in _split_conjuncts(node.test.operand):
-                    atoms.append(_atom_from(conjunct, source, state_param, negated=False))
-            else:
-                # e.g. `if state.broken[x]: return False` -- the requirement
-                # is the negation, which cannot be decomposed further.
-                for conjunct in _split_conjuncts(node.test):
-                    atoms.append(_atom_from(conjunct, source, state_param, negated=True))
+            # In the dominant form, `if not (A and B): return False`, that is
+            # plainly `A and B`, which _requirement_atoms unwraps and splits so
+            # a report can say which of A or B failed. A bail on `A and B`
+            # itself requires only `not (A and B)` and is kept whole.
+            requirement = (node.test, True)
         elif _returns_name(node.body, state_param):
-            # Wrapping guard: the test itself is the requirement. Not split
-            # by `or` (see _split_conjuncts) and not descended into further.
-            for conjunct in _split_conjuncts(node.test):
-                atoms.append(_atom_from(conjunct, source, state_param, negated=False))
+            # Wrapping guard: the test itself is the requirement. Not
+            # descended into further.
+            requirement = (node.test, False)
         elif node.orelse and _returns_falsey(node.orelse):
             # `if <cond>: <something> else: return False` -- the else bails,
             # so the test is the requirement, exactly as for a wrapping guard.
@@ -210,8 +224,12 @@ def extract_action_guards(func, source):
             # return False` there has a body the earlier cases already
             # recognise -- but the shape is legal and appears in generated
             # domains, which are what this package exists to diagnose.
-            for conjunct in _split_conjuncts(node.test):
-                atoms.append(_atom_from(conjunct, source, state_param, negated=False))
+            requirement = (node.test, False)
+        else:
+            continue
+
+        for test, negated in _requirement_atoms(*requirement):
+            atoms.append(_atom_from(test, source, state_param, negated=negated))
 
     return ActionGuards(
         name=func.name, params=args, state_param=state_param,

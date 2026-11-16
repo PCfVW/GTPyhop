@@ -104,6 +104,10 @@ def pickup(s, x):
 `not (A and B)` is unwrapped before splitting, so a report names the single conjunct
 that failed rather than blaming the whole condition.
 
+A bail on a conjunction is the opposite case and is kept whole: `if A and B: return False`
+fires only when *both* hold, so it requires `not (A and B)`, and neither `not A` nor
+`not B` is a precondition on its own.
+
 `or` is deliberately **not** split: with a disjunction it is the combination that
 fails, so naming one side as "the blocking precondition" would be false. Such an
 expression is kept whole.
