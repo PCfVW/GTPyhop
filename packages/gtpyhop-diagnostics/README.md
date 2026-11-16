@@ -104,13 +104,15 @@ def pickup(s, x):
 `not (A and B)` is unwrapped before splitting, so a report names the single conjunct
 that failed rather than blaming the whole condition.
 
-A bail on a conjunction is the opposite case and is kept whole: `if A and B: return False`
-fires only when *both* hold, so it requires `not (A and B)`, and neither `not A` nor
+The same rule covers every form, by De Morgan's law: a requirement is split only where
+it is a conjunction. A bail is the negation of its test, so `if A or B: return False`
+requires `not A and not B` and yields both atoms, while `if A and B: return False` fires
+only when *both* hold, requires `not (A and B)`, and is kept whole — neither `not A` nor
 `not B` is a precondition on its own.
 
-`or` is deliberately **not** split: with a disjunction it is the combination that
-fails, so naming one side as "the blocking precondition" would be false. Such an
-expression is kept whole.
+A disjunction in the requirement is deliberately **not** split: with `A or B` it is the
+combination that fails, so naming one side as "the blocking precondition" would be false.
+Such an expression is kept whole.
 
 ### Coverage
 

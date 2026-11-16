@@ -170,6 +170,20 @@ def _():
     return got == want, got
 
 
+@case('a bail on `A or B` names each side: it requires `not A and not B`')
+def _():
+    got = atoms_of("def a(s, x):\n    if s.p[x] < 4 or s.p[x] > 95:\n        return False\n    return s\n")
+    want = [('s.p[x] < 4', True), ('s.p[x] > 95', True)]
+    return got == want, got
+
+
+@case('a wrapping `not (A or B)` splits the same way; a lone `not X` stays as written')
+def _():
+    got = atoms_of("def a(s, x):\n    if not (s.p[x] or s.q[x]) and not s.r[x]:\n        return s\n")
+    want = [('s.p[x]', True), ('s.q[x]', True), ('not s.r[x]', False)]
+    return got == want, got
+
+
 # --- the reported reproduction, end to end -----------------------------------
 
 REPRO = '''
