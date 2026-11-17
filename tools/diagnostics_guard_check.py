@@ -270,6 +270,83 @@ def _():
     return not wrong, wrong or "{} shapes".format(len(shapes))
 
 
+# Completeness, the converse: when no two tests are related and no success
+# return sits inside a loop, every literal that all successful runs share must
+# be an atom. Each `if` reads its own variable, so "related" cannot happen, and
+# the necessary literals again come from running the action on every state.
+
+def generate_independent(rng, depth, indent, fresh, in_loop=False):
+    pad = '    ' * indent
+    lines = []
+    for _ in range(rng.choice([1, 1, 2, 3])):
+        roll = rng.random()
+        if depth > 0 and roll < 0.45 and fresh:
+            lines.append('{}if {}state.{}[x]:'.format(pad, rng.choice(['', 'not ']), fresh.pop()))
+            lines += generate_independent(rng, depth - 1, indent + 1, fresh, in_loop)
+            if rng.random() < 0.45:
+                lines.append('{}else:'.format(pad))
+                lines += generate_independent(rng, depth - 1, indent + 1, fresh, in_loop)
+        elif depth > 0 and roll < 0.55 and not in_loop:
+            lines.append('{}for o in state.objs:'.format(pad))
+            lines += generate_independent(rng, depth - 1, indent + 1, fresh, True)
+        elif roll < 0.70:
+            lines.append('{}state.done[x] += 1'.format(pad))
+        elif roll < 0.85:
+            lines.append('{}return {}'.format(pad, rng.choice(['False', 'None', ''])).rstrip())
+            break
+        elif not in_loop:
+            lines.append('{}return state'.format(pad))
+            break
+    return lines or ['{}pass'.format(pad)]
+
+
+@case('every literal all successful runs share is an atom, when tests are independent')
+def _():
+    rng = random.Random(20261118)
+    names = ['v{}'.format(i) for i in range(6)]
+    bodies, atoms_seen = set(), 0
+    while len(bodies) < 1500:
+        lines = generate_independent(rng, rng.choice([1, 2, 3]), 1, list(names))
+        if rng.random() < 0.6 and not lines[-1].lstrip().startswith('return'):
+            lines.append('    return state')
+        bodies.add('\n'.join(lines))
+    for body in sorted(bodies, key=lambda b: (len(b), b)):
+        src = 'def a(state, x):\n' + body + '\n'
+        namespace = {}
+        exec(compile(src, '<complete>', 'exec'), namespace)              # noqa: S102
+        atoms = extract_action_guards(ast.parse(src).body[0], src).atoms
+        atoms_seen += len(atoms)
+        winners = []
+        for bits in itertools.product([False, True], repeat=len(names) + 1):
+            state = _S()
+            for name, bit in zip(names, bits):
+                setattr(state, name, {'x': bit})
+            state.objs = ['x'] if bits[-1] else []
+            state.done = {'x': 0}
+            if succeeds(namespace['a'], state):
+                winners.append(dict(zip(names, bits)))
+        used = [n for n in names if 'state.{}['.format(n) in body]
+        want = set((n, v) for n in used for v in (False, True)
+                   if winners and all(w[n] == v for w in winners))
+        got = set()
+        for a in atoms:
+            var, probe = a.state_vars[0], _S()
+            setattr(probe, var, {'x': True})
+            got.add((var, truth(a.node, {'state': probe, 'x': 'x'}) != a.negated))
+        if got != want:
+            return False, "atoms {} but every success shares {}:\n{}".format(
+                sorted(got), sorted(want), src)
+    return True, "{} action bodies, {} atoms, 128 states each".format(len(bodies), atoms_seen)
+
+
+@case('a requirement no bail spells out is still found: the failure falls through')
+def _():
+    src = ("def a(s, x):\n    if s.p[x]:\n        s.done[x] = 1\n    else:\n"
+           "        return s\n    return False\n")
+    got = atoms_of(src)
+    return got == [('s.p[x]', True)], got
+
+
 # --- the documented idioms --------------------------------------------------
 
 @case('a bail on `A and B` is one atom, not two negations')

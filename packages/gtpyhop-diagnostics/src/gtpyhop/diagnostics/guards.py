@@ -93,15 +93,6 @@ def _returns_falsey(node):
     return False
 
 
-def _returns_name(node, name):
-    """True if this statement list returns the given name (the state param)."""
-    for stmt in ast.walk(ast.Module(body=list(node), type_ignores=[])):
-        if isinstance(stmt, ast.Return) and isinstance(stmt.value, ast.Name) \
-                and stmt.value.id == name:
-            return True
-    return False
-
-
 # Nodes whose `return`s belong to some other function, not to the action.
 _OTHER_SCOPES = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef, ast.Lambda)
 
@@ -290,53 +281,30 @@ def extract_action_guards(func, source):
         return None
     state_param = args[0]
 
-    # An `if` names a precondition only if every path on which the action
-    # succeeds passes it, with the polarity read below. Without this, a bail
-    # nested in another `if` (`if C: if T: return False` requires
-    # `not (C and T)`, not `not T`), one of several alternative success
-    # branches, or a bail after an earlier `return state`, would each yield an
-    # atom that can be false while the action applies. Falling off the end
-    # returns None, so the action's own continuation cannot succeed.
+    # An `if` names a precondition exactly when every path on which the action
+    # succeeds passes it, and always the same way; the analysis says which
+    # way. Both idioms above are instances: a bail forces `not T`, a wrapping
+    # guard whose failure falls off the end forces `T`. So do shapes neither
+    # spells out, such as `if T: <effects> else: return state` followed by a
+    # bail. Without this, a bail nested in another `if` (`if C: if T: return
+    # False` requires `not (C and T)`, not `not T`), one of several
+    # alternative success branches, or a bail after an earlier `return
+    # state`, would each yield an atom that can be false while the action
+    # applies. Falling off the end returns None, so the action's own
+    # continuation cannot succeed.
     _, on_every_success = _required_on_success(func.body, (False, _NONE_REQUIRED))
+    negated_at = dict(on_every_success)
 
     atoms = []
     for node in ast.walk(func):
-        if not isinstance(node, ast.If):
+        if node not in negated_at:
             continue
-
-        if _returns_falsey(node.body):
-            # Guard-and-bail: the requirement is the negation of the test.
-            # In the dominant form, `if not (A and B): return False`, that is
-            # plainly `A and B`, which _requirement_atoms unwraps and splits so
-            # a report can say which of A or B failed. A bail on `A or B`
-            # requires `not A and not B` and is split into both; a bail on
-            # `A and B` requires only `not (A and B)` and is kept whole.
-            requirement = (node.test, True)
-        elif _returns_name(node.body, state_param):
-            # Wrapping guard: the test itself is the requirement. Not
-            # descended into further.
-            requirement = (node.test, False)
-        elif node.orelse and _returns_falsey(node.orelse):
-            # `if <cond>: <something> else: return False` -- the else bails,
-            # so the test is the requirement, exactly as for a wrapping guard.
-            #
-            # Reached only when neither branch above fired, which is what
-            # keeps it from double-counting: in the common
-            # `if cond: ...; return s else: return False`, the body already
-            # returns the state and was handled above, and adding the test a
-            # second time here would report the same atom twice. No action in
-            # the bundled examples needs this branch today -- every `else:
-            # return False` there has a body the earlier cases already
-            # recognise -- but the shape is legal and appears in generated
-            # domains, which are what this package exists to diagnose.
-            requirement = (node.test, False)
-        else:
-            continue
-
-        if (node, requirement[1]) not in on_every_success:
-            continue
-
-        for test, negated in _requirement_atoms(*requirement):
+        # Under a bail, the dominant form `if not (A and B): return False`
+        # requires plainly `A and B`, which _requirement_atoms unwraps and
+        # splits so a report can say which of A or B failed. A bail on
+        # `A or B` requires `not A and not B` and is split into both; a bail
+        # on `A and B` requires only `not (A and B)` and is kept whole.
+        for test, negated in _requirement_atoms(node.test, negated_at[node]):
             atoms.append(_atom_from(test, source, state_param, negated=negated))
 
     return ActionGuards(
