@@ -184,12 +184,12 @@ txt["Two causes, and only two. Inside a loop, the rule reads nothing: with for o
 
 subsec["R5. The code computes the model"];
 txt["The proof is about the model, so this checks that guards.py computes exactly what the model predicts, for both readings, on every program of R3. scripts/cf_agree.py renders each program as a Python action, runs extract_action_guards from 0.1.1 (dc3f852^) and from dc3f852, maps each atom back to its if, and compares."];
-run[Module[{json = FileNameJoin[{$TemporaryDirectory, "guard_cf_programs.json"}], old = FileNameJoin[{$TemporaryDirectory, "guard_cf_old_guards.py"}], res},
+run[Module[{json = FileNameJoin[{$TemporaryDirectory, "guard_cf_programs.json"}], old = FileNameJoin[{$TemporaryDirectory, "guard_cf_old_guards.py"}], new = FileNameJoin[{$TemporaryDirectory, "guard_cf_new_guards.py"}], res},
    Export[json, <|"prog" -> toJ[#], "old" -> oldReq[#], "new" -> newReq[#]|> & /@ progs, "RawJSON", "Compact" -> True];
    WriteString[old, RunProcess[{"git", "-C", $repo, "show", "dc3f852^:packages/gtpyhop-diagnostics/src/gtpyhop/diagnostics/guards.py"}, "StandardOutput"]]; Close[old];
-   res = RunProcess[{"python3", "-S", FileNameJoin[{$here, "scripts", "cf_agree.py"}], old,
-      FileNameJoin[{$repo, "packages", "gtpyhop-diagnostics", "src", "gtpyhop", "diagnostics", "guards.py"}], json}];
-   DeleteFile[{json, old}];
+   WriteString[new, RunProcess[{"git", "-C", $repo, "show", "dc3f852:packages/gtpyhop-diagnostics/src/gtpyhop/diagnostics/guards.py"}, "StandardOutput"]]; Close[new];
+   res = RunProcess[{"python3", "-S", FileNameJoin[{$here, "scripts", "cf_agree.py"}], old, new, json}];
+   DeleteFile[{json, old, new}];
    {res["ExitCode"], StringTrim[res["StandardOutput"]]}]];
 
 subsec["R6. The bundled reproductions"];
