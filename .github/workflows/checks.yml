@@ -77,7 +77,10 @@ jobs:
         # into `not A` and `not B`, neither of which the action requires, and
         # nothing noticed until a consumer found false blockers. The first case
         # is a truth-table check over generated guards, so it covers the class,
-        # not just the reported shape.
+        # not just the reported shape. The second does the same over generated
+        # control flow, because reading every `if` as guarding the whole action
+        # also made atoms of bails nested in other ifs, of alternative success
+        # branches, and of guards behind an early `return state`.
         run: python tools/diagnostics_guard_check.py
 
       - name: Doctests

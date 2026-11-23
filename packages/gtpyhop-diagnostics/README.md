@@ -114,6 +114,20 @@ A disjunction in the requirement is deliberately **not** split: with `A or B` it
 combination that fails, so naming one side as "the blocking precondition" would be false.
 Such an expression is kept whole.
 
+An `if` is a guard only when every path on which the action succeeds passes it. A check
+that only applies in some cases is not a precondition of the action. So
+`if launcher is not None: if launcher != 'mpirun': return False` yields no atom for the
+inner test (the action requires `not (C and T)`, not `not T`), and neither do alternative
+success branches, guards behind an early `return state`, or a bail inside a loop, which
+may run zero times and reads a loop variable that no trace binds. Conversely, every
+`if` that all successful paths pass the same way is a guard, whether or not its failing
+side is spelled `return False`: the two idioms above are just its commonest shapes.
+
+A reported atom that is false is necessary: no fix succeeds without making it true. The
+guarantee runs one way only. Making every reported atom true does not guarantee success,
+and a requirement that holds only on some successful paths (`A or B` across two
+alternative branches) is never an atom.
+
 ### Coverage
 
 Measured against the 293 actions declared across all bundled `gtpyhop-examples`

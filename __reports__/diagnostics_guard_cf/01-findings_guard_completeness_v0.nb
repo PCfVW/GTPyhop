@@ -1,0 +1,3044 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Wolfram 15.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       154,          7]
+NotebookDataLength[    117743,       3035]
+NotebookOptionsPosition[    102182,       2813]
+NotebookOutlinePosition[    102609,       2830]
+CellTagsIndexPosition[    102566,       2827]
+WindowTitle->Guard extraction: termination, soundness, completeness - \
+Findings v0
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell["\<\
+Guard extraction: termination, soundness, completeness \[LongDash] Findings \
+(v0)\
+\>", "Title",ExpressionUUID->"1eb28169-b252-4a32-862a-05d2599bc36c"],
+
+Cell["\<\
+gtpyhop-diagnostics, commit caa3a1b: atoms come straight from the success \
+analysis\
+\>", "Subtitle",ExpressionUUID->"66364a91-55e4-4ec1-a8a5-b285dfdaffe6"],
+
+Cell["\<\
+type: findings
+topic: diagnostics_guard_cf
+date: 2026-11-17
+version: v0
+prior-version: round 00 (00-findings_guard_control_flow_v0), commit dc3f852
+key-metric: necessary literals missed where tests are independent and no \
+success return is inside a loop: 0 of every action body of \[LessEqual] 6 \
+statements
+decision-required: confirm\
+\>", "Program",ExpressionUUID->"3783c470-900b-499d-a6f5-f24b5a6bdfeb"],
+
+Cell["Headline Result", "Section",ExpressionUUID->"ffd7d43c-f741-472a-bd2d-33c6dfb5bbbd"],
+
+Cell["\<\
+metric:    bodies where the atoms are not exactly the necessary literals, \
+tests independent, no success return inside a loop
+value:     0 of 80,443  (caa3a1b)
+unit:      action bodies
+prior:     not established (round 00 proved soundness only)
+direction: down\
+\>", "Program",ExpressionUUID->"6695e572-e066-4b41-ab7b-30c8bf6dd0ed"],
+
+Cell["\<\
+Round 00 proved that dc3f852 never reports an atom that a successful run can \
+violate (soundness: no false positives). This round asks the converse, and \
+two practical questions around it: does the analysis always finish, does it \
+report every precondition it could (completeness: no missed true positives), \
+and what does a reported atom guarantee to whoever acts on it. Answering the \
+second found a gap: dc3f852 dropped requirements the analysis had proved \
+whenever the failing side of an if was not spelled return False. caa3a1b \
+closes it by emitting atoms straight from the analysis, and changes no atom \
+on the bundled examples or the 436-domain corpus.\
+\>", "Text",ExpressionUUID->"7eab5104-c75f-48ca-8cde-fee36224b2fb"],
+
+Cell["Model", "Section",ExpressionUUID->"8aaf2b4d-4bc8-49e3-9db1-c20de358dd6f"],
+
+Cell["\<\
+The model is round 00's, unchanged: inert statements ok (return state), bail \
+(return False, None, bare return, raise), eff (an effect), if[id, t, A, B] \
+and loop[id, A], over tests p, q, r. sem[P, False] is the condition under \
+which the action succeeds. an mirrors guards._required_on_success and returns \
+{mayOk, R}: whether the block may succeed, and the set R of (if, polarity) \
+pairs that every successful path passes. dc3f852 reported R filtered by the \
+old per-if reading; caa3a1b reports R itself.\
+\>", "Text",ExpressionUUID->"5b77079f-1271-40ad-84ed-277667ba5ab3"],
+
+Cell["\<\
+Vocabulary. A literal is one if test with a direction, t or not t. A literal \
+is necessary when every successful run satisfies it, i.e. sem \
+\[DoubleLongRightArrow] literal. Soundness: every reported literal is \
+necessary. Completeness: every necessary literal is reported. A body that can \
+never succeed makes every literal vacuously necessary; such atoms say \
+nothing, and are counted apart.\
+\>", "Text",ExpressionUUID->"36511fb4-b5dc-4a00-bf6e-aefbbabe5cd9"],
+
+Cell["Results Tables", "Section",ExpressionUUID->"53aab078-b00c-4b29-a5a0-552f231d0b60"],
+
+Cell["R1. Termination and cost", "Subsection",ExpressionUUID->"3bcff378-b4d5-4768-be53-a42f980f586e"],
+
+Cell["\<\
+an recurses only on strictly smaller terms: the rest of a statement list, or \
+the branches of an if. Every recursion therefore stops, by structural \
+induction, with no fixpoint iteration: a loop is summarised in one step by \
+scanning its body for a success return (succIn), never iterated. Each \
+statement outside a loop body costs one step, so the analysis is linear in \
+the number of statements; the Python code adds one scan of the subtree under \
+each loop, with or try, so at most statements \[Times] nesting depth.\
+\>", "Text",ExpressionUUID->"4ff03f9d-7d52-4925-bbd2-50e3f1c3b393"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+   RowBox[{"Length", "[", "progs", "]"}], ",", 
+   RowBox[{"Max", "[", 
+    RowBox[{
+     RowBox[{"(", 
+      RowBox[{
+       FractionBox[
+        RowBox[{"#1", "[", "\"\<steps\>\"", "]"}], 
+        RowBox[{"#1", "[", "\"\<size\>\"", "]"}]], "&"}], ")"}], "/@", 
+     "prof"}], "]"}], ",", 
+   RowBox[{"AllTrue", "[", 
+    RowBox[{"prof", ",", 
+     RowBox[{
+      RowBox[{
+       RowBox[{"#1", "[", "\"\<steps\>\"", "]"}], "\[LessEqual]", 
+       RowBox[{"#1", "[", "\"\<size\>\"", "]"}]}], "&"}]}], "]"}]}], 
+  "}"}]], "Input",ExpressionUUID->"ec348e43-f628-4ae3-bb11-f1197419d36a"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{"94350", ",", "1", ",", "True"}], "}"}]], "Output",ExpressionUUID->\
+"2c10e7d1-1e35-424e-9e3e-f4e9b536cfc5"],
+
+Cell["\<\
+Bodies checked, the largest ratio of analysis steps to statements, and \
+whether every body stays within one step per statement.\
+\>", "Text",ExpressionUUID->"887c8191-3be0-4f83-92c1-924cfe47ce0b"],
+
+Cell["R2. Soundness carries over", "Subsection",ExpressionUUID->"440f67c6-06a8-40e9-8def-54715b9d28df"],
+
+Cell["\<\
+Round 00 R2 proved, by induction on the statement list, that every literal in \
+R is necessary and that mayOk = False only for bodies that cannot succeed. \
+Its last row covered the filter dc3f852 applied (kept \[SubsetEqual] R); \
+caa3a1b keeps all of R, the case kept = R, so the proof applies unchanged. \
+Exhaustive re-check: atoms reported by each reading, split into sound and \
+informative (the body can succeed), vacuous (it cannot), and unsound.\
+\>", "Text",ExpressionUUID->"1832fb35-c4fe-421b-97bd-00f7771d4d18"],
+
+Cell[BoxData[
+ RowBox[{"tbl", "[", 
+  RowBox[{
+   RowBox[{"{", 
+    RowBox[{"\"\<reading\>\"", ",", "\"\<sound, informative\>\"", 
+     ",", "\"\<vacuous\>\"", ",", "\"\<unsound\>\""}], "}"}], ",", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"Prepend", "[", 
+      RowBox[{
+       RowBox[{"fmt", "/@", "tWalk"}], ",", "\"\<ast.walk (0.1.1)\>\""}], 
+      "]"}], ",", 
+     RowBox[{"Prepend", "[", 
+      RowBox[{
+       RowBox[{"fmt", "/@", "tDc"}], ",", "\"\<filtered (dc3f852)\>\""}], 
+      "]"}], ",", 
+     RowBox[{"Prepend", "[", 
+      RowBox[{
+       RowBox[{"fmt", "/@", "tCur"}], ",", "\"\<analysis (caa3a1b)\>\""}], 
+      "]"}]}], "}"}]}], "]"}]], "Input",ExpressionUUID->"f47de829-e48d-4b8e-\
+8133-b3cebc599a0c"],
+
+Cell[BoxData[
+ TagBox[GridBox[{
+    {
+     StyleBox["\<\"reading\"\>",
+      StripOnInput->False,
+      FontWeight->Bold], 
+     StyleBox["\<\"sound, informative\"\>",
+      StripOnInput->False,
+      FontWeight->Bold], 
+     StyleBox["\<\"vacuous\"\>",
+      StripOnInput->False,
+      FontWeight->Bold], 
+     StyleBox["\<\"unsound\"\>",
+      StripOnInput->False,
+      FontWeight->Bold]},
+    {"\<\"ast.walk (0.1.1)\"\>", "\<\"17,085\"\>", "\<\"34,173\"\>", \
+"\<\"13,890\"\>"},
+    {"\<\"filtered (dc3f852)\"\>", "\<\"13,566\"\>", "\<\"4,116\"\>", \
+"\<\"0\"\>"},
+    {"\<\"analysis (caa3a1b)\"\>", "\<\"54,252\"\>", "\<\"9,768\"\>", \
+"\<\"0\"\>"}
+   },
+   AutoDelete->False,
+   GridBoxAlignment->{"Columns" -> {{Left}}},
+   GridBoxBackground->{"Columns" -> {{None}}, "Rows" -> {
+       GrayLevel[0.9]}},
+   GridBoxFrame->{"Columns" -> {{True}}, "Rows" -> {{True}}},
+   GridBoxItemSize->{"Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}},
+   GridBoxSpacings->{"Columns" -> {{1.2}}, "Rows" -> {{0.6}}}],
+  "Grid"]], "Output",ExpressionUUID->"76b576c1-c95a-4a6c-a89d-96a78dae2307"],
+
+Cell["R3. Completeness, relative to independent tests", "Subsection",ExpressionUUID->"69a1dd67-bddc-4e46-9a69-2d37764c979f"],
+
+Cell["\<\
+Theorem. If no two ifs read related tests and no success return is inside a \
+loop, then for every body: mayOk is True exactly when the body can succeed, \
+and R is exactly the set of necessary literals.\
+\>", "Text",ExpressionUUID->"ce19f6a9-e939-4ada-8476-e01513546c6d"],
+
+Cell["\<\
+Proof, by the same induction as round 00, with the invariant strengthened \
+from \[SubsetEqual] to =. Write Impl(f) for the literals f implies. Two \
+lemmas carry every clause. L1: a literal follows from X or Y exactly when it \
+follows from both, so Impl(X \[Or] Y) = Impl(X) \[Intersection] Impl(Y). L2: \
+if t occurs nowhere in a satisfiable X, then Impl(t \[And] X) = {t} \[Union] \
+Impl(X), because any assignment satisfying X can be extended with t = True. \
+For an if, the success condition is (t \[And] A) \[Or] (\[Not]t \[And] B): by \
+L1 and L2 its literals are Impl(A) \[Intersection] Impl(B) when both branches \
+can succeed (t and \[Not]t cancel), {\[Not]t} \[Union] Impl(B) when only B \
+can, and symmetrically. These are the analysis' three if rules. A loop with \
+no success return inside has condition (c \[And] A) \[Or] (\[Not]c \[And] k) \
+with A \[DoubleLongRightArrow] k (round 00's lemma), so its if literals are \
+Impl(k): the analysis passes the continuation through. A loop with a success \
+return inside is where the theorem stops: the analysis returns nothing, while \
+the loop's own guards may be necessary.\
+\>", "Text",ExpressionUUID->"16f271d4-91a9-4e2d-b70d-a61a1204d877"],
+
+Cell[BoxData[
+ RowBox[{"tbl", "[", 
+  RowBox[{
+   RowBox[{"{", 
+    RowBox[{"\"\<obligation\>\"", ",", "\"\<checked as\>\"", 
+     ",", "\"\<result\>\""}], "}"}], ",", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{"\"\<L1: Impl(X \[Or] Y) = Impl(X) \[Intersection] Impl(Y)\>\"",
+        ",", "\"\<propositional tautology\>\"", ",", 
+       RowBox[{"mark", "[", 
+        RowBox[{"TautologyQ", "[", 
+         RowBox[{
+          RowBox[{
+           RowBox[{"(", 
+            RowBox[{
+             RowBox[{"x", "||", "y"}], "\[Implies]", "l"}], ")"}], "\[Equivalent]", 
+           RowBox[{
+            RowBox[{"(", 
+             RowBox[{"x", "\[Implies]", "l"}], ")"}], "&&", 
+            RowBox[{"(", 
+             RowBox[{"y", "\[Implies]", "l"}], ")"}]}]}], ",", 
+          RowBox[{"{", 
+           RowBox[{"x", ",", "y", ",", "l"}], "}"}]}], "]"}], "]"}]}], "}"}], 
+     ",", 
+     RowBox[{"{", 
+      RowBox[{"\"\<L2: Impl(t \[And] X) = {t} \[Union] Impl(X), t fresh\>\"", 
+       ",", "\"\<every satisfiable X of two variables, every literal\>\"", ",", 
+       RowBox[{"mark", "[", 
+        RowBox[{"AllTrue", "[", 
+         RowBox[{
+          RowBox[{"Select", "[", 
+           RowBox[{"U", ",", "SatisfiableQ"}], "]"}], ",", 
+          RowBox[{
+           RowBox[{
+            RowBox[{"ex", "[", 
+             RowBox[{
+              RowBox[{"t", "&&", "#1"}], ",", 
+              RowBox[{"litsOf", "[", 
+               RowBox[{"{", 
+                RowBox[{"a", ",", "b", ",", "t"}], "}"}], "]"}]}], "]"}], "===", 
+            RowBox[{"{", 
+             RowBox[{"True", ",", 
+              RowBox[{"Sort", "[", 
+               RowBox[{
+                RowBox[{
+                 RowBox[{"ex", "[", 
+                  RowBox[{"#1", ",", 
+                   RowBox[{"litsOf", "[", 
+                    RowBox[{"{", 
+                    RowBox[{"a", ",", "b"}], "}"}], "]"}]}], "]"}], "\[LeftDoubleBracket]",
+                  "2", "\[RightDoubleBracket]"}], "\[Union]", 
+                RowBox[{"{", "t", "}"}]}], "]"}]}], "}"}]}], "&"}]}], "]"}], 
+        "]"}]}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"\"\<if rule = exact literals of (t \[And] A) \[Or] (\[Not]t \
+\[And] B)\>\"", ",", "\"\<every pair A, B of two-variable functions (256)\>\"",
+        ",", 
+       RowBox[{"mark", "[", 
+        RowBox[{"AllTrue", "[", 
+         RowBox[{
+          RowBox[{"Tuples", "[", 
+           RowBox[{"{", 
+            RowBox[{"U", ",", "U"}], "}"}], "]"}], ",", 
+          RowBox[{
+           RowBox[{
+            RowBox[{"ifRule", "[", 
+             RowBox[{
+              RowBox[{"ex", "[", 
+               RowBox[{
+                RowBox[{
+                "#1", "\[LeftDoubleBracket]", "1", "\[RightDoubleBracket]"}], 
+                ",", 
+                RowBox[{"litsOf", "[", 
+                 RowBox[{"{", 
+                  RowBox[{"a", ",", "b"}], "}"}], "]"}]}], "]"}], ",", 
+              RowBox[{"ex", "[", 
+               RowBox[{
+                RowBox[{
+                "#1", "\[LeftDoubleBracket]", "2", "\[RightDoubleBracket]"}], 
+                ",", 
+                RowBox[{"litsOf", "[", 
+                 RowBox[{"{", 
+                  RowBox[{"a", ",", "b"}], "}"}], "]"}]}], "]"}]}], "]"}], "===", 
+            RowBox[{"ex", "[", 
+             RowBox[{
+              RowBox[{
+               RowBox[{"(", 
+                RowBox[{"t", "&&", 
+                 RowBox[{
+                 "#1", "\[LeftDoubleBracket]", "1", 
+                  "\[RightDoubleBracket]"}]}], ")"}], "||", 
+               RowBox[{"(", 
+                RowBox[{
+                 RowBox[{"!", "t"}], "&&", 
+                 RowBox[{
+                 "#1", "\[LeftDoubleBracket]", "2", 
+                  "\[RightDoubleBracket]"}]}], ")"}]}], ",", 
+              RowBox[{"litsOf", "[", 
+               RowBox[{"{", 
+                RowBox[{"a", ",", "b", ",", "t"}], "}"}], "]"}]}], "]"}]}], 
+           "&"}]}], "]"}], "]"}]}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"\"\<loop rule = exact if literals of (c \[And] A) \[Or] \
+(\[Not]c \[And] k), A \[DoubleLongRightArrow] k\>\"", 
+       ",", "\"\<every such pair A, k\>\"", ",", 
+       RowBox[{"mark", "[", 
+        RowBox[{"AllTrue", "[", 
+         RowBox[{
+          RowBox[{"Select", "[", 
+           RowBox[{
+            RowBox[{"Tuples", "[", 
+             RowBox[{"{", 
+              RowBox[{"U", ",", "U"}], "}"}], "]"}], ",", 
+            RowBox[{
+             RowBox[{"TautologyQ", "[", 
+              RowBox[{
+               RowBox[{
+                RowBox[{
+                "#1", "\[LeftDoubleBracket]", "1", "\[RightDoubleBracket]"}], 
+                "\[Implies]", 
+                RowBox[{
+                "#1", "\[LeftDoubleBracket]", "2", 
+                 "\[RightDoubleBracket]"}]}], ",", 
+               RowBox[{"{", 
+                RowBox[{"a", ",", "b"}], "}"}]}], "]"}], "&"}]}], "]"}], ",", 
+          
+          RowBox[{
+           RowBox[{
+            RowBox[{"ex", "[", 
+             RowBox[{
+              RowBox[{
+              "#1", "\[LeftDoubleBracket]", "2", "\[RightDoubleBracket]"}], ",", 
+              RowBox[{"litsOf", "[", 
+               RowBox[{"{", 
+                RowBox[{"a", ",", "b"}], "}"}], "]"}]}], "]"}], "===", 
+            RowBox[{"ex", "[", 
+             RowBox[{
+              RowBox[{
+               RowBox[{"(", 
+                RowBox[{"cc", "&&", 
+                 RowBox[{
+                 "#1", "\[LeftDoubleBracket]", "1", 
+                  "\[RightDoubleBracket]"}]}], ")"}], "||", 
+               RowBox[{"(", 
+                RowBox[{
+                 RowBox[{"!", "cc"}], "&&", 
+                 RowBox[{
+                 "#1", "\[LeftDoubleBracket]", "2", 
+                  "\[RightDoubleBracket]"}]}], ")"}]}], ",", 
+              RowBox[{"litsOf", "[", 
+               RowBox[{"{", 
+                RowBox[{"a", ",", "b"}], "}"}], "]"}]}], "]"}]}], "&"}]}], 
+         "]"}], "]"}]}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"\"\<return state, return False, effect\>\"", 
+       ",", "\"\<f = True, False, k\>\"", ",", "\"\<immediate\>\""}], "}"}]}],
+     "}"}]}], "]"}]], "Input",ExpressionUUID->"847ad014-8dba-439a-a2fc-\
+7ecddbb43aa3"],
+
+Cell[BoxData[
+ TagBox[GridBox[{
+    {
+     StyleBox["\<\"obligation\"\>",
+      StripOnInput->False,
+      FontWeight->Bold], 
+     StyleBox["\<\"checked as\"\>",
+      StripOnInput->False,
+      FontWeight->Bold], 
+     StyleBox["\<\"result\"\>",
+      StripOnInput->False,
+      FontWeight->Bold]},
+    {"\<\"L1: Impl(X \[Or] Y) = Impl(X) \[Intersection] Impl(Y)\"\>", \
+"\<\"propositional tautology\"\>", 
+     StyleBox["\<\"proved\"\>",
+      StripOnInput->False,
+      LineColor->RGBColor[0, 
+        Rational[2, 3], 0],
+      FrontFaceColor->RGBColor[0, 
+        Rational[2, 3], 0],
+      BackFaceColor->RGBColor[0, 
+        Rational[2, 3], 0],
+      GraphicsColor->RGBColor[0, 
+        Rational[2, 3], 0],
+      FontColor->RGBColor[0, 
+        Rational[2, 3], 0]]},
+    {"\<\"L2: Impl(t \[And] X) = {t} \[Union] Impl(X), t fresh\"\>", \
+"\<\"every satisfiable X of two variables, every literal\"\>", 
+     StyleBox["\<\"proved\"\>",
+      StripOnInput->False,
+      LineColor->RGBColor[0, 
+        Rational[2, 3], 0],
+      FrontFaceColor->RGBColor[0, 
+        Rational[2, 3], 0],
+      BackFaceColor->RGBColor[0, 
+        Rational[2, 3], 0],
+      GraphicsColor->RGBColor[0, 
+        Rational[2, 3], 0],
+      FontColor->RGBColor[0, 
+        Rational[2, 3], 0]]},
+    {"\<\"if rule = exact literals of (t \[And] A) \[Or] (\[Not]t \[And] B)\"\
+\>", "\<\"every pair A, B of two-variable functions (256)\"\>", 
+     StyleBox["\<\"proved\"\>",
+      StripOnInput->False,
+      LineColor->RGBColor[0, 
+        Rational[2, 3], 0],
+      FrontFaceColor->RGBColor[0, 
+        Rational[2, 3], 0],
+      BackFaceColor->RGBColor[0, 
+        Rational[2, 3], 0],
+      GraphicsColor->RGBColor[0, 
+        Rational[2, 3], 0],
+      FontColor->RGBColor[0, 
+        Rational[2, 3], 0]]},
+    {"\<\"loop rule = exact if literals of (c \[And] A) \[Or] (\[Not]c \[And] \
+k), A \[DoubleLongRightArrow] k\"\>", "\<\"every such pair A, k\"\>", 
+     StyleBox["\<\"proved\"\>",
+      StripOnInput->False,
+      LineColor->RGBColor[0, 
+        Rational[2, 3], 0],
+      FrontFaceColor->RGBColor[0, 
+        Rational[2, 3], 0],
+      BackFaceColor->RGBColor[0, 
+        Rational[2, 3], 0],
+      GraphicsColor->RGBColor[0, 
+        Rational[2, 3], 0],
+      FontColor->RGBColor[0, 
+        Rational[2, 3], 0]]},
+    {"\<\"return state, return False, effect\"\>", "\<\"f = True, False, \
+k\"\>", "\<\"immediate\"\>"}
+   },
+   AutoDelete->False,
+   GridBoxAlignment->{"Columns" -> {{Left}}},
+   GridBoxBackground->{"Columns" -> {{None}}, "Rows" -> {
+       GrayLevel[0.9]}},
+   GridBoxFrame->{"Columns" -> {{True}}, "Rows" -> {{True}}},
+   GridBoxItemSize->{"Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}},
+   GridBoxSpacings->{"Columns" -> {{1.2}}, "Rows" -> {{0.6}}}],
+  "Grid"]], "Output",ExpressionUUID->"9102bbf0-f8f7-41b2-8f92-7c68eab215ff"],
+
+Cell["\<\
+L1 is proved by TautologyQ. L2 and the two rules are proved by hand above; \
+the rows check them over a finite universe as a guard against a slip in the \
+argument. Exhaustive check on the programs themselves, with each if's test \
+replaced by its own fresh variable (independence), against the literals the \
+success condition implies:\
+\>", "Text",ExpressionUUID->"696a8cdf-e6e6-4301-a5b1-595b40e34acc"],
+
+Cell[BoxData[
+ RowBox[{"tbl", "[", 
+  RowBox[{
+   RowBox[{"{", 
+    RowBox[{"\"\<bodies\>\"", ",", "\"\<count\>\"", 
+     ",", "\"\<analysis = exact\>\"", 
+     ",", "\"\<analysis \[SubsetEqual] exact\>\""}], "}"}], ",", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{"\"\<no success return inside a loop\>\"", ",", 
+       RowBox[{"fmt", "[", 
+        RowBox[{"Length", "[", "eligible", "]"}], "]"}], ",", 
+       RowBox[{"fmt", "[", "exactCount", "]"}], ",", "\"\<\[LongDash]\>\""}], 
+      "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"\"\<a success return inside a loop\>\"", ",", 
+       RowBox[{"fmt", "[", 
+        RowBox[{"Length", "[", "inLoopP", "]"}], "]"}], ",", 
+       RowBox[{"fmt", "[", 
+        RowBox[{"Count", "[", 
+         RowBox[{"inLoopP", ",", 
+          RowBox[{"pr_", "/;", 
+           RowBox[{
+            RowBox[{"{", 
+             RowBox[{
+              RowBox[{
+               RowBox[{"pr", "[", "\"\<an\>\"", "]"}], "\[LeftDoubleBracket]",
+                "1", "\[RightDoubleBracket]"}], ",", 
+              RowBox[{"Sort", "[", 
+               RowBox[{
+                RowBox[{"pr", "[", "\"\<an\>\"", "]"}], "\[LeftDoubleBracket]",
+                 "2", "\[RightDoubleBracket]"}], "]"}]}], "}"}], "===", 
+            RowBox[{"pr", "[", "\"\<exact\>\"", "]"}]}]}]}], "]"}], "]"}], ",", 
+       RowBox[{"fmt", "[", 
+        RowBox[{"Count", "[", 
+         RowBox[{"inLoopP", ",", 
+          RowBox[{"pr_", "/;", 
+           RowBox[{"SubsetQ", "[", 
+            RowBox[{
+             RowBox[{
+              RowBox[{"pr", "[", "\"\<exact\>\"", "]"}], "\[LeftDoubleBracket]",
+               "2", "\[RightDoubleBracket]"}], ",", 
+             RowBox[{
+              RowBox[{"pr", "[", "\"\<an\>\"", "]"}], "\[LeftDoubleBracket]", 
+              "2", "\[RightDoubleBracket]"}]}], "]"}]}]}], "]"}], "]"}]}], 
+      "}"}]}], "}"}]}], "]"}]], "Input",ExpressionUUID->"b87ca4ef-1cb5-458f-\
+941b-f16b2e1025d0"],
+
+Cell[BoxData[
+ TagBox[GridBox[{
+    {
+     StyleBox["\<\"bodies\"\>",
+      StripOnInput->False,
+      FontWeight->Bold], 
+     StyleBox["\<\"count\"\>",
+      StripOnInput->False,
+      FontWeight->Bold], 
+     StyleBox["\<\"analysis = exact\"\>",
+      StripOnInput->False,
+      FontWeight->Bold], 
+     StyleBox["\<\"analysis \[SubsetEqual] exact\"\>",
+      StripOnInput->False,
+      FontWeight->Bold]},
+    {"\<\"no success return inside a loop\"\>", "\<\"80,443\"\>", "\<\"80,443\
+\"\>", "\<\"\[LongDash]\"\>"},
+    {"\<\"a success return inside a loop\"\>", "\<\"13,907\"\>", "\<\"6,752\"\
+\>", "\<\"13,907\"\>"}
+   },
+   AutoDelete->False,
+   GridBoxAlignment->{"Columns" -> {{Left}}},
+   GridBoxBackground->{"Columns" -> {{None}}, "Rows" -> {
+       GrayLevel[0.9]}},
+   GridBoxFrame->{"Columns" -> {{True}}, "Rows" -> {{True}}},
+   GridBoxItemSize->{"Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}},
+   GridBoxSpacings->{"Columns" -> {{1.2}}, "Rows" -> {{0.6}}}],
+  "Grid"]], "Output",ExpressionUUID->"4bb97b75-bbb4-473a-83c1-f490a777cbaf"],
+
+Cell["R4. Where completeness stops, with the real tests", "Subsection",ExpressionUUID->"e3feb21c-6dcd-4620-bece-6cf9b434e92b"],
+
+Cell["\<\
+With the real tests p, q, r a test may repeat, which independence excludes. \
+Every necessary literal the analysis misses, in bodies that can succeed, by \
+cause:\
+\>", "Text",ExpressionUUID->"9f1f514f-30ad-4570-8352-7a90f5129ffe"],
+
+Cell[BoxData[
+ RowBox[{"tbl", "[", 
+  RowBox[{
+   RowBox[{"{", 
+    RowBox[{"\"\<cause\>\"", ",", "\"\<literals missed\>\"", 
+     ",", "\"\<smallest example\>\"", ",", "\"\<literal\>\""}], "}"}], ",", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{
+      RowBox[{"(", 
+       RowBox[{
+        RowBox[{"{", 
+         RowBox[{"\"\<a success return inside a loop, or the if inside \
+one\>\"", ",", 
+          RowBox[{"fmt", "[", 
+           RowBox[{"Length", "[", "missLoop", "]"}], "]"}], ",", 
+          RowBox[{"showP", "[", 
+           RowBox[{
+           "#1", "\[LeftDoubleBracket]", "1", "\[RightDoubleBracket]"}], 
+           "]"}], ",", 
+          RowBox[{"ToString", "[", 
+           RowBox[{
+            RowBox[{"lit", "@@", "#1"}], ",", "InputForm"}], "]"}]}], "}"}], 
+        "&"}], ")"}], "[", 
+      RowBox[{"First", "[", 
+       RowBox[{"SortBy", "[", 
+        RowBox[{"missLoop", ",", "LeafCount"}], "]"}], "]"}], "]"}], ",", 
+     RowBox[{
+      RowBox[{"(", 
+       RowBox[{
+        RowBox[{"{", 
+         RowBox[{"\"\<a test read twice on one path\>\"", ",", 
+          RowBox[{"fmt", "[", 
+           RowBox[{"Length", "[", "missRep", "]"}], "]"}], ",", 
+          RowBox[{"showP", "[", 
+           RowBox[{
+           "#1", "\[LeftDoubleBracket]", "1", "\[RightDoubleBracket]"}], 
+           "]"}], ",", 
+          RowBox[{"ToString", "[", 
+           RowBox[{
+            RowBox[{"lit", "@@", "#1"}], ",", "InputForm"}], "]"}]}], "}"}], 
+        "&"}], ")"}], "[", 
+      RowBox[{"First", "[", 
+       RowBox[{"SortBy", "[", 
+        RowBox[{"missRep", ",", "LeafCount"}], "]"}], "]"}], "]"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"\"\<anything else\>\"", ",", 
+       RowBox[{"fmt", "[", 
+        RowBox[{
+         RowBox[{"Length", "[", "missed", "]"}], "-", 
+         RowBox[{"Length", "[", "missLoop", "]"}], "-", 
+         RowBox[{"Length", "[", "missRep", "]"}]}], "]"}], 
+       ",", "\"\<\[LongDash]\>\"", ",", "\"\<\[LongDash]\>\""}], "}"}]}], 
+    "}"}]}], "]"}]], "Input",ExpressionUUID->"506b89ad-ba13-410a-9a82-\
+fe23c9688b7e"],
+
+Cell[BoxData[
+ TagBox[GridBox[{
+    {
+     StyleBox["\<\"cause\"\>",
+      StripOnInput->False,
+      FontWeight->Bold], 
+     StyleBox["\<\"literals missed\"\>",
+      StripOnInput->False,
+      FontWeight->Bold], 
+     StyleBox["\<\"smallest example\"\>",
+      StripOnInput->False,
+      FontWeight->Bold], 
+     StyleBox["\<\"literal\"\>",
+      StripOnInput->False,
+      FontWeight->Bold]},
+    {"\<\"a success return inside a loop, or the if inside one\"\>", \
+"\<\"12,954\"\>", "\<\"{loop[{if[p, {}, {ok}]}]}\"\>", "\<\" !p\"\>"},
+    {"\<\"a test read twice on one path\"\>", "\<\"11,352\"\>", "\<\"{if[p, \
+{}, {if[p, {ok}, {ok}]}]}\"\>", "\<\" !p\"\>"},
+    {"\<\"anything else\"\>", "\<\"0\"\>", "\<\"\[LongDash]\"\>", "\<\"\
+\[LongDash]\"\>"}
+   },
+   AutoDelete->False,
+   GridBoxAlignment->{"Columns" -> {{Left}}},
+   GridBoxBackground->{"Columns" -> {{None}}, "Rows" -> {
+       GrayLevel[0.9]}},
+   GridBoxFrame->{"Columns" -> {{True}}, "Rows" -> {{True}}},
+   GridBoxItemSize->{"Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}},
+   GridBoxSpacings->{"Columns" -> {{1.2}}, "Rows" -> {{0.6}}}],
+  "Grid"]], "Output",ExpressionUUID->"092db973-7c43-49d1-8ed4-e35cbe18e903"],
+
+Cell["\<\
+\"Anything else\" is 0, as the theorem predicts. Both causes have known \
+remedies at a price: following loops needs dominance on a control-flow graph \
+rather than one pass over the syntax tree, and correlated tests need a \
+path-sensitive analysis, exponential in the worst case. In real domains a \
+loop's guards usually read the loop variable, which no trace binds, so they \
+could not be evaluated anyway.\
+\>", "Text",ExpressionUUID->"7c7bee49-91fb-41c9-99b9-16c04e017545"],
+
+Cell["\<\
+The gap caa3a1b closes: literals the analysis proved but dc3f852's per-if \
+reading dropped, all of them sound by R2.\
+\>", "Text",ExpressionUUID->"4edfdb74-beb5-40d0-baeb-86e418b4e3d0"],
+
+Cell[BoxData[
+ RowBox[{"tbl", "[", 
+  RowBox[{
+   RowBox[{"{", 
+    RowBox[{"\"\<literals gained\>\"", ",", "\"\<in bodies\>\"", 
+     ",", "\"\<smallest example\>\"", ",", "\"\<literal\>\""}], "}"}], ",", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"(", 
+      RowBox[{
+       RowBox[{"{", 
+        RowBox[{
+         RowBox[{"fmt", "[", 
+          RowBox[{"Length", "[", "gained", "]"}], "]"}], ",", 
+         RowBox[{"fmt", "[", 
+          RowBox[{"Length", "[", 
+           RowBox[{"DeleteDuplicates", "[", 
+            RowBox[{"gained", "\[LeftDoubleBracket]", 
+             RowBox[{"All", ",", "1"}], "\[RightDoubleBracket]"}], "]"}], 
+           "]"}], "]"}], ",", 
+         RowBox[{"showP", "[", 
+          RowBox[{
+          "#1", "\[LeftDoubleBracket]", "1", "\[RightDoubleBracket]"}], "]"}],
+          ",", 
+         RowBox[{"ToString", "[", 
+          RowBox[{
+           RowBox[{"lit", "@@", "#1"}], ",", "InputForm"}], "]"}]}], "}"}], 
+       "&"}], ")"}], "[", 
+     RowBox[{"First", "[", 
+      RowBox[{"SortBy", "[", 
+       RowBox[{"gained", ",", "LeafCount"}], "]"}], "]"}], "]"}], "}"}]}], 
+  "]"}]], "Input",ExpressionUUID->"47a43058-88aa-49d4-b93c-877d86072f2d"],
+
+Cell[BoxData[
+ TagBox[GridBox[{
+    {
+     StyleBox["\<\"literals gained\"\>",
+      StripOnInput->False,
+      FontWeight->Bold], 
+     StyleBox["\<\"in bodies\"\>",
+      StripOnInput->False,
+      FontWeight->Bold], 
+     StyleBox["\<\"smallest example\"\>",
+      StripOnInput->False,
+      FontWeight->Bold], 
+     StyleBox["\<\"literal\"\>",
+      StripOnInput->False,
+      FontWeight->Bold]},
+    {"\<\"46,338\"\>", "\<\"27,654\"\>", "\<\"{if[p, {}, {ok}]}\"\>", "\<\" \
+!p\"\>"}
+   },
+   AutoDelete->False,
+   GridBoxAlignment->{"Columns" -> {{Left}}},
+   GridBoxBackground->{"Columns" -> {{None}}, "Rows" -> {
+       GrayLevel[0.9]}},
+   GridBoxFrame->{"Columns" -> {{True}}, "Rows" -> {{True}}},
+   GridBoxItemSize->{"Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}},
+   GridBoxSpacings->{"Columns" -> {{1.2}}, "Rows" -> {{0.6}}}],
+  "Grid"]], "Output",ExpressionUUID->"1906a440-3011-4378-bc7c-5cbb3d93122a"],
+
+Cell["\<\
+In the smallest, the if branch is empty (pass) and the action then falls off \
+the end, returning None: success needs not p, yet no return False in the if \
+says so.\
+\>", "Text",ExpressionUUID->"63c7ee60-e123-4ac9-9732-e0b479826f8a"],
+
+Cell["R5. What a reported atom guarantees", "Subsection",ExpressionUUID->"96edbd21-33b7-4dd0-aba8-36298176d390"],
+
+Cell["\<\
+Corollary (necessity). If a reported atom is false in some state, the action \
+fails there, and it fails in every state where that atom stays false. Any \
+repair must make it true; repairing anything else alone cannot suffice. This \
+is soundness read from the consumer's side.\
+\>", "Text",ExpressionUUID->"68a2ffaf-9be9-41c4-ae97-35b568a6fad4"],
+
+Cell["\<\
+Limit 1, one way only: fixing every reported atom does not ensure success. \
+Here success needs p and (q or r), so R = {p}; with p true and q, r false \
+every atom holds, yet the action fails.\
+\>", "Text",ExpressionUUID->"fe5c39c7-d479-490a-9cf7-108e2eca589f"],
+
+Cell[BoxData[
+ RowBox[{"With", "[", 
+  RowBox[{
+   RowBox[{"{", 
+    RowBox[{"P", "=", 
+     RowBox[{"number", "[", 
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{"sIf", "[", 
+         RowBox[{"p", ",", 
+          RowBox[{"{", 
+           RowBox[{
+            RowBox[{"sIf", "[", 
+             RowBox[{"q", ",", 
+              RowBox[{"{", "ok", "}"}], ",", 
+              RowBox[{"{", "}"}]}], "]"}], ",", 
+            RowBox[{"sIf", "[", 
+             RowBox[{"r", ",", 
+              RowBox[{"{", "ok", "}"}], ",", 
+              RowBox[{"{", "}"}]}], "]"}]}], "}"}], ",", 
+          RowBox[{"{", "}"}]}], "]"}], ",", "bail"}], "}"}], "]"}]}], "}"}], ",", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"showP", "[", "P", "]"}], ",", 
+     RowBox[{"showReq", "[", 
+      RowBox[{"P", ",", 
+       RowBox[{"cur", "[", "P", "]"}]}], "]"}], ",", 
+     RowBox[{
+      RowBox[{"sem", "[", 
+       RowBox[{"P", ",", "False"}], "]"}], "/.", "\[VeryThinSpace]", 
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{"p", "\[Rule]", "True"}], ",", 
+        RowBox[{"q", "\[Rule]", "False"}], ",", 
+        RowBox[{"r", "\[Rule]", "False"}]}], "}"}]}]}], "}"}]}], 
+  "]"}]], "Input",ExpressionUUID->"c9ff1f84-34ff-4393-95ef-f7cf27cce96e"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{"\<\"{if[p, {if[q, {ok}, {}], if[r, {ok}, {}]}, {}], bail}\"\>", ",", 
+   TemplateBox[{"\"p\""},
+    "RowDefault"], ",", "False"}], "}"}]], "Output",ExpressionUUID->"1b5c5bc9-\
+9521-4b57-af71-959fe5d376d5"],
+
+Cell["\<\
+Limit 2, no list of atoms can be complete: when success needs one of two \
+alternatives, no single literal is necessary. Here success is p or q, the \
+only sound set of atoms is empty, and a complete explanation would have to \
+say p \[Or] q.\
+\>", "Text",ExpressionUUID->"851e9221-66df-49ad-8517-74d9891cf36c"],
+
+Cell[BoxData[
+ RowBox[{"With", "[", 
+  RowBox[{
+   RowBox[{"{", 
+    RowBox[{"P", "=", 
+     RowBox[{"number", "[", 
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{"sIf", "[", 
+         RowBox[{"p", ",", 
+          RowBox[{"{", "ok", "}"}], ",", 
+          RowBox[{"{", "}"}]}], "]"}], ",", 
+        RowBox[{"sIf", "[", 
+         RowBox[{"q", ",", 
+          RowBox[{"{", "ok", "}"}], ",", 
+          RowBox[{"{", "}"}]}], "]"}], ",", "bail"}], "}"}], "]"}]}], "}"}], ",", 
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"showP", "[", "P", "]"}], ",", 
+     RowBox[{"BooleanMinimize", "[", 
+      RowBox[{"sem", "[", 
+       RowBox[{"P", ",", "False"}], "]"}], "]"}], ",", 
+     RowBox[{"cur", "[", "P", "]"}]}], "}"}]}], "]"}]], "Input",ExpressionUUID\
+->"5718707e-3657-48c4-9e7f-2f2d262b43df"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{"\<\"{if[p, {ok}, {}], if[q, {ok}, {}], bail}\"\>", ",", 
+   RowBox[{"p", "||", "q"}], ",", 
+   RowBox[{"{", "}"}]}], "}"}]], "Output",ExpressionUUID->"954009df-937b-4ffe-\
+a9bd-df9bf02099a5"],
+
+Cell["\<\
+Limit 3, outside the theorem: a missed necessary literal (R4) is as necessary \
+as a reported one. Under the theorem's hypotheses there are none, and the \
+split is exact: reported means necessary, unreported means some successful \
+run does without it.\
+\>", "Text",ExpressionUUID->"d25ecb5d-307c-465b-b1b9-3c9a9c1290e4"],
+
+Cell["R6. The code computes the model", "Subsection",ExpressionUUID->"c4ab6401-dcd0-490d-8955-4ee6b46b4469"],
+
+Cell["\<\
+As round 00 R5, for the two latest readings: scripts/cf_agree.py renders \
+every program as a Python action, runs extract_action_guards from dc3f852 and \
+from caa3a1b, and compares their atoms with the model's (newReq and cur \
+respectively).\
+\>", "Text",ExpressionUUID->"75c0f1ab-d3fd-4e97-873f-10dedced8928"],
+
+Cell[BoxData[
+ RowBox[{"Module", "[", 
+  RowBox[{
+   RowBox[{"{", 
+    RowBox[{
+     RowBox[{"json", "=", 
+      RowBox[{"FileNameJoin", "[", 
+       RowBox[{"{", 
+        RowBox[{
+        "$TemporaryDirectory", ",", "\"\<guard_r01_programs.json\>\""}], 
+        "}"}], "]"}]}], ",", 
+     RowBox[{"old", "=", 
+      RowBox[{"FileNameJoin", "[", 
+       RowBox[{"{", 
+        RowBox[{"$TemporaryDirectory", ",", "\"\<guard_r01_old.py\>\""}], 
+        "}"}], "]"}]}], ",", 
+     RowBox[{"new", "=", 
+      RowBox[{"FileNameJoin", "[", 
+       RowBox[{"{", 
+        RowBox[{"$TemporaryDirectory", ",", "\"\<guard_r01_new.py\>\""}], 
+        "}"}], "]"}]}], ",", "res"}], "}"}], ",", 
+   RowBox[{
+    RowBox[{"Export", "[", 
+     RowBox[{"json", ",", 
+      RowBox[{
+       RowBox[{"(", 
+        RowBox[{
+         RowBox[{"Association", "[", 
+          RowBox[{
+           RowBox[{"\"\<prog\>\"", "\[Rule]", 
+            RowBox[{"toJ", "[", "#1", "]"}]}], ",", 
+           RowBox[{"\"\<old\>\"", "\[Rule]", 
+            RowBox[{"newReq", "[", "#1", "]"}]}], ",", 
+           RowBox[{"\"\<new\>\"", "\[Rule]", 
+            RowBox[{"cur", "[", "#1", "]"}]}]}], "]"}], "&"}], ")"}], "/@", 
+       "progs"}], ",", "\"\<RawJSON\>\"", ",", 
+      RowBox[{"\"\<Compact\>\"", "\[Rule]", "True"}]}], "]"}], ";", 
+    RowBox[{"WriteString", "[", 
+     RowBox[{"old", ",", 
+      RowBox[{"RunProcess", "[", 
+       RowBox[{
+        RowBox[{"{", 
+         RowBox[{"\"\<git\>\"", ",", "\"\<-C\>\"", ",", "$repo", 
+          ",", "\"\<show\>\"", 
+          ",", "\"\<dc3f852:packages/gtpyhop-diagnostics/src/gtpyhop/\
+diagnostics/guards.py\>\""}], "}"}], ",", "\"\<StandardOutput\>\""}], "]"}]}],
+      "]"}], ";", 
+    RowBox[{"Close", "[", "old", "]"}], ";", 
+    RowBox[{"WriteString", "[", 
+     RowBox[{"new", ",", 
+      RowBox[{"RunProcess", "[", 
+       RowBox[{
+        RowBox[{"{", 
+         RowBox[{"\"\<git\>\"", ",", "\"\<-C\>\"", ",", "$repo", 
+          ",", "\"\<show\>\"", 
+          ",", "\"\<caa3a1b:packages/gtpyhop-diagnostics/src/gtpyhop/\
+diagnostics/guards.py\>\""}], "}"}], ",", "\"\<StandardOutput\>\""}], "]"}]}],
+      "]"}], ";", 
+    RowBox[{"Close", "[", "new", "]"}], ";", 
+    RowBox[{"res", "=", 
+     RowBox[{"RunProcess", "[", 
+      RowBox[{"{", 
+       RowBox[{"\"\<python3\>\"", ",", "\"\<-S\>\"", ",", 
+        RowBox[{"FileNameJoin", "[", 
+         RowBox[{"{", 
+          RowBox[{
+          "$here", ",", "\"\<scripts\>\"", ",", "\"\<cf_agree.py\>\""}], 
+          "}"}], "]"}], ",", "old", ",", "new", ",", "json"}], "}"}], "]"}]}],
+     ";", 
+    RowBox[{"DeleteFile", "[", 
+     RowBox[{"{", 
+      RowBox[{"json", ",", "old", ",", "new"}], "}"}], "]"}], ";", 
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"res", "[", "\"\<ExitCode\>\"", "]"}], ",", 
+      RowBox[{"StringTrim", "[", 
+       RowBox[{"res", "[", "\"\<StandardOutput\>\"", "]"}], "]"}]}], 
+     "}"}]}]}], "]"}]], "Input",ExpressionUUID->"62e495e7-5f34-4d5c-bcdd-\
+c1a04a1956cf"],
+
+Cell[BoxData[
+ RowBox[{"{", 
+  RowBox[{
+  "0", ",", "\<\"programs=94350 old_mismatches=0 new_mismatches=0\"\>"}], 
+  "}"}]], "Output",ExpressionUUID->"7d1820b2-3427-435e-b3a2-ef3064eb4dff"],
+
+Cell["Observations", "Section",ExpressionUUID->"20edc360-0178-4c98-bd36-0494e19f6a02"],
+
+Cell[BoxData[
+ TagBox[GridBox[{
+    {
+     StyleBox["\<\"Signal\"\>",
+      StripOnInput->False,
+      FontWeight->Bold], 
+     StyleBox["\<\"Baseline / Expected\"\>",
+      StripOnInput->False,
+      FontWeight->Bold], 
+     StyleBox["\<\"Observed [source]\"\>",
+      StripOnInput->False,
+      FontWeight->Bold], 
+     StyleBox["\<\"Interpretation\"\>",
+      StripOnInput->False,
+      FontWeight->Bold]},
+    {"\<\"termination\"\>", "\<\"always, linear\"\>", "\<\"\[LessEqual] 1 \
+step per statement on every body [R1]\"\>", "\<\"structural recursion, no \
+fixpoint\"\>"},
+    {"\<\"unsound atoms\"\>", "\<\"0\"\>", "\<\"0 [R2]\"\>", "\<\"soundness \
+carries over from round 00\"\>"},
+    {"\<\"completeness\"\>", "\<\"exact under the hypotheses\"\>", \
+"\<\"80,443 of 80,443 exact [R3]\"\>", "\<\"the theorem holds up to the \
+bound, and by proof beyond it\"\>"},
+    {"\<\"misses, real tests\"\>", "\<\"only loops and repeated tests\"\>", "\
+\<\"12,954 + 11,352, other 0 [R4]\"\>", "\<\"the two known costs, nothing \
+else\"\>"},
+    {"\<\"per-if gap\"\>", "\<\"closed\"\>", "\<\"46,338 literals gained [R4]\
+\"\>", "\<\"none occur in the bundled examples or the corpus\"\>"},
+    {"\<\"model vs code\"\>", "\<\"0 mismatches\"\>", "\<\"0 and 0 [R6]\"\>", \
+"\<\"the proof covers the shipped guards.py\"\>"}
+   },
+   AutoDelete->False,
+   GridBoxAlignment->{"Columns" -> {{Left}}},
+   GridBoxBackground->{"Columns" -> {{None}}, "Rows" -> {
+       GrayLevel[0.9]}},
+   GridBoxFrame->{"Columns" -> {{True}}, "Rows" -> {{True}}},
+   GridBoxItemSize->{"Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}},
+   GridBoxSpacings->{"Columns" -> {{1.2}}, "Rows" -> {{0.6}}}],
+  "Grid"]], "Output",ExpressionUUID->"4558a122-8ed6-4d5d-b34c-daac5316d3fa"],
+
+Cell["Scope: what this does not prove", "Subsection",ExpressionUUID->"3091316c-7231-4cf3-9023-56526af47e25"],
+
+Cell["\<\
+Tests are read on the state the action was called on. A test that reads state \
+the action has already changed is outside the model, for soundness and \
+completeness alike.\
+\>", "Item",ExpressionUUID->"c317b54b-b026-4d42-a18f-9b6c182222e9"],
+
+Cell["\<\
+Completeness is relative: to independent tests, to success returns outside \
+loops, and to the literals of if tests. Round 00's splitting of each \
+requirement into atoms is a separate step with its own precision.\
+\>", "Item",ExpressionUUID->"09c07311-1212-44b8-b45f-d2624bcc4feb"],
+
+Cell["\<\
+The bundled and corpus counts are measurements \
+(diagnostics_guard_nnf/scripts), listed in the commit message: no atom \
+changes between dc3f852 and caa3a1b, recognition 330 of 335 and 5,807 of \
+5,885.\
+\>", "Item",ExpressionUUID->"4ca6474d-40f9-44f7-b9d1-b5d71eae5ef8"],
+
+Cell["Charts & Visualizations", "Section",ExpressionUUID->"2f1a24f0-ff80-4468-91e3-58d0a0c609ac"],
+
+Cell[BoxData[
+ RowBox[{"BarChart", "[", 
+  RowBox[{
+   RowBox[{"{", 
+    RowBox[{"tWalk", ",", "tDc", ",", "tCur"}], "}"}], ",", 
+   RowBox[{"ChartLayout", "\[Rule]", "\"\<Stacked\>\""}], ",", 
+   RowBox[{"ChartLabels", "\[Rule]", 
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"{", 
+       RowBox[{"\"\<ast.walk (0.1.1)\>\"", ",", "\"\<filtered (dc3f852)\>\"", 
+        ",", "\"\<analysis (caa3a1b)\>\""}], "}"}], ",", "None"}], "}"}]}], ",", 
+   RowBox[{"ChartLegends", "\[Rule]", 
+    RowBox[{"Placed", "[", 
+     RowBox[{
+      RowBox[{"{", 
+       RowBox[{"\"\<sound, informative\>\"", 
+        ",", "\"\<vacuous (body never succeeds)\>\"", 
+        ",", "\"\<unsound\>\""}], "}"}], ",", "Below"}], "]"}]}], ",", 
+   RowBox[{"ChartStyle", "\[Rule]", 
+    RowBox[{"{", 
+     RowBox[{
+      TemplateBox[<|"color" -> GrayLevel[0.45]|>,
+       "GrayLevelColorSwatchTemplate"], ",", 
+      TemplateBox[<|"color" -> GrayLevel[0.8]|>,
+       "GrayLevelColorSwatchTemplate"], ",", "Red"}], "}"}]}], ",", 
+   RowBox[{"AxesLabel", "\[Rule]", 
+    RowBox[{"{", 
+     RowBox[{"None", ",", "\"\<atoms\>\""}], "}"}]}], ",", 
+   RowBox[{"LabelingFunction", "\[Rule]", 
+    RowBox[{"(", 
+     RowBox[{
+      RowBox[{"If", "[", 
+       RowBox[{
+        RowBox[{"#1", ">", "2000"}], ",", 
+        RowBox[{"Placed", "[", 
+         RowBox[{
+          RowBox[{"Style", "[", 
+           RowBox[{
+            RowBox[{"fmt", "[", "#1", "]"}], ",", "Black", ",", "11"}], "]"}],
+           ",", "Center"}], "]"}], ",", "None"}], "]"}], "&"}], ")"}]}], ",", 
+   
+   RowBox[{"PlotLabel", "\[Rule]", 
+    RowBox[{"\"\<Atoms extracted from \>\"", "<>", 
+     RowBox[{"fmt", "[", 
+      RowBox[{"Length", "[", "progs", "]"}], "]"}], 
+     "<>", "\"\< action bodies (every body of \[LessEqual] \>\"", "<>", 
+     RowBox[{"ToString", "[", "$maxSize", "]"}], 
+     "<>", "\"\< statements)\>\""}]}], ",", 
+   RowBox[{"ImageSize", "\[Rule]", "560"}]}], "]"}]], "Input",ExpressionUUID->\
+"d43d93e1-f9ca-4116-9534-2391dc1a7a96"],
+
+Cell[BoxData[
+ TemplateBox[{
+   GraphicsBox[{{
+      Opacity[0], 
+      PointBox[{{0.12978878368536045`, 0.}, {3.812163146394756, 
+       0.}}]}, {{}, {{{}, {{{
+           Directive[
+            EdgeForm[
+             Directive[
+              Thickness[Small], 
+              Opacity[0.637]]], 
+            GrayLevel[0.45]], 
+           TagBox[
+            DynamicBox[{
+              FEPrivate`If[
+               CurrentValue["MouseOver"], 
+               EdgeForm[{
+                 GrayLevel[0.5], 
+                 AbsoluteThickness[1.5], 
+                 Opacity[0.66]}], {}, {}], 
+              
+              RectangleBox[{0.5487982520029133, 0.}, {1.4512017479970867`, 
+               17085.}, "RoundingRadius" -> 0]}], 
+            "DelayedMouseEffectStyle"]}, {
+           Directive[
+            EdgeForm[
+             Directive[
+              Thickness[Small], 
+              Opacity[0.637]]], 
+            GrayLevel[0.8]], 
+           TagBox[
+            DynamicBox[{
+              FEPrivate`If[
+               CurrentValue["MouseOver"], 
+               EdgeForm[{
+                 GrayLevel[0.5], 
+                 AbsoluteThickness[1.5], 
+                 Opacity[0.66]}], {}, {}], 
+              
+              RectangleBox[{0.5487982520029133, 17085.}, {1.4512017479970867`,
+                51258.}, "RoundingRadius" -> 0]}], 
+            "DelayedMouseEffectStyle"]}, {
+           Directive[
+            EdgeForm[
+             Directive[
+              Thickness[Small], 
+              Opacity[0.637]]], 
+            RGBColor[1, 0, 0]], 
+           TagBox[
+            DynamicBox[{
+              FEPrivate`If[
+               CurrentValue["MouseOver"], 
+               EdgeForm[{
+                 GrayLevel[0.5], 
+                 AbsoluteThickness[1.5], 
+                 Opacity[0.66]}], {}, {}], 
+              
+              RectangleBox[{0.5487982520029133, 51258.}, {1.4512017479970867`,
+                65148.}, "RoundingRadius" -> 0]}], 
+            "DelayedMouseEffectStyle"]}}}, {}, {}}, {{}, {{{
+           Directive[
+            EdgeForm[
+             Directive[
+              Thickness[Small], 
+              Opacity[0.637]]], 
+            GrayLevel[0.45]], 
+           TagBox[
+            DynamicBox[{
+              FEPrivate`If[
+               CurrentValue["MouseOver"], 
+               EdgeForm[{
+                 GrayLevel[0.5], 
+                 AbsoluteThickness[1.5], 
+                 Opacity[0.66]}], {}, {}], 
+              
+              RectangleBox[{1.5487982520029133`, 0.}, {2.4512017479970867`, 
+               13566.}, "RoundingRadius" -> 0]}], 
+            "DelayedMouseEffectStyle"]}, {
+           Directive[
+            EdgeForm[
+             Directive[
+              Thickness[Small], 
+              Opacity[0.637]]], 
+            GrayLevel[0.8]], 
+           TagBox[
+            DynamicBox[{
+              FEPrivate`If[
+               CurrentValue["MouseOver"], 
+               EdgeForm[{
+                 GrayLevel[0.5], 
+                 AbsoluteThickness[1.5], 
+                 Opacity[0.66]}], {}, {}], 
+              
+              RectangleBox[{1.5487982520029133`, 13566.}, {
+               2.4512017479970867`, 17682.}, "RoundingRadius" -> 0]}], 
+            "DelayedMouseEffectStyle"]}, {
+           Directive[
+            EdgeForm[
+             Directive[
+              Thickness[Small], 
+              Opacity[0.637]]], 
+            RGBColor[1, 0, 0]], 
+           TagBox[
+            DynamicBox[{
+              FEPrivate`If[
+               CurrentValue["MouseOver"], 
+               EdgeForm[{
+                 GrayLevel[0.5], 
+                 AbsoluteThickness[1.5], 
+                 Opacity[0.66]}], {}, {}], 
+              
+              RectangleBox[{1.5487982520029133`, 17682.}, {
+               2.4512017479970867`, 17682.}, "RoundingRadius" -> 0]}], 
+            "DelayedMouseEffectStyle"]}}}, {}, {}}, {{}, {{{
+           Directive[
+            EdgeForm[
+             Directive[
+              Thickness[Small], 
+              Opacity[0.637]]], 
+            GrayLevel[0.45]], 
+           TagBox[
+            DynamicBox[{
+              FEPrivate`If[
+               CurrentValue["MouseOver"], 
+               EdgeForm[{
+                 GrayLevel[0.5], 
+                 AbsoluteThickness[1.5], 
+                 Opacity[0.66]}], {}, {}], 
+              
+              RectangleBox[{2.5487982520029133`, 0.}, {3.4512017479970867`, 
+               54252.}, "RoundingRadius" -> 0]}], 
+            "DelayedMouseEffectStyle"]}, {
+           Directive[
+            EdgeForm[
+             Directive[
+              Thickness[Small], 
+              Opacity[0.637]]], 
+            GrayLevel[0.8]], 
+           TagBox[
+            DynamicBox[{
+              FEPrivate`If[
+               CurrentValue["MouseOver"], 
+               EdgeForm[{
+                 GrayLevel[0.5], 
+                 AbsoluteThickness[1.5], 
+                 Opacity[0.66]}], {}, {}], 
+              
+              RectangleBox[{2.5487982520029133`, 54252.}, {
+               3.4512017479970867`, 64020.}, "RoundingRadius" -> 0]}], 
+            "DelayedMouseEffectStyle"]}, {
+           Directive[
+            EdgeForm[
+             Directive[
+              Thickness[Small], 
+              Opacity[0.637]]], 
+            RGBColor[1, 0, 0]], 
+           TagBox[
+            DynamicBox[{
+              FEPrivate`If[
+               CurrentValue["MouseOver"], 
+               EdgeForm[{
+                 GrayLevel[0.5], 
+                 AbsoluteThickness[1.5], 
+                 Opacity[0.66]}], {}, {}], 
+              
+              RectangleBox[{2.5487982520029133`, 64020.}, {
+               3.4512017479970867`, 64020.}, "RoundingRadius" -> 0]}], 
+            "DelayedMouseEffectStyle"]}}}, {}, {}}}, {}, {}}, {}, {
+      InsetBox[
+       FormBox[
+        StyleBox[
+         StyleBox["\"17,085\"", 
+          GrayLevel[0], 11, StripOnInput -> False], {}, StripOnInput -> 
+         False], TraditionalForm], {1., 8542.5}, 
+       ImageScaled[{0.5, 0.5}]], 
+      InsetBox[
+       FormBox[
+        StyleBox[
+         StyleBox["\"34,173\"", 
+          GrayLevel[0], 11, StripOnInput -> False], {}, StripOnInput -> 
+         False], TraditionalForm], {1., 34171.5}, 
+       ImageScaled[{0.5, 0.5}]], 
+      InsetBox[
+       FormBox[
+        StyleBox[
+         StyleBox["\"13,890\"", 
+          GrayLevel[0], 11, StripOnInput -> False], {}, StripOnInput -> 
+         False], TraditionalForm], {1., 58203.}, 
+       ImageScaled[{0.5, 0.5}]], 
+      InsetBox[
+       FormBox[
+        StyleBox[
+         StyleBox["\"13,566\"", 
+          GrayLevel[0], 11, StripOnInput -> False], {}, StripOnInput -> 
+         False], TraditionalForm], {2., 6783.}, 
+       ImageScaled[{0.5, 0.5}]], 
+      InsetBox[
+       FormBox[
+        StyleBox[
+         StyleBox["\"4,116\"", 
+          GrayLevel[0], 11, StripOnInput -> False], {}, StripOnInput -> 
+         False], TraditionalForm], {2., 15624.}, 
+       ImageScaled[{0.5, 0.5}]], 
+      InsetBox[
+       FormBox[
+        StyleBox[
+         StyleBox["\"54,252\"", 
+          GrayLevel[0], 11, StripOnInput -> False], {}, StripOnInput -> 
+         False], TraditionalForm], {3., 27126.}, 
+       ImageScaled[{0.5, 0.5}]], 
+      InsetBox[
+       FormBox[
+        StyleBox[
+         StyleBox["\"9,768\"", 
+          GrayLevel[0], 11, StripOnInput -> False], {}, StripOnInput -> 
+         False], TraditionalForm], {3., 59136.}, 
+       ImageScaled[{0.5, 0.5}]]}, {}, {}, {
+      StyleBox[{Antialiasing -> False, {
+         Directive[
+          Thickness[Tiny]], {
+          LineBox[{{0.12978878368536045`, 0.}, {3.8785914056809903`, 0.}}]}, 
+         StyleBox[{}, {"GraphicsLabel"}, StripOnInput -> False]}, 
+        StyleBox[{{
+           Directive[
+            Thickness[Tiny]], 
+           LineBox[{{0.5487982520029133, 0.}, 
+             
+             Offset[{-1.102182119232618*^-15, -6.}, {0.5487982520029133, 
+              0.}]}], 
+           LineBox[{{3.4512017479970867`, 0.}, 
+             
+             Offset[{-1.102182119232618*^-15, -6.}, {3.4512017479970867`, 
+              0.}]}], {{}, {}, {}, {
+             LineBox[{{1.4512017479970867`, 0.}, 
+               
+               Offset[{-1.102182119232618*^-15, -6.}, {1.4512017479970867`, 
+                0.}]}], 
+             LineBox[{{1.5487982520029133`, 0.}, 
+               
+               Offset[{-1.102182119232618*^-15, -6.}, {1.5487982520029133`, 
+                0.}]}], 
+             LineBox[{{2.4512017479970867`, 0.}, 
+               
+               Offset[{-1.102182119232618*^-15, -6.}, {2.4512017479970867`, 
+                0.}]}], 
+             LineBox[{{2.5487982520029133`, 0.}, 
+               
+               Offset[{-1.102182119232618*^-15, -6.}, {2.5487982520029133`, 
+                0.}]}]}}}, 
+          StyleBox[{
+            Directive[
+             Thickness[Tiny]], 
+            Directive[
+             Thickness[Tiny]], 
+            StyleBox[{
+              InsetBox[
+               FormBox["\"ast.walk (0.1.1)\"", TraditionalForm], 
+               Offset[{0, -2}, {1., 0.}], 
+               NCache[
+                ImageScaled[{
+                  Rational[1, 2], 1}], 
+                ImageScaled[{0.5, 1}]], Automatic, {1, 0}], 
+              InsetBox[
+               FormBox["\"filtered (dc3f852)\"", TraditionalForm], 
+               Offset[{0, -2}, {2., 0.}], 
+               NCache[
+                ImageScaled[{
+                  Rational[1, 2], 1}], 
+                ImageScaled[{0.5, 1}]], Automatic, {1, 0}], 
+              InsetBox[
+               FormBox["\"analysis (caa3a1b)\"", TraditionalForm], 
+               Offset[{0, -2}, {3., 0.}], 
+               NCache[
+                ImageScaled[{
+                  Rational[1, 2], 1}], 
+                ImageScaled[{0.5, 1}]], Automatic, {1, 0}]}, {{}}, 
+             StripOnInput -> False]}, {"GraphicsLabel"}, StripOnInput -> 
+           False]}, {"GraphicsTicks"}, StripOnInput -> False]}, {
+       "GraphicsAxes"}, StripOnInput -> False]}}, {
+    DisplayFunction -> Identity, PlotInteractivity :> True, 
+     DefaultBaseStyle -> {"PlotGraphics", "Graphics"}, AspectRatio -> 
+     NCache[GoldenRatio^(-1), 0.6180339887498948], Axes -> {False, True}, 
+     AxesLabel -> {None, 
+       FormBox[
+        TagBox["\"atoms\"", HoldForm], TraditionalForm]}, 
+     AxesOrigin -> {0.12978878368536045`, 0.}, 
+     CoordinatesToolOptions -> {"DisplayFunction" -> ({
+         Identity[
+          Part[#, 1]], 
+         Identity[
+          Part[#, 2]]}& ), "CopiedValueFunction" -> ({
+         Identity[
+          Part[#, 1]], 
+         Identity[
+          Part[#, 2]]}& )}, FrameLabel -> {{None, None}, {None, None}}, 
+     FrameTicks -> {{Automatic, Automatic}, {Automatic, Automatic}}, 
+     GridLines -> {None, None}, GridLinesStyle -> Directive[
+       GrayLevel[0.5, 0.4]], ImageSize -> 560, PlotLabel -> 
+     FormBox["\"Atoms extracted from 94,350 action bodies (every body of \
+\[LessEqual] 6 statements)\"", TraditionalForm], 
+     PlotRange -> {{All, All}, {All, All}}, PlotRangePadding -> {{
+        Scaled[0.02], 
+        Scaled[0.02]}, {
+        Scaled[0.02], 
+        Scaled[0.05]}}, Ticks -> {None, Automatic}}], 
+   FormBox[
+    FormBox[
+     TemplateBox[{
+      "\"sound, informative\"", "\"vacuous (body never succeeds)\"", 
+       "\"unsound\""}, "SwatchLegend", DisplayFunction -> (FormBox[
+        StyleBox[
+         StyleBox[
+          PaneBox[
+           TagBox[
+            GridBox[{{
+               TagBox[
+                GridBox[{{
+                   GraphicsBox[{
+                    Directive[
+                    PointSize[0.5], 
+                    AbsoluteThickness[1.6], 
+                    EdgeForm[
+                    Directive[
+                    GrayLevel[0], 
+                    Thickness[Small], 
+                    Opacity[0.637]]], 
+                    GrayLevel[0.45]], 
+                    RectangleBox[{0, 0}, {10, 10}, "RoundingRadius" -> 0]}, 
+                    AspectRatio -> Full, ImageSize -> {10, 10}, 
+                    PlotRangePadding -> None, ImagePadding -> Automatic, 
+                    BaselinePosition -> (Scaled[0.1] -> Baseline)], #}}, 
+                 GridBoxAlignment -> {
+                  "Columns" -> {Center, Left}, "Rows" -> {{Baseline}}}, 
+                 AutoDelete -> False, 
+                 GridBoxDividers -> {
+                  "Columns" -> {{False}}, "Rows" -> {{False}}}, 
+                 GridBoxItemSize -> {"Columns" -> {{All}}, "Rows" -> {{All}}},
+                  GridBoxSpacings -> {"Columns" -> {{1, 0.3}}}], "Grid"]}, {
+               TagBox[
+                GridBox[{{
+                   GraphicsBox[{
+                    Directive[
+                    PointSize[0.5], 
+                    AbsoluteThickness[1.6], 
+                    EdgeForm[
+                    Directive[
+                    GrayLevel[0], 
+                    Thickness[Small], 
+                    Opacity[0.637]]], 
+                    GrayLevel[0.8]], 
+                    RectangleBox[{0, 0}, {10, 10}, "RoundingRadius" -> 0]}, 
+                    AspectRatio -> Full, ImageSize -> {10, 10}, 
+                    PlotRangePadding -> None, ImagePadding -> Automatic, 
+                    BaselinePosition -> (Scaled[0.1] -> Baseline)], #2, 
+                   GraphicsBox[{
+                    Directive[
+                    PointSize[0.5], 
+                    AbsoluteThickness[1.6], 
+                    EdgeForm[
+                    Directive[
+                    GrayLevel[0], 
+                    Thickness[Small], 
+                    Opacity[0.637]]], 
+                    RGBColor[1, 0, 0]], 
+                    RectangleBox[{0, 0}, {10, 10}, "RoundingRadius" -> 0]}, 
+                    AspectRatio -> Full, ImageSize -> {10, 10}, 
+                    PlotRangePadding -> None, ImagePadding -> Automatic, 
+                    BaselinePosition -> (Scaled[0.1] -> Baseline)], #3}}, 
+                 GridBoxAlignment -> {
+                  "Columns" -> {Center, Left}, "Rows" -> {{Baseline}}}, 
+                 AutoDelete -> False, 
+                 GridBoxDividers -> {
+                  "Columns" -> {{False}}, "Rows" -> {{False}}}, 
+                 GridBoxItemSize -> {"Columns" -> {{All}}, "Rows" -> {{All}}},
+                  GridBoxSpacings -> {"Columns" -> {{1, 0.3}}}], "Grid"]}}, 
+             GridBoxAlignment -> {"Columns" -> {{Left}}, "Rows" -> {{Top}}}, 
+             AutoDelete -> False, 
+             GridBoxDividers -> {"Columns" -> {{None}}, "Rows" -> {{None}}}, 
+             GridBoxItemSize -> {"Columns" -> {{All}}, "Rows" -> {{All}}}, 
+             GridBoxSpacings -> {"Columns" -> {{0}}, "Rows" -> {{0.5}}}], 
+            "Grid"], Alignment -> Left, AppearanceElements -> None, 
+           ImageMargins -> {{5, 5}, {5, 5}}, ImageSizeAction -> 
+           "ResizeToFit"], LineIndent -> 0, StripOnInput -> False], {
+         FontFamily -> "Arial"}, Background -> Automatic, StripOnInput -> 
+         False], TraditionalForm]& ), 
+      InterpretationFunction :> (RowBox[{"SwatchLegend", "[", 
+         RowBox[{
+           RowBox[{"{", 
+             RowBox[{
+               RowBox[{"{", 
+                 RowBox[{
+                   RowBox[{"Directive", "[", 
+                    RowBox[{
+                    RowBox[{"EdgeForm", "[", 
+                    RowBox[{"Directive", "[", 
+                    RowBox[{
+                    RowBox[{"Thickness", "[", "Small", "]"}], ",", 
+                    RowBox[{"Opacity", "[", "0.637`", "]"}]}], "]"}], "]"}], 
+                    ",", 
+                    
+                    TemplateBox[<|"light" -> GrayLevel[0.8]|>, 
+                    "LightDarkSwitched1"]}], "]"}], ",", 
+                   RowBox[{"Directive", "[", 
+                    RowBox[{
+                    RowBox[{"EdgeForm", "[", 
+                    RowBox[{"Directive", "[", 
+                    RowBox[{
+                    RowBox[{"Thickness", "[", "Small", "]"}], ",", 
+                    RowBox[{"Opacity", "[", "0.637`", "]"}]}], "]"}], "]"}], 
+                    ",", 
+                    
+                    TemplateBox[<|"light" -> GrayLevel[0.8]|>, 
+                    "LightDarkSwitched1"]}], "]"}], ",", 
+                   RowBox[{"Directive", "[", 
+                    RowBox[{
+                    RowBox[{"EdgeForm", "[", 
+                    RowBox[{"Directive", "[", 
+                    RowBox[{
+                    RowBox[{"Thickness", "[", "Small", "]"}], ",", 
+                    RowBox[{"Opacity", "[", "0.637`", "]"}]}], "]"}], "]"}], 
+                    ",", 
+                    
+                    TemplateBox[<|"light" -> GrayLevel[0.8]|>, 
+                    "LightDarkSwitched1"]}], "]"}]}], "}"}], ",", 
+               RowBox[{"{", 
+                 RowBox[{
+                   RowBox[{"Directive", "[", 
+                    RowBox[{
+                    RowBox[{"EdgeForm", "[", 
+                    RowBox[{"Directive", "[", 
+                    RowBox[{
+                    RowBox[{"Thickness", "[", "Small", "]"}], ",", 
+                    RowBox[{"Opacity", "[", "0.637`", "]"}]}], "]"}], "]"}], 
+                    ",", 
+                    
+                    TemplateBox[<|"color" -> GrayLevel[0.45]|>, 
+                    "GrayLevelColorSwatchTemplate"]}], "]"}], ",", 
+                   RowBox[{"Directive", "[", 
+                    RowBox[{
+                    RowBox[{"EdgeForm", "[", 
+                    RowBox[{"Directive", "[", 
+                    RowBox[{
+                    RowBox[{"Thickness", "[", "Small", "]"}], ",", 
+                    RowBox[{"Opacity", "[", "0.637`", "]"}]}], "]"}], "]"}], 
+                    ",", 
+                    
+                    TemplateBox[<|"color" -> GrayLevel[0.8]|>, 
+                    "GrayLevelColorSwatchTemplate"]}], "]"}], ",", 
+                   RowBox[{"Directive", "[", 
+                    RowBox[{
+                    RowBox[{"EdgeForm", "[", 
+                    RowBox[{"Directive", "[", 
+                    RowBox[{
+                    RowBox[{"Thickness", "[", "Small", "]"}], ",", 
+                    RowBox[{"Opacity", "[", "0.637`", "]"}]}], "]"}], "]"}], 
+                    ",", 
+                    
+                    TemplateBox[<|"color" -> RGBColor[1, 0, 0]|>, 
+                    "RGBColorSwatchTemplate"]}], "]"}]}], "}"}]}], "}"}], ",", 
+           RowBox[{"{", 
+             RowBox[{
+               RowBox[{"{", "}"}], ",", 
+               RowBox[{"{", 
+                 RowBox[{#, ",", #2, ",", #3}], "}"}]}], "}"}], ",", 
+           RowBox[{"LegendMarkers", "\[Rule]", 
+             RowBox[{"{", 
+               RowBox[{
+                 RowBox[{"{", "None", "}"}], ",", 
+                 RowBox[{"{", 
+                   RowBox[{"Automatic", ",", "Automatic", ",", "Automatic"}], 
+                   "}"}]}], "}"}]}], ",", 
+           RowBox[{"LabelStyle", "\[Rule]", 
+             RowBox[{"{", 
+               RowBox[{
+                 RowBox[{"{", "}"}], ",", 
+                 RowBox[{"{", "}"}]}], "}"}]}], ",", 
+           RowBox[{"LegendLayout", "\[Rule]", "\"Row\""}]}], "]"}]& ), 
+      Editable -> True], TraditionalForm], TraditionalForm]},
+  "Legended",
+  DisplayFunction->(GridBox[{{
+      TagBox[
+       ItemBox[
+        PaneBox[
+         TagBox[#, "SkipImageSizeLevel"], Alignment -> {Center, Baseline}, 
+         BaselinePosition -> Baseline], DefaultBaseStyle -> "Labeled"], 
+       "SkipImageSizeLevel"]}, {
+      ItemBox[#2, DefaultBaseStyle -> "LabeledLabel"]}}, 
+    GridBoxAlignment -> {"Columns" -> {{Center}}, "Rows" -> {{Center}}}, 
+    AutoDelete -> False, GridBoxItemSize -> Automatic, 
+    BaselinePosition -> {1, 1}]& ),
+  Editable->True,
+  InterpretationFunction->(RowBox[{"Legended", "[", 
+     RowBox[{#, ",", 
+       RowBox[{"Placed", "[", 
+         RowBox[{#2, ",", "Below"}], "]"}]}], "]"}]& )]], "Output",ExpressionU\
+UID->"f04e5b30-0660-45e7-8632-1be3b24d4a85"],
+
+Cell["\<\
+Caption: dc3f852 removes every unsound atom (red) and most vacuous ones \
+(light grey), and loses informative atoms (dark grey, 17,085 to 13,566) in \
+loops and repeated tests. caa3a1b stays sound and reports 54,252 informative \
+atoms: most enumerated bodies fail by falling through, which the per-if \
+reading of both earlier versions could not see (R4). Real domains spell their \
+failures as return False, so there dc3f852 and caa3a1b give the same atoms.\
+\>", "Text",ExpressionUUID->"860cfe1d-07a6-4de0-88a3-a1af6e8bc477"],
+
+Cell["Contradictions & Surprises", "Section",ExpressionUUID->"fc435295-7c5a-40ee-8b81-c65852b2fe7a"],
+
+Cell["\<\
+Round 00 attributed every precision loss to loops and repeated tests. That \
+was true of the atoms dc3f852 dropped relative to 0.1.1, but both versions \
+shared a third, larger miss: the per-if reading never produced an atom for an \
+if whose failing side falls through. It shows up only when completeness is \
+measured against the success condition rather than against the previous \
+version.\
+\>", "Item",ExpressionUUID->"0c9094a1-23fe-41db-9d82-b7ecaf71f095"],
+
+Cell["\<\
+Closing it changed nothing measurable in practice: every bundled and corpus \
+action already spells its failing side as a return.\
+\>", "Item",ExpressionUUID->"e2a50a88-cbc5-4abc-a5ec-a717bcf844ea"],
+
+Cell["Steering Questions", "Section",ExpressionUUID->"772f5c1d-600a-4ffd-ab61-a199539d5e01"],
+
+Cell["\<\
+[now] Keep caa3a1b in the same PR as dc3f852? It turns the proof from sound \
+into sound and relatively complete, and removes the per-if classifier.\
+\>", "Item",ExpressionUUID->"aca00f9a-bca4-4359-8b54-399b93eab5c5"],
+
+Cell["\<\
+[next run] Make the consumer contract explicit to whoever reads \
+explain_dead_end (an agent, a person): a false atom is necessary, the list is \
+not sufficient, and alternatives are never atoms. A separate change.\
+\>", "Item",ExpressionUUID->"b2c9c16d-1489-468a-865d-b6ae2a8fb514"],
+
+Cell["\<\
+[next run] A test that reads state the action has already written. Measure \
+how often it occurs before deciding whether to model writes.\
+\>", "Item",ExpressionUUID->"16388059-dfad-4e7c-add0-b6b7f5892ca7"],
+
+Cell["References", "Section",ExpressionUUID->"09420c3b-a052-4a96-9ceb-7beee77f88ca"],
+
+Cell["\<\
+G. A. Kildall, A unified approach to global program optimization, POPL 1973. \
+The dataflow framework: the analysis is a backward must-analysis, meet = \
+intersection.\
+\>", "Item",ExpressionUUID->"4e05666b-1eb0-4ed5-973e-f658994dbb22"],
+
+Cell["\<\
+T. Lengauer, R. E. Tarjan, A fast algorithm for finding dominators in a \
+flowgraph, ACM TOPLAS 1(1), 1979. R is the set of branch edges that dominate \
+every success return.\
+\>", "Item",ExpressionUUID->"a24b70ca-2198-44cd-9042-f14af1b8fc83"],
+
+Cell["\<\
+K. D. Cooper, T. J. Harvey, K. Kennedy, A simple, fast dominance algorithm, \
+Software: Practice and Experience, 2001. The iterative form, which a \
+control-flow-graph version would use to recover R4's loop literals.\
+\>", "Item",ExpressionUUID->"dc90cee5-0f53-4c5c-a088-29b252d7ae5c"],
+
+Cell["\<\
+P. Cousot, R. Cousot, M. F\[ADoubleDot]hndrich, F. Logozzo, Automatic \
+inference of necessary preconditions, VMCAI 2013, LNCS 7737. The same goal: \
+conditions whose violation guarantees failure.\
+\>", "Item",ExpressionUUID->"820adaf9-ef2b-447b-97bf-4171c8137953"],
+
+Cell["\<\
+M. Das, S. Lerner, M. Seigle, ESP: path-sensitive program verification in \
+polynomial time, PLDI 2002. A route to R4's repeated-test literals.\
+\>", "Item",ExpressionUUID->"8d33d1c6-d20a-44ef-8236-69c28cdc4ccb"],
+
+Cell["Pointers", "Section",ExpressionUUID->"da2d165c-1bb2-4d60-a7eb-52dbe3943d03"],
+
+Cell["\<\
+Commits dc3f852 (sound), caa3a1b (complete), on top of round 00 of \
+diagnostics_guard_nnf\
+\>", "Item",ExpressionUUID->"f3924d8f-b624-486a-8a15-05f684a2a063"],
+
+Cell["\<\
+tools/diagnostics_guard_check.py: 16 cases, including the executed soundness \
+and completeness property cases\
+\>", "Item",ExpressionUUID->"2616525b-f83c-4e47-bc1b-d1e6c33d4398"],
+
+Cell["\<\
+Round 00 of this topic: 00-findings_guard_control_flow_v0, whose build pins \
+dc3f852\
+\>", "Item",ExpressionUUID->"7f8c651f-8e8b-4728-8936-b1e3c3aa44b7"],
+
+Cell[CellGroupData[{
+
+Cell["Appendix: definitions (initialization cells)", "Section",ExpressionUUID->"1394f46c-ef0c-405c-8462-e0e218179fa1"],
+
+Cell["\<\
+Round 00's model (sem, an, oldReq, newReq, the enumeration), with an counting \
+its steps in $steps. cur is the caa3a1b reading, fresh gives every if its own \
+test, exact the literals the success condition then implies, profile one \
+truth table per program. U, ex and ifRule are the finite universe of R3.\
+\>", "Text",ExpressionUUID->"9620a6f5-dc79-4e81-87f8-67f58db5d709"],
+
+Cell[BoxData[
+ RowBox[{"tests", "=", 
+  RowBox[{"{", 
+   RowBox[{"p", ",", "q", ",", "r"}], "}"}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"bdbda659-294d-4148-89d4-e66dd2e48f7d"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"sem", "[", 
+   RowBox[{
+    RowBox[{"{", "}"}], ",", "k_"}], "]"}], ":=", "k"}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"38645e9e-6327-443c-8fbc-88a85e9c5090"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"sem", "[", 
+   RowBox[{
+    RowBox[{"{", 
+     RowBox[{"ok", ",", "___"}], "}"}], ",", "k_"}], "]"}], ":=", 
+  "True"}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"3ca3f93a-e32e-46a7-90c8-5b209822f80f"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"sem", "[", 
+   RowBox[{
+    RowBox[{"{", 
+     RowBox[{"bail", ",", "___"}], "}"}], ",", "k_"}], "]"}], ":=", 
+  "False"}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"88de19e8-abb9-4a33-89e1-db9fc532255c"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"sem", "[", 
+   RowBox[{
+    RowBox[{"{", 
+     RowBox[{"eff", ",", "rest___"}], "}"}], ",", "k_"}], "]"}], ":=", 
+  RowBox[{"sem", "[", 
+   RowBox[{
+    RowBox[{"{", "rest", "}"}], ",", "k"}], "]"}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"6f57e919-7be8-4246-974c-54daa37be870"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"sem", "[", 
+   RowBox[{
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"if", "[", 
+       RowBox[{"i_", ",", "t_", ",", "A_", ",", "B_"}], "]"}], ",", 
+      "rest___"}], "}"}], ",", "k_"}], "]"}], ":=", 
+  RowBox[{"With", "[", 
+   RowBox[{
+    RowBox[{"{", 
+     RowBox[{"kk", "=", 
+      RowBox[{"sem", "[", 
+       RowBox[{
+        RowBox[{"{", "rest", "}"}], ",", "k"}], "]"}]}], "}"}], ",", 
+    RowBox[{
+     RowBox[{"(", 
+      RowBox[{"t", "&&", 
+       RowBox[{"sem", "[", 
+        RowBox[{"A", ",", "kk"}], "]"}]}], ")"}], "||", 
+     RowBox[{"(", 
+      RowBox[{
+       RowBox[{"!", "t"}], "&&", 
+       RowBox[{"sem", "[", 
+        RowBox[{"B", ",", "kk"}], "]"}]}], ")"}]}]}], "]"}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"83e8152a-f1ea-45a1-a0c5-3d1062028150"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"sem", "[", 
+   RowBox[{
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"loop", "[", 
+       RowBox[{"i_", ",", "A_"}], "]"}], ",", "rest___"}], "}"}], ",", "k_"}],
+    "]"}], ":=", 
+  RowBox[{"With", "[", 
+   RowBox[{
+    RowBox[{"{", 
+     RowBox[{"kk", "=", 
+      RowBox[{"sem", "[", 
+       RowBox[{
+        RowBox[{"{", "rest", "}"}], ",", "k"}], "]"}]}], "}"}], ",", 
+    RowBox[{
+     RowBox[{"(", 
+      RowBox[{
+       RowBox[{"c", "[", "i", "]"}], "&&", 
+       RowBox[{"sem", "[", 
+        RowBox[{"A", ",", "kk"}], "]"}]}], ")"}], "||", 
+     RowBox[{"(", 
+      RowBox[{
+       RowBox[{"!", 
+        RowBox[{"c", "[", "i", "]"}]}], "&&", "kk"}], ")"}]}]}], 
+   "]"}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"0eb4071d-e83e-4901-81b0-59d88e4e1729"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"succIn", "[", "A_", "]"}], ":=", 
+  RowBox[{"!", 
+   RowBox[{"FreeQ", "[", 
+    RowBox[{"A", ",", "ok"}], "]"}]}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"2fa9e3ae-0350-416b-a1e8-135a1c7e883c"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"an", "[", 
+   RowBox[{
+    RowBox[{"{", "}"}], ",", "st_"}], "]"}], ":=", "st"}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"1b87a000-e761-4ed4-9907-6f8c4801ac30"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"an", "[", 
+   RowBox[{
+    RowBox[{"{", 
+     RowBox[{"s_", ",", "rest___"}], "}"}], ",", "st_"}], "]"}], ":=", 
+  RowBox[{"(", 
+   RowBox[{
+    RowBox[{"++", "$steps"}], ";", 
+    RowBox[{"step", "[", 
+     RowBox[{"s", ",", 
+      RowBox[{"an", "[", 
+       RowBox[{
+        RowBox[{"{", "rest", "}"}], ",", "st"}], "]"}]}], "]"}]}], 
+   ")"}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"5f518cfc-dc4b-4a7d-a82c-753368d55b92"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"step", "[", 
+   RowBox[{"ok", ",", "_"}], "]"}], ":=", 
+  RowBox[{"{", 
+   RowBox[{"True", ",", 
+    RowBox[{"{", "}"}]}], "}"}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"54896197-47b0-4c19-a9d0-27700de4931a"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"step", "[", 
+   RowBox[{"bail", ",", "_"}], "]"}], ":=", 
+  RowBox[{"{", 
+   RowBox[{"False", ",", 
+    RowBox[{"{", "}"}]}], "}"}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"15d722fd-bc91-4df2-97eb-0d3ff6495739"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"step", "[", 
+   RowBox[{"eff", ",", "st_"}], "]"}], ":=", "st"}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"a9b2fa63-b8b0-4e8e-aaec-716659553179"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"step", "[", 
+   RowBox[{
+    RowBox[{"if", "[", 
+     RowBox[{"i_", ",", "t_", ",", "A_", ",", "B_"}], "]"}], ",", "st_"}], 
+   "]"}], ":=", 
+  RowBox[{"Module", "[", 
+   RowBox[{
+    RowBox[{"{", 
+     RowBox[{
+      RowBox[{"a", "=", 
+       RowBox[{"an", "[", 
+        RowBox[{"A", ",", "st"}], "]"}]}], ",", 
+      RowBox[{"b", "=", 
+       RowBox[{"an", "[", 
+        RowBox[{"B", ",", "st"}], "]"}]}]}], "}"}], ",", 
+    RowBox[{"Which", "[", 
+     RowBox[{
+      RowBox[{
+       RowBox[{"!", 
+        RowBox[{"a", "\[LeftDoubleBracket]", "1", "\[RightDoubleBracket]"}]}],
+        "&&", 
+       RowBox[{"!", 
+        RowBox[{
+        "b", "\[LeftDoubleBracket]", "1", "\[RightDoubleBracket]"}]}]}], ",", 
+      
+      RowBox[{"{", 
+       RowBox[{"False", ",", 
+        RowBox[{"{", "}"}]}], "}"}], ",", 
+      RowBox[{"!", 
+       RowBox[{"a", "\[LeftDoubleBracket]", "1", "\[RightDoubleBracket]"}]}], 
+      ",", 
+      RowBox[{"{", 
+       RowBox[{"True", ",", 
+        RowBox[{
+         RowBox[{"b", "\[LeftDoubleBracket]", "2", "\[RightDoubleBracket]"}], 
+         "\[Union]", 
+         RowBox[{"{", 
+          RowBox[{"{", 
+           RowBox[{"i", ",", "True"}], "}"}], "}"}]}]}], "}"}], ",", 
+      RowBox[{"!", 
+       RowBox[{"b", "\[LeftDoubleBracket]", "1", "\[RightDoubleBracket]"}]}], 
+      ",", 
+      RowBox[{"{", 
+       RowBox[{"True", ",", 
+        RowBox[{
+         RowBox[{"a", "\[LeftDoubleBracket]", "2", "\[RightDoubleBracket]"}], 
+         "\[Union]", 
+         RowBox[{"{", 
+          RowBox[{"{", 
+           RowBox[{"i", ",", "False"}], "}"}], "}"}]}]}], "}"}], ",", "True", 
+      ",", 
+      RowBox[{"{", 
+       RowBox[{"True", ",", 
+        RowBox[{
+         RowBox[{"a", "\[LeftDoubleBracket]", "2", "\[RightDoubleBracket]"}], 
+         "\[Intersection]", 
+         RowBox[{
+         "b", "\[LeftDoubleBracket]", "2", "\[RightDoubleBracket]"}]}]}], 
+       "}"}]}], "]"}]}], "]"}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"a8ea9099-9727-4b74-a91d-e4217824bce1"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"step", "[", 
+   RowBox[{
+    RowBox[{"loop", "[", 
+     RowBox[{"i_", ",", "A_"}], "]"}], ",", "st_"}], "]"}], ":=", 
+  RowBox[{"If", "[", 
+   RowBox[{
+    RowBox[{"succIn", "[", "A", "]"}], ",", 
+    RowBox[{"{", 
+     RowBox[{"True", ",", 
+      RowBox[{"{", "}"}]}], "}"}], ",", "st"}], "]"}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"83864066-10a3-487e-b83c-a7316f6db3dc"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"topBail", "[", "A_", "]"}], ":=", 
+  RowBox[{"MemberQ", "[", 
+   RowBox[{"A", ",", "bail"}], "]"}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"a811a9cd-79b4-493b-a95e-a06057010c62"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"oldPol", "[", 
+   RowBox[{"if", "[", 
+    RowBox[{"i_", ",", "t_", ",", "A_", ",", "B_"}], "]"}], "]"}], ":=", 
+  RowBox[{"Which", "[", 
+   RowBox[{
+    RowBox[{"topBail", "[", "A", "]"}], ",", "True", ",", 
+    RowBox[{"succIn", "[", "A", "]"}], ",", "False", ",", 
+    RowBox[{
+     RowBox[{"B", "=!=", 
+      RowBox[{"{", "}"}]}], "&&", 
+     RowBox[{"topBail", "[", "B", "]"}]}], ",", "False", ",", "True", ",", 
+    "None"}], "]"}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"ee8301dc-304e-4129-b8dd-8a666517cceb"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"ifs", "[", "P_", "]"}], ":=", 
+  RowBox[{"Cases", "[", 
+   RowBox[{"P", ",", "_if", ",", "\[Infinity]"}], "]"}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"95c93145-82c6-4900-b46a-d646cc09c5f9"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"testOf", "[", 
+   RowBox[{"P_", ",", "i_"}], "]"}], ":=", 
+  RowBox[{"FirstCase", "[", 
+   RowBox[{"P", ",", 
+    RowBox[{
+     RowBox[{"if", "[", 
+      RowBox[{"i", ",", "t_", ",", "__"}], "]"}], "\[RuleDelayed]", "t"}], ",", 
+    RowBox[{"Missing", "[", "]"}], ",", "\[Infinity]"}], "]"}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"6c9b0fca-3076-4752-98b4-7e4ba4d5e9e3"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"oldReq", "[", "P_", "]"}], ":=", 
+  RowBox[{"DeleteCases", "[", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"(", 
+      RowBox[{
+       RowBox[{"{", 
+        RowBox[{
+         RowBox[{"#1", "\[LeftDoubleBracket]", "1", "\[RightDoubleBracket]"}],
+          ",", 
+         RowBox[{"oldPol", "[", "#1", "]"}]}], "}"}], "&"}], ")"}], "/@", 
+     RowBox[{"ifs", "[", "P", "]"}]}], ",", 
+    RowBox[{"{", 
+     RowBox[{"_", ",", "None"}], "}"}]}], "]"}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"0a40c315-781c-475a-9f68-46553e14df3a"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"newReq", "[", "P_", "]"}], ":=", 
+  RowBox[{
+   RowBox[{"oldReq", "[", "P", "]"}], "\[Intersection]", 
+   RowBox[{
+    RowBox[{"an", "[", 
+     RowBox[{"P", ",", 
+      RowBox[{"{", 
+       RowBox[{"False", ",", 
+        RowBox[{"{", "}"}]}], "}"}]}], "]"}], "\[LeftDoubleBracket]", "2", 
+    "\[RightDoubleBracket]"}]}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"cfacb1b9-6ba2-4838-a8a8-416426924d94"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"lit", "[", 
+   RowBox[{"P_", ",", 
+    RowBox[{"{", 
+     RowBox[{"i_", ",", "neg_"}], "}"}]}], "]"}], ":=", 
+  RowBox[{"If", "[", 
+   RowBox[{"neg", ",", 
+    RowBox[{"!", 
+     RowBox[{"testOf", "[", 
+      RowBox[{"P", ",", "i"}], "]"}]}], ",", 
+    RowBox[{"testOf", "[", 
+     RowBox[{"P", ",", "i"}], "]"}]}], "]"}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"2feb11b0-3461-4f21-8813-2a0fb99309fa"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"vars", "[", "P_", "]"}], ":=", 
+  RowBox[{"Join", "[", 
+   RowBox[{"tests", ",", 
+    RowBox[{"Cases", "[", 
+     RowBox[{"P", ",", 
+      RowBox[{
+       RowBox[{"loop", "[", 
+        RowBox[{"i_", ",", "_"}], "]"}], "\[RuleDelayed]", 
+       RowBox[{"c", "[", "i", "]"}]}], ",", "\[Infinity]"}], "]"}]}], 
+   "]"}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"2f3f5247-2d55-4edb-8ad8-efe32ffe3e31"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"stmts", "[", "1", "]"}], "=", 
+  RowBox[{"{", 
+   RowBox[{"ok", ",", "bail", ",", "eff"}], "}"}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"1d5bf1f6-8aa0-421f-ba2b-0d9b9c4c812e"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"stmts", "[", 
+   RowBox[{"n_", "/;", 
+    RowBox[{"n", "\[GreaterEqual]", "2"}]}], "]"}], ":=", 
+  RowBox[{
+   RowBox[{"stmts", "[", "n", "]"}], "=", 
+   RowBox[{"Join", "[", 
+    RowBox[{
+     RowBox[{"Flatten", "[", 
+      RowBox[{
+       RowBox[{"Table", "[", 
+        RowBox[{
+         RowBox[{"Outer", "[", 
+          RowBox[{"sIf", ",", "tests", ",", 
+           RowBox[{"blocks", "[", "m", "]"}], ",", 
+           RowBox[{"blocks", "[", 
+            RowBox[{"n", "-", "1", "-", "m"}], "]"}], ",", "1"}], "]"}], ",", 
+         
+         RowBox[{"{", 
+          RowBox[{"m", ",", "0", ",", 
+           RowBox[{"n", "-", "2"}]}], "}"}]}], "]"}], ",", "3"}], "]"}], ",", 
+     
+     RowBox[{"sLoop", "/@", 
+      RowBox[{"blocks", "[", 
+       RowBox[{"n", "-", "1"}], "]"}]}]}], "]"}]}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"5d4bd5ca-af36-4354-8133-2ed573efff4f"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"blocks", "[", "0", "]"}], "=", 
+  RowBox[{"{", 
+   RowBox[{"{", "}"}], "}"}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"edc1ea15-50e5-47a2-a4a7-fbc502a9f1f3"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"blocks", "[", 
+   RowBox[{"n_", "/;", 
+    RowBox[{"n", "\[GreaterEqual]", "1"}]}], "]"}], ":=", 
+  RowBox[{
+   RowBox[{"blocks", "[", "n", "]"}], "=", 
+   RowBox[{"Select", "[", 
+    RowBox[{
+     RowBox[{"Flatten", "[", 
+      RowBox[{
+       RowBox[{"Table", "[", 
+        RowBox[{
+         RowBox[{"Outer", "[", 
+          RowBox[{
+           RowBox[{
+            RowBox[{"Prepend", "[", 
+             RowBox[{"#2", ",", "#1"}], "]"}], "&"}], ",", 
+           RowBox[{"stmts", "[", "m", "]"}], ",", 
+           RowBox[{"blocks", "[", 
+            RowBox[{"n", "-", "m"}], "]"}], ",", "1"}], "]"}], ",", 
+         RowBox[{"{", 
+          RowBox[{"m", ",", "1", ",", "n"}], "}"}]}], "]"}], ",", "2"}], 
+      "]"}], ",", 
+     RowBox[{
+      RowBox[{"FreeQ", "[", 
+       RowBox[{
+        RowBox[{"Most", "[", "#1", "]"}], ",", 
+        RowBox[{"ok", "|", "bail"}]}], "]"}], "&"}]}], "]"}]}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"d1c3c399-e6fd-4e85-b5eb-13977cf3dad8"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"nb", "[", "l_List", "]"}], ":=", 
+  RowBox[{"nb", "/@", "l"}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"90641667-5af1-4f1c-b2ff-0cc28f9899e4"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"nb", "[", 
+   RowBox[{"sIf", "[", 
+    RowBox[{"t_", ",", "A_", ",", "B_"}], "]"}], "]"}], ":=", 
+  RowBox[{"With", "[", 
+   RowBox[{
+    RowBox[{"{", 
+     RowBox[{"i", "=", 
+      RowBox[{"++", "$id"}]}], "}"}], ",", 
+    RowBox[{"if", "[", 
+     RowBox[{"i", ",", "t", ",", 
+      RowBox[{"nb", "[", "A", "]"}], ",", 
+      RowBox[{"nb", "[", "B", "]"}]}], "]"}]}], "]"}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"131a3710-4836-4640-9274-21a27e086a09"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"nb", "[", 
+   RowBox[{"sLoop", "[", "A_", "]"}], "]"}], ":=", 
+  RowBox[{"With", "[", 
+   RowBox[{
+    RowBox[{"{", 
+     RowBox[{"i", "=", 
+      RowBox[{"++", "$id"}]}], "}"}], ",", 
+    RowBox[{"loop", "[", 
+     RowBox[{"i", ",", 
+      RowBox[{"nb", "[", "A", "]"}]}], "]"}]}], "]"}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"0dc41dbc-9027-4d5e-9a17-55cfd16a21f9"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"nb", "[", "s_", "]"}], ":=", "s"}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"10150e51-2b9d-4a78-8c55-0dfe5dda14b7"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"number", "[", "P_", "]"}], ":=", 
+  RowBox[{"Block", "[", 
+   RowBox[{
+    RowBox[{"{", 
+     RowBox[{"$id", "=", "0"}], "}"}], ",", 
+    RowBox[{"nb", "[", "P", "]"}]}], "]"}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"c6762590-1418-43a3-91d8-2e4b422d1437"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"tt", "[", 
+   RowBox[{"f_", ",", "v_"}], "]"}], ":=", 
+  RowBox[{"Boole", "[", 
+   RowBox[{"BooleanTable", "[", 
+    RowBox[{"f", ",", "v"}], "]"}], "]"}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"79cbe2b4-7f19-461f-aea7-5e0f10aa74a4"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"necessary", "[", 
+   RowBox[{"P_", ",", "req_"}], "]"}], ":=", 
+  RowBox[{"With", "[", 
+   RowBox[{
+    RowBox[{"{", 
+     RowBox[{"v", "=", 
+      RowBox[{"vars", "[", "P", "]"}]}], "}"}], ",", 
+    RowBox[{"With", "[", 
+     RowBox[{
+      RowBox[{"{", 
+       RowBox[{"S", "=", 
+        RowBox[{"tt", "[", 
+         RowBox[{
+          RowBox[{"sem", "[", 
+           RowBox[{"P", ",", "False"}], "]"}], ",", "v"}], "]"}]}], "}"}], ",", 
+      RowBox[{"Select", "[", 
+       RowBox[{"req", ",", 
+        RowBox[{
+         RowBox[{
+          RowBox[{"Min", "[", 
+           RowBox[{"1", "-", "S", "+", 
+            RowBox[{"tt", "[", 
+             RowBox[{
+              RowBox[{"lit", "[", 
+               RowBox[{"P", ",", "#1"}], "]"}], ",", "v"}], "]"}]}], "]"}], "\[Equal]",
+           "1"}], "&"}]}], "]"}]}], "]"}]}], "]"}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"c17e4457-c6a0-4b03-9dd2-45a8503fd45a"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"checkProg", "[", "P_", "]"}], ":=", 
+  RowBox[{
+   RowBox[{"checkProg", "[", "P", "]"}], "=", 
+   RowBox[{"Module", "[", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{"st", "=", 
+        RowBox[{"an", "[", 
+         RowBox[{"P", ",", 
+          RowBox[{"{", 
+           RowBox[{"False", ",", 
+            RowBox[{"{", "}"}]}], "}"}]}], "]"}]}], ",", 
+       RowBox[{"o", "=", 
+        RowBox[{"oldReq", "[", "P", "]"}]}], ",", 
+       RowBox[{"n", "=", 
+        RowBox[{"newReq", "[", "P", "]"}]}]}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"1", ",", 
+       RowBox[{"Length", "[", "o", "]"}], ",", 
+       RowBox[{
+        RowBox[{"Length", "[", "o", "]"}], "-", 
+        RowBox[{"Length", "[", 
+         RowBox[{"necessary", "[", 
+          RowBox[{"P", ",", "o"}], "]"}], "]"}]}], ",", 
+       RowBox[{"Length", "[", "n", "]"}], ",", 
+       RowBox[{
+        RowBox[{"Length", "[", "n", "]"}], "-", 
+        RowBox[{"Length", "[", 
+         RowBox[{"necessary", "[", 
+          RowBox[{"P", ",", "n"}], "]"}], "]"}]}], ",", 
+       RowBox[{
+        RowBox[{"Length", "[", 
+         RowBox[{"st", "\[LeftDoubleBracket]", "2", "\[RightDoubleBracket]"}],
+          "]"}], "-", 
+        RowBox[{"Length", "[", 
+         RowBox[{"necessary", "[", 
+          RowBox[{"P", ",", 
+           RowBox[{
+           "st", "\[LeftDoubleBracket]", "2", "\[RightDoubleBracket]"}]}], 
+          "]"}], "]"}]}], ",", 
+       RowBox[{"Boole", "[", 
+        RowBox[{
+         RowBox[{"!", 
+          RowBox[{
+          "st", "\[LeftDoubleBracket]", "1", "\[RightDoubleBracket]"}]}], "&&", 
+         RowBox[{
+          RowBox[{"Max", "[", 
+           RowBox[{"tt", "[", 
+            RowBox[{
+             RowBox[{"sem", "[", 
+              RowBox[{"P", ",", "False"}], "]"}], ",", 
+             RowBox[{"vars", "[", "P", "]"}]}], "]"}], "]"}], "\[Equal]", 
+          "1"}]}], "]"}], ",", 
+       RowBox[{"Boole", "[", 
+        RowBox[{"!", 
+         RowBox[{"SubsetQ", "[", 
+          RowBox[{"o", ",", "n"}], "]"}]}], "]"}]}], "}"}]}], 
+    "]"}]}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"25bd89ec-172e-4bfa-937b-1eb30f4d6aaf"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"satisfiable", "[", "P_", "]"}], ":=", 
+  RowBox[{
+   RowBox[{"Max", "[", 
+    RowBox[{"tt", "[", 
+     RowBox[{
+      RowBox[{"sem", "[", 
+       RowBox[{"P", ",", "False"}], "]"}], ",", 
+      RowBox[{"vars", "[", "P", "]"}]}], "]"}], "]"}], "\[Equal]", 
+   "1"}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"d06c6831-dcd4-405a-9e19-08e199ec8e18"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"inLoop", "[", 
+   RowBox[{"P_", ",", "i_"}], "]"}], ":=", 
+  RowBox[{"!", 
+   RowBox[{"FreeQ", "[", 
+    RowBox[{
+     RowBox[{"Cases", "[", 
+      RowBox[{"P", ",", 
+       RowBox[{
+        RowBox[{"loop", "[", 
+         RowBox[{"_", ",", "A_"}], "]"}], "\[RuleDelayed]", "A"}], ",", 
+       "\[Infinity]"}], "]"}], ",", 
+     RowBox[{"if", "[", 
+      RowBox[{"i", ",", "___"}], "]"}]}], "]"}]}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"9e9cfb7b-9c7f-4687-a719-2886bc0165ac"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"repeats", "[", "P_", "]"}], ":=", 
+  RowBox[{"!", 
+   RowBox[{"DuplicateFreeQ", "[", 
+    RowBox[{"Cases", "[", 
+     RowBox[{"P", ",", 
+      RowBox[{
+       RowBox[{"if", "[", 
+        RowBox[{"_", ",", "t_", ",", "__"}], "]"}], "\[RuleDelayed]", "t"}], ",",
+       "\[Infinity]"}], "]"}], "]"}]}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"96d6742a-0457-4dd6-83ec-d0f482691875"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"T", "[", 
+   RowBox[{"f_", ",", "v_"}], "]"}], ":=", 
+  RowBox[{"TautologyQ", "[", 
+   RowBox[{"f", ",", "v"}], "]"}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"da099e75-af04-480e-ac5e-db83dd63c49e"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"inv", "[", 
+   RowBox[{"f_", ",", "okq_", ",", "R_"}], "]"}], ":=", 
+  RowBox[{
+   RowBox[{"(", 
+    RowBox[{"f", "\[Implies]", 
+     RowBox[{"And", "@@", "R"}]}], ")"}], "&&", 
+   RowBox[{"(", 
+    RowBox[{
+     RowBox[{"!", "okq"}], "\[Implies]", 
+     RowBox[{"!", "f"}]}], ")"}]}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"bc4d179f-8c26-4680-8b27-c96627fe61cd"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"showP", "[", "P_", "]"}], ":=", 
+  RowBox[{"ToString", "[", 
+   RowBox[{
+    RowBox[{"Replace", "[", 
+     RowBox[{"P", ",", 
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{
+         RowBox[{"if", "[", 
+          RowBox[{"i_", ",", "t_", ",", "A_", ",", "B_"}], "]"}], "\[RuleDelayed]", 
+         RowBox[{"if", "[", 
+          RowBox[{"t", ",", "A", ",", "B"}], "]"}]}], ",", 
+        RowBox[{
+         RowBox[{"loop", "[", 
+          RowBox[{"i_", ",", "A_"}], "]"}], "\[RuleDelayed]", 
+         RowBox[{"loop", "[", "A", "]"}]}]}], "}"}], ",", "All"}], "]"}], ",",
+     "InputForm"}], "]"}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"d93b1bd3-4b71-468e-ac43-282a1fa3b1ad"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"showReq", "[", 
+   RowBox[{"P_", ",", "req_"}], "]"}], ":=", 
+  RowBox[{"Row", "[", 
+   RowBox[{"Riffle", "[", 
+    RowBox[{
+     RowBox[{
+      RowBox[{"(", 
+       RowBox[{
+        RowBox[{"ToString", "[", 
+         RowBox[{
+          RowBox[{"lit", "[", 
+           RowBox[{"P", ",", "#1"}], "]"}], ",", "InputForm"}], "]"}], "&"}], 
+       ")"}], "/@", "req"}], ",", "\"\<,  \>\""}], "]"}], "]"}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"ab2c0cbc-0bd9-48ec-91cf-7c152fdb5fc1"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"colour", "[", 
+   RowBox[{"P_", ",", "req_"}], "]"}], ":=", 
+  RowBox[{"Row", "[", 
+   RowBox[{"Riffle", "[", 
+    RowBox[{
+     RowBox[{
+      RowBox[{"(", 
+       RowBox[{
+        RowBox[{"With", "[", 
+         RowBox[{
+          RowBox[{"{", 
+           RowBox[{"s", "=", 
+            RowBox[{"ToString", "[", 
+             RowBox[{
+              RowBox[{"lit", "[", 
+               RowBox[{"P", ",", "#1"}], "]"}], ",", "InputForm"}], "]"}]}], 
+           "}"}], ",", 
+          RowBox[{"If", "[", 
+           RowBox[{
+            RowBox[{
+             RowBox[{"necessary", "[", 
+              RowBox[{"P", ",", 
+               RowBox[{"{", "#1", "}"}]}], "]"}], "===", 
+             RowBox[{"{", "#1", "}"}]}], ",", "s", ",", 
+            RowBox[{"Style", "[", 
+             RowBox[{"s", ",", "Red"}], "]"}]}], "]"}]}], "]"}], "&"}], ")"}],
+       "/@", "req"}], ",", "\"\<,  \>\""}], "]"}], "]"}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"3eaaf15c-26cb-43f1-8ccf-6afa8416ae32"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"tbl", "[", 
+   RowBox[{"headers_", ",", "rows_"}], "]"}], ":=", 
+  RowBox[{"Grid", "[", 
+   RowBox[{
+    RowBox[{"Prepend", "[", 
+     RowBox[{"rows", ",", 
+      RowBox[{
+       RowBox[{"(", 
+        RowBox[{
+         StyleBox["#1",
+          StripOnInput->False,
+          FontWeight->Bold], "&"}], ")"}], "/@", "headers"}]}], "]"}], ",", 
+    RowBox[{"Frame", "\[Rule]", "All"}], ",", 
+    RowBox[{"Alignment", "\[Rule]", "Left"}], ",", 
+    RowBox[{"Background", "\[Rule]", 
+     RowBox[{"{", 
+      RowBox[{"None", ",", 
+       RowBox[{"{", 
+        TemplateBox[<|"color" -> GrayLevel[0.9]|>,
+         "GrayLevelColorSwatchTemplate"], "}"}]}], "}"}]}], ",", 
+    RowBox[{"Spacings", "\[Rule]", 
+     RowBox[{"{", 
+      RowBox[{"1.2`", ",", "0.6`"}], "}"}]}]}], "]"}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"5aaef41f-bfcf-4a07-affb-a16409ac4d47"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"mark", "[", "b_", "]"}], ":=", 
+  RowBox[{"If", "[", 
+   RowBox[{
+    RowBox[{"TrueQ", "[", "b", "]"}], ",", 
+    RowBox[{"Style", "[", 
+     RowBox[{"\"\<proved\>\"", ",", 
+      RowBox[{"Darker", "[", "Green", "]"}]}], "]"}], ",", 
+    RowBox[{"Style", "[", 
+     RowBox[{"\"\<fails\>\"", ",", "Red"}], "]"}]}], "]"}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"5a386c47-08f8-40fa-8dfa-6145bcd99880"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"toJ", "[", "ok", "]"}], "=", "\"\<ok\>\""}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"b205dcc1-1c50-4a3b-b3d5-0cd27e4da510"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"toJ", "[", "bail", "]"}], "=", "\"\<bail\>\""}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"679152dd-289b-4f12-9d9b-8481b3fbca53"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"toJ", "[", "eff", "]"}], "=", "\"\<eff\>\""}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"ca3fef1b-ee2a-4b2c-a1f6-775e8445672c"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"toJ", "[", "l_List", "]"}], ":=", 
+  RowBox[{"toJ", "/@", "l"}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"cb6d29da-282f-474f-bc23-d77b50f19203"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"toJ", "[", 
+   RowBox[{"if", "[", 
+    RowBox[{"i_", ",", "t_", ",", "A_", ",", "B_"}], "]"}], "]"}], ":=", 
+  RowBox[{"{", 
+   RowBox[{"\"\<if\>\"", ",", "i", ",", 
+    RowBox[{"ToString", "[", "t", "]"}], ",", 
+    RowBox[{"toJ", "[", "A", "]"}], ",", 
+    RowBox[{"toJ", "[", "B", "]"}]}], "}"}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"4d1f1281-1b01-4031-8cf9-67ee97cc6b4d"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"toJ", "[", 
+   RowBox[{"loop", "[", 
+    RowBox[{"i_", ",", "A_"}], "]"}], "]"}], ":=", 
+  RowBox[{"{", 
+   RowBox[{"\"\<loop\>\"", ",", "i", ",", 
+    RowBox[{"toJ", "[", "A", "]"}]}], "}"}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"4cd5b44b-313d-4238-b49a-0e8a9dcaafe1"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"cur", "[", "P_", "]"}], ":=", 
+  RowBox[{
+   RowBox[{"an", "[", 
+    RowBox[{"P", ",", 
+     RowBox[{"{", 
+      RowBox[{"False", ",", 
+       RowBox[{"{", "}"}]}], "}"}]}], "]"}], "\[LeftDoubleBracket]", "2", 
+   "\[RightDoubleBracket]"}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"a5703b89-4931-451c-8465-68c5d741e282"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"ifLits", "[", "P_", "]"}], ":=", 
+  RowBox[{"Flatten", "[", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"(", 
+      RowBox[{
+       RowBox[{"{", 
+        RowBox[{
+         RowBox[{"{", 
+          RowBox[{"#1", ",", "True"}], "}"}], ",", 
+         RowBox[{"{", 
+          RowBox[{"#1", ",", "False"}], "}"}]}], "}"}], "&"}], ")"}], "/@", 
+     RowBox[{"Cases", "[", 
+      RowBox[{"P", ",", 
+       RowBox[{
+        RowBox[{"if", "[", 
+         RowBox[{"i_", ",", "___"}], "]"}], "\[RuleDelayed]", "i"}], ",", 
+       "\[Infinity]"}], "]"}]}], ",", "1"}], "]"}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"012b0dc3-5ae8-4f8d-b397-9a89603b2146"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"succInLoop", "[", "P_", "]"}], ":=", 
+  RowBox[{"!", 
+   RowBox[{"FreeQ", "[", 
+    RowBox[{
+     RowBox[{"Cases", "[", 
+      RowBox[{"P", ",", 
+       RowBox[{
+        RowBox[{"loop", "[", 
+         RowBox[{"_", ",", "A_"}], "]"}], "\[RuleDelayed]", "A"}], ",", 
+       "\[Infinity]"}], "]"}], ",", "ok"}], "]"}]}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"754785e1-4ad9-4f78-85a1-c70d19dcbe2c"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"size", "[", "P_", "]"}], ":=", 
+  RowBox[{"Count", "[", 
+   RowBox[{"P", ",", 
+    RowBox[{"ok", "|", "bail", "|", "eff", "|", "_if", "|", "_loop"}], ",", 
+    RowBox[{"{", 
+     RowBox[{"1", ",", "\[Infinity]"}], "}"}]}], "]"}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"6516026a-b859-416c-a3e6-668998174804"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"steps", "[", "P_", "]"}], ":=", 
+  RowBox[{"Block", "[", 
+   RowBox[{
+    RowBox[{"{", 
+     RowBox[{"$steps", "=", "0"}], "}"}], ",", 
+    RowBox[{
+     RowBox[{"an", "[", 
+      RowBox[{"P", ",", 
+       RowBox[{"{", 
+        RowBox[{"False", ",", 
+         RowBox[{"{", "}"}]}], "}"}]}], "]"}], ";", "$steps"}]}], 
+   "]"}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"1c74a10c-f4b9-4d8b-8675-eb3d87cdb353"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"fresh", "[", "P_", "]"}], ":=", 
+  RowBox[{"Replace", "[", 
+   RowBox[{"P", ",", 
+    RowBox[{
+     RowBox[{"if", "[", 
+      RowBox[{"i_", ",", "_", ",", "A_", ",", "B_"}], "]"}], "\[RuleDelayed]", 
+     RowBox[{"if", "[", 
+      RowBox[{"i", ",", 
+       RowBox[{"f", "[", "i", "]"}], ",", "A", ",", "B"}], "]"}]}], ",", 
+    "All"}], "]"}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"2cbf2042-64a2-44eb-a222-d4f6408c31df"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"exact", "[", "P_", "]"}], ":=", 
+  RowBox[{"With", "[", 
+   RowBox[{
+    RowBox[{"{", 
+     RowBox[{"Q", "=", 
+      RowBox[{"fresh", "[", "P", "]"}]}], "}"}], ",", 
+    RowBox[{"With", "[", 
+     RowBox[{
+      RowBox[{"{", 
+       RowBox[{"v", "=", 
+        RowBox[{"Join", "[", 
+         RowBox[{
+          RowBox[{"Cases", "[", 
+           RowBox[{"Q", ",", 
+            RowBox[{
+             RowBox[{"if", "[", 
+              RowBox[{"i_", ",", "___"}], "]"}], "\[RuleDelayed]", 
+             RowBox[{"f", "[", "i", "]"}]}], ",", "\[Infinity]"}], "]"}], ",", 
+          RowBox[{"Cases", "[", 
+           RowBox[{"Q", ",", 
+            RowBox[{
+             RowBox[{"loop", "[", 
+              RowBox[{"i_", ",", "_"}], "]"}], "\[RuleDelayed]", 
+             RowBox[{"c", "[", "i", "]"}]}], ",", "\[Infinity]"}], "]"}]}], 
+         "]"}]}], "}"}], ",", 
+      RowBox[{"With", "[", 
+       RowBox[{
+        RowBox[{"{", 
+         RowBox[{"S", "=", 
+          RowBox[{"tt", "[", 
+           RowBox[{
+            RowBox[{"sem", "[", 
+             RowBox[{"Q", ",", "False"}], "]"}], ",", "v"}], "]"}]}], "}"}], ",", 
+        RowBox[{"If", "[", 
+         RowBox[{
+          RowBox[{
+           RowBox[{"Max", "[", "S", "]"}], "\[Equal]", "0"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"False", ",", 
+            RowBox[{"{", "}"}]}], "}"}], ",", 
+          RowBox[{"{", 
+           RowBox[{"True", ",", 
+            RowBox[{"Sort", "[", 
+             RowBox[{"Select", "[", 
+              RowBox[{
+               RowBox[{"ifLits", "[", "Q", "]"}], ",", 
+               RowBox[{
+                RowBox[{
+                 RowBox[{"Min", "[", 
+                  RowBox[{"1", "-", "S", "+", 
+                   RowBox[{"tt", "[", 
+                    RowBox[{
+                    RowBox[{"If", "[", 
+                    RowBox[{
+                    RowBox[{
+                    "#1", "\[LeftDoubleBracket]", "2", 
+                    "\[RightDoubleBracket]"}], ",", 
+                    RowBox[{"!", 
+                    RowBox[{"f", "[", 
+                    RowBox[{
+                    "#1", "\[LeftDoubleBracket]", "1", 
+                    "\[RightDoubleBracket]"}], "]"}]}], ",", 
+                    RowBox[{"f", "[", 
+                    RowBox[{
+                    "#1", "\[LeftDoubleBracket]", "1", 
+                    "\[RightDoubleBracket]"}], "]"}]}], "]"}], ",", "v"}], 
+                    "]"}]}], "]"}], "\[Equal]", "1"}], "&"}]}], "]"}], 
+             "]"}]}], "}"}]}], "]"}]}], "]"}]}], "]"}]}], "]"}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"13eccdc7-d4fd-49f8-bda0-62509ff35e31"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"profile", "[", "P_", "]"}], ":=", 
+  RowBox[{
+   RowBox[{"profile", "[", "P", "]"}], "=", 
+   RowBox[{"Module", "[", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{"v", "=", 
+        RowBox[{"vars", "[", "P", "]"}]}], ",", "S", ",", "ok"}], "}"}], ",", 
+     
+     RowBox[{
+      RowBox[{"S", "=", 
+       RowBox[{"tt", "[", 
+        RowBox[{
+         RowBox[{"sem", "[", 
+          RowBox[{"P", ",", "False"}], "]"}], ",", "v"}], "]"}]}], ";", 
+      RowBox[{"ok", "=", 
+       RowBox[{
+        RowBox[{"Max", "[", "S", "]"}], "\[Equal]", "1"}]}], ";", 
+      RowBox[{"Association", "[", 
+       RowBox[{
+        RowBox[{"\"\<ok\>\"", "\[Rule]", "ok"}], ",", 
+        RowBox[{"\"\<loop\>\"", "\[Rule]", 
+         RowBox[{"succInLoop", "[", "P", "]"}]}], ",", 
+        RowBox[{"\"\<steps\>\"", "\[Rule]", 
+         RowBox[{"steps", "[", "P", "]"}]}], ",", 
+        RowBox[{"\"\<size\>\"", "\[Rule]", 
+         RowBox[{"size", "[", "P", "]"}]}], ",", 
+        RowBox[{"\"\<nec\>\"", "\[Rule]", 
+         RowBox[{"If", "[", 
+          RowBox[{"ok", ",", 
+           RowBox[{"Select", "[", 
+            RowBox[{
+             RowBox[{"ifLits", "[", "P", "]"}], ",", 
+             RowBox[{
+              RowBox[{
+               RowBox[{"Min", "[", 
+                RowBox[{"1", "-", "S", "+", 
+                 RowBox[{"tt", "[", 
+                  RowBox[{
+                   RowBox[{"lit", "[", 
+                    RowBox[{"P", ",", "#1"}], "]"}], ",", "v"}], "]"}]}], 
+                "]"}], "\[Equal]", "1"}], "&"}]}], "]"}], ",", 
+           RowBox[{"{", "}"}]}], "]"}]}], ",", 
+        RowBox[{"\"\<walk\>\"", "\[Rule]", 
+         RowBox[{"oldReq", "[", "P", "]"}]}], ",", 
+        RowBox[{"\"\<dc\>\"", "\[Rule]", 
+         RowBox[{"newReq", "[", "P", "]"}]}], ",", 
+        RowBox[{"\"\<cur\>\"", "\[Rule]", 
+         RowBox[{"cur", "[", "P", "]"}]}], ",", 
+        RowBox[{"\"\<an\>\"", "\[Rule]", 
+         RowBox[{"an", "[", 
+          RowBox[{"P", ",", 
+           RowBox[{"{", 
+            RowBox[{"False", ",", 
+             RowBox[{"{", "}"}]}], "}"}]}], "]"}]}], ",", 
+        RowBox[{"\"\<exact\>\"", "\[Rule]", 
+         RowBox[{"exact", "[", "P", "]"}]}]}], "]"}]}]}], "]"}]}]}]], "Input",\
+
+ InitializationCell->
+  True,ExpressionUUID->"3c904035-6c6a-4915-9cd6-67862948af6a"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"split", "[", 
+   RowBox[{"pr_", ",", "key_"}], "]"}], ":=", 
+  RowBox[{"With", "[", 
+   RowBox[{
+    RowBox[{"{", 
+     RowBox[{"atoms", "=", 
+      RowBox[{"pr", "[", "key", "]"}]}], "}"}], ",", 
+    RowBox[{"If", "[", 
+     RowBox[{
+      RowBox[{"pr", "[", "\"\<ok\>\"", "]"}], ",", 
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{"Length", "[", 
+         RowBox[{"atoms", "\[Intersection]", 
+          RowBox[{"pr", "[", "\"\<nec\>\"", "]"}]}], "]"}], ",", "0", ",", 
+        RowBox[{"Length", "[", 
+         RowBox[{"Complement", "[", 
+          RowBox[{"atoms", ",", 
+           RowBox[{"pr", "[", "\"\<nec\>\"", "]"}]}], "]"}], "]"}]}], "}"}], ",", 
+      RowBox[{"{", 
+       RowBox[{"0", ",", 
+        RowBox[{"Length", "[", "atoms", "]"}], ",", "0"}], "}"}]}], "]"}]}], 
+   "]"}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"36a5c9c2-10f5-4778-ad4f-a709782a5168"],
+
+Cell[BoxData[
+ RowBox[{"U", "=", 
+  RowBox[{"Table", "[", 
+   RowBox[{
+    RowBox[{"BooleanFunction", "[", 
+     RowBox[{"k", ",", 
+      RowBox[{"{", 
+       RowBox[{"a", ",", "b"}], "}"}]}], "]"}], ",", 
+    RowBox[{"{", 
+     RowBox[{"k", ",", "0", ",", "15"}], "}"}]}], "]"}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"b89267ab-d8e1-4cab-b844-8edb89ba3590"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"litsOf", "[", "vs_", "]"}], ":=", 
+  RowBox[{"Join", "[", 
+   RowBox[{"vs", ",", 
+    RowBox[{"Not", "/@", "vs"}]}], "]"}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"d6716b65-3dac-435c-86c3-a42db3160e8b"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"ex", "[", 
+   RowBox[{"g_", ",", "ls_"}], "]"}], ":=", 
+  RowBox[{"If", "[", 
+   RowBox[{
+    RowBox[{"SatisfiableQ", "[", "g", "]"}], ",", 
+    RowBox[{"{", 
+     RowBox[{"True", ",", 
+      RowBox[{"Sort", "[", 
+       RowBox[{"Select", "[", 
+        RowBox[{"ls", ",", 
+         RowBox[{
+          RowBox[{"TautologyQ", "[", 
+           RowBox[{
+            RowBox[{"g", "\[Implies]", "#1"}], ",", 
+            RowBox[{"{", 
+             RowBox[{"a", ",", "b", ",", "t", ",", "cc"}], "}"}]}], "]"}], 
+          "&"}]}], "]"}], "]"}]}], "}"}], ",", 
+    RowBox[{"{", 
+     RowBox[{"False", ",", 
+      RowBox[{"{", "}"}]}], "}"}]}], "]"}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"8c51e5c3-d327-48da-a8c9-4cad5d0c9d0c"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"ifRule", "[", 
+   RowBox[{
+    RowBox[{"{", 
+     RowBox[{"oa_", ",", "ra_"}], "}"}], ",", 
+    RowBox[{"{", 
+     RowBox[{"ob_", ",", "rb_"}], "}"}]}], "]"}], ":=", 
+  RowBox[{"Which", "[", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"!", "oa"}], "&&", 
+     RowBox[{"!", "ob"}]}], ",", 
+    RowBox[{"{", 
+     RowBox[{"False", ",", 
+      RowBox[{"{", "}"}]}], "}"}], ",", 
+    RowBox[{"!", "oa"}], ",", 
+    RowBox[{"{", 
+     RowBox[{"True", ",", 
+      RowBox[{"Sort", "[", 
+       RowBox[{"rb", "\[Union]", 
+        RowBox[{"{", 
+         RowBox[{"!", "t"}], "}"}]}], "]"}]}], "}"}], ",", 
+    RowBox[{"!", "ob"}], ",", 
+    RowBox[{"{", 
+     RowBox[{"True", ",", 
+      RowBox[{"Sort", "[", 
+       RowBox[{"ra", "\[Union]", 
+        RowBox[{"{", "t", "}"}]}], "]"}]}], "}"}], ",", "True", ",", 
+    RowBox[{"{", 
+     RowBox[{"True", ",", 
+      RowBox[{"Sort", "[", 
+       RowBox[{"ra", "\[Intersection]", "rb"}], "]"}]}], "}"}]}], 
+   "]"}]}]], "Input",
+ InitializationCell->
+  True,ExpressionUUID->"44f82a68-034d-48d9-ad40-6b5b0cfb6d17"]
+}, Closed]]
+},
+WindowTitle->"Guard extraction: termination, soundness, completeness - \
+Findings v0",
+CellContext->Notebook,
+FrontEndVersion->"15.0 for Mac OS X ARM (64-bit) (July 2, 2026)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"d8083204-3f63-4479-b052-0761831b433b"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[638, 22, 162, 3, 70, "Title",ExpressionUUID->"1eb28169-b252-4a32-862a-05d2599bc36c"],
+Cell[803, 27, 167, 3, 70, "Subtitle",ExpressionUUID->"66364a91-55e4-4ec1-a8a5-b285dfdaffe6"],
+Cell[973, 32, 418, 10, 70, "Program",ExpressionUUID->"3783c470-900b-499d-a6f5-f24b5a6bdfeb"],
+Cell[1394, 44, 89, 0, 70, "Section",ExpressionUUID->"ffd7d43c-f741-472a-bd2d-33c6dfb5bbbd"],
+Cell[1486, 46, 343, 7, 70, "Program",ExpressionUUID->"6695e572-e066-4b41-ab7b-30c8bf6dd0ed"],
+Cell[1832, 55, 748, 10, 70, "Text",ExpressionUUID->"7eab5104-c75f-48ca-8cde-fee36224b2fb"],
+Cell[2583, 67, 79, 0, 70, "Section",ExpressionUUID->"8aaf2b4d-4bc8-49e3-9db1-c20de358dd6f"],
+Cell[2665, 69, 591, 8, 70, "Text",ExpressionUUID->"5b77079f-1271-40ad-84ed-277667ba5ab3"],
+Cell[3259, 79, 477, 7, 70, "Text",ExpressionUUID->"36511fb4-b5dc-4a00-bf6e-aefbbabe5cd9"],
+Cell[3739, 88, 88, 0, 70, "Section",ExpressionUUID->"53aab078-b00c-4b29-a5a0-552f231d0b60"],
+Cell[3830, 90, 101, 0, 70, "Subsection",ExpressionUUID->"3bcff378-b4d5-4768-be53-a42f980f586e"],
+Cell[3934, 92, 604, 8, 70, "Text",ExpressionUUID->"4ff03f9d-7d52-4925-bbd2-50e3f1c3b393"],
+Cell[4541, 102, 624, 18, 70, "Input",ExpressionUUID->"ec348e43-f628-4ae3-bb11-f1197419d36a"],
+Cell[5168, 122, 147, 3, 70, "Output",ExpressionUUID->"2c10e7d1-1e35-424e-9e3e-f4e9b536cfc5"],
+Cell[5318, 127, 207, 3, 70, "Text",ExpressionUUID->"887c8191-3be0-4f83-92c1-924cfe47ce0b"],
+Cell[5528, 132, 103, 0, 70, "Subsection",ExpressionUUID->"440f67c6-06a8-40e9-8def-54715b9d28df"],
+Cell[5634, 134, 533, 7, 70, "Text",ExpressionUUID->"1832fb35-c4fe-421b-97bd-00f7771d4d18"],
+Cell[6170, 143, 725, 20, 70, "Input",ExpressionUUID->"f47de829-e48d-4b8e-8133-b3cebc599a0c"],
+Cell[6898, 165, 1088, 29, 70, "Output",ExpressionUUID->"76b576c1-c95a-4a6c-a89d-96a78dae2307"],
+Cell[7989, 196, 124, 0, 70, "Subsection",ExpressionUUID->"69a1dd67-bddc-4e46-9a69-2d37764c979f"],
+Cell[8116, 198, 282, 4, 70, "Text",ExpressionUUID->"ce19f6a9-e939-4ada-8476-e01513546c6d"],
+Cell[8401, 204, 1214, 16, 70, "Text",ExpressionUUID->"16f271d4-91a9-4e2d-b70d-a61a1204d877"],
+Cell[9618, 222, 6192, 159, 70, "Input",ExpressionUUID->"847ad014-8dba-439a-a2fc-7ecddbb43aa3"],
+Cell[15813, 383, 2833, 78, 70, "Output",ExpressionUUID->"9102bbf0-f8f7-41b2-8f92-7c68eab215ff"],
+Cell[18649, 463, 415, 6, 70, "Text",ExpressionUUID->"696a8cdf-e6e6-4301-a5b1-595b40e34acc"],
+Cell[19067, 471, 1949, 47, 70, "Input",ExpressionUUID->"b87ca4ef-1cb5-458f-941b-f16b2e1025d0"],
+Cell[21019, 520, 1056, 27, 70, "Output",ExpressionUUID->"4bb97b75-bbb4-473a-83c1-f490a777cbaf"],
+Cell[22078, 549, 126, 0, 70, "Subsection",ExpressionUUID->"e3feb21c-6dcd-4620-bece-6cf9b434e92b"],
+Cell[22207, 551, 241, 4, 70, "Text",ExpressionUUID->"9f1f514f-30ad-4570-8352-7a90f5129ffe"],
+Cell[22451, 557, 2060, 54, 70, "Input",ExpressionUUID->"506b89ad-ba13-410a-9a82-fe23c9688b7e"],
+Cell[24514, 613, 1190, 29, 70, "Output",ExpressionUUID->"092db973-7c43-49d1-8ed4-e35cbe18e903"],
+Cell[25707, 644, 489, 7, 70, "Text",ExpressionUUID->"7c7bee49-91fb-41c9-99b9-16c04e017545"],
+Cell[26199, 653, 196, 3, 70, "Text",ExpressionUUID->"4edfdb74-beb5-40d0-baeb-86e418b4e3d0"],
+Cell[26398, 658, 1183, 31, 70, "Input",ExpressionUUID->"47a43058-88aa-49d4-b93c-877d86072f2d"],
+Cell[27584, 691, 922, 25, 70, "Output",ExpressionUUID->"1906a440-3011-4378-bc7c-5cbb3d93122a"],
+Cell[28509, 718, 244, 4, 70, "Text",ExpressionUUID->"63c7ee60-e123-4ac9-9732-e0b479826f8a"],
+Cell[28756, 724, 112, 0, 70, "Subsection",ExpressionUUID->"96edbd21-33b7-4dd0-aba8-36298176d390"],
+Cell[28871, 726, 356, 5, 70, "Text",ExpressionUUID->"68a2ffaf-9be9-41c4-ae97-35b568a6fad4"],
+Cell[29230, 733, 271, 4, 70, "Text",ExpressionUUID->"fe5c39c7-d479-490a-9cf7-108e2eca589f"],
+Cell[29504, 739, 1233, 35, 70, "Input",ExpressionUUID->"c9ff1f84-34ff-4393-95ef-f7cf27cce96e"],
+Cell[30740, 776, 245, 5, 70, "Output",ExpressionUUID->"1b5c5bc9-9521-4b57-af71-959fe5d376d5"],
+Cell[30988, 783, 321, 5, 70, "Text",ExpressionUUID->"851e9221-66df-49ad-8517-74d9891cf36c"],
+Cell[31312, 790, 796, 23, 70, "Input",ExpressionUUID->"5718707e-3657-48c4-9e7f-2f2d262b43df"],
+Cell[32111, 815, 231, 5, 70, "Output",ExpressionUUID->"954009df-937b-4ffe-a9bd-df9bf02099a5"],
+Cell[32345, 822, 332, 5, 70, "Text",ExpressionUUID->"d25ecb5d-307c-465b-b1b9-3c9a9c1290e4"],
+Cell[32680, 829, 108, 0, 70, "Subsection",ExpressionUUID->"c4ab6401-dcd0-490d-8955-4ee6b46b4469"],
+Cell[32791, 831, 322, 5, 70, "Text",ExpressionUUID->"75c0f1ab-d3fd-4e97-873f-10dedced8928"],
+Cell[33116, 838, 2973, 78, 70, "Input",ExpressionUUID->"62e495e7-5f34-4d5c-bcdd-c1a04a1956cf"],
+Cell[36092, 918, 189, 4, 70, "Output",ExpressionUUID->"7d1820b2-3427-435e-b3a2-ef3064eb4dff"],
+Cell[36284, 924, 86, 0, 70, "Section",ExpressionUUID->"20edc360-0178-4c98-bd36-0494e19f6a02"],
+Cell[36373, 926, 1748, 38, 70, "Output",ExpressionUUID->"4558a122-8ed6-4d5d-b34c-daac5316d3fa"],
+Cell[38124, 966, 108, 0, 70, "Subsection",ExpressionUUID->"3091316c-7231-4cf3-9023-56526af47e25"],
+Cell[38235, 968, 251, 4, 70, "Item",ExpressionUUID->"c317b54b-b026-4d42-a18f-9b6c182222e9"],
+Cell[38489, 974, 292, 4, 70, "Item",ExpressionUUID->"09c07311-1212-44b8-b45f-d2624bcc4feb"],
+Cell[38784, 980, 282, 5, 70, "Item",ExpressionUUID->"4ca6474d-40f9-44f7-b9d1-b5d71eae5ef8"],
+Cell[39069, 987, 97, 0, 70, "Section",ExpressionUUID->"2f1a24f0-ff80-4468-91e3-58d0a0c609ac"],
+Cell[39169, 989, 1995, 50, 70, "Input",ExpressionUUID->"d43d93e1-f9ca-4116-9534-2391dc1a7a96"],
+Cell[41167, 1041, 19886, 495, 70, "Output",ExpressionUUID->"f04e5b30-0660-45e7-8632-1be3b24d4a85"],
+Cell[61056, 1538, 538, 7, 70, "Text",ExpressionUUID->"860cfe1d-07a6-4de0-88a3-a1af6e8bc477"],
+Cell[61597, 1547, 100, 0, 70, "Section",ExpressionUUID->"fc435295-7c5a-40ee-8b81-c65852b2fe7a"],
+Cell[61700, 1549, 472, 7, 70, "Item",ExpressionUUID->"0c9094a1-23fe-41db-9d82-b7ecaf71f095"],
+Cell[62175, 1558, 208, 3, 70, "Item",ExpressionUUID->"e2a50a88-cbc5-4abc-a5ec-a717bcf844ea"],
+Cell[62386, 1563, 92, 0, 70, "Section",ExpressionUUID->"772f5c1d-600a-4ffd-ab61-a199539d5e01"],
+Cell[62481, 1565, 227, 3, 70, "Item",ExpressionUUID->"aca00f9a-bca4-4359-8b54-399b93eab5c5"],
+Cell[62711, 1570, 293, 4, 70, "Item",ExpressionUUID->"b2c9c16d-1489-468a-865d-b6ae2a8fb514"],
+Cell[63007, 1576, 216, 3, 70, "Item",ExpressionUUID->"16388059-dfad-4e7c-add0-b6b7f5892ca7"],
+Cell[63226, 1581, 84, 0, 70, "Section",ExpressionUUID->"09420c3b-a052-4a96-9ceb-7beee77f88ca"],
+Cell[63313, 1583, 246, 4, 70, "Item",ExpressionUUID->"4e05666b-1eb0-4ed5-973e-f658994dbb22"],
+Cell[63562, 1589, 253, 4, 70, "Item",ExpressionUUID->"a24b70ca-2198-44cd-9042-f14af1b8fc83"],
+Cell[63818, 1595, 295, 4, 70, "Item",ExpressionUUID->"dc90cee5-0f53-4c5c-a088-29b252d7ae5c"],
+Cell[64116, 1601, 275, 4, 70, "Item",ExpressionUUID->"820adaf9-ef2b-447b-97bf-4171c8137953"],
+Cell[64394, 1607, 222, 3, 70, "Item",ExpressionUUID->"8d33d1c6-d20a-44ef-8236-69c28cdc4ccb"],
+Cell[64619, 1612, 82, 0, 70, "Section",ExpressionUUID->"da2d165c-1bb2-4d60-a7eb-52dbe3943d03"],
+Cell[64704, 1614, 169, 3, 70, "Item",ExpressionUUID->"f3924d8f-b624-486a-8a15-05f684a2a063"],
+Cell[64876, 1619, 189, 3, 70, "Item",ExpressionUUID->"2616525b-f83c-4e47-bc1b-d1e6c33d4398"],
+Cell[65068, 1624, 164, 3, 70, "Item",ExpressionUUID->"7f8c651f-8e8b-4728-8936-b1e3c3aa44b7"],
+Cell[CellGroupData[{
+Cell[65257, 1631, 118, 0, 70, "Section",ExpressionUUID->"1394f46c-ef0c-405c-8462-e0e218179fa1"],
+Cell[65378, 1633, 386, 5, 70, "Text",ExpressionUUID->"9620a6f5-dc79-4e81-87f8-67f58db5d709"],
+Cell[65767, 1640, 195, 5, 70, "Input",ExpressionUUID->"bdbda659-294d-4148-89d4-e66dd2e48f7d",
+ InitializationCell->True],
+Cell[65965, 1647, 210, 6, 70, "Input",ExpressionUUID->"38645e9e-6327-443c-8fbc-88a85e9c5090",
+ InitializationCell->True],
+Cell[66178, 1655, 250, 8, 70, "Input",ExpressionUUID->"3ca3f93a-e32e-46a7-90c8-5b209822f80f",
+ InitializationCell->True],
+Cell[66431, 1665, 253, 8, 70, "Input",ExpressionUUID->"88de19e8-abb9-4a33-89e1-db9fc532255c",
+ InitializationCell->True],
+Cell[66687, 1675, 331, 10, 70, "Input",ExpressionUUID->"6f57e919-7be8-4246-974c-54daa37be870",
+ InitializationCell->True],
+Cell[67021, 1687, 827, 27, 70, "Input",ExpressionUUID->"83e8152a-f1ea-45a1-a0c5-3d1062028150",
+ InitializationCell->True],
+Cell[67851, 1716, 811, 28, 70, "Input",ExpressionUUID->"0eb4071d-e83e-4901-81b0-59d88e4e1729",
+ InitializationCell->True],
+Cell[68665, 1746, 246, 7, 70, "Input",ExpressionUUID->"2fa9e3ae-0350-416b-a1e8-135a1c7e883c",
+ InitializationCell->True],
+Cell[68914, 1755, 211, 6, 70, "Input",ExpressionUUID->"1b87a000-e761-4ed4-9907-6f8c4801ac30",
+ InitializationCell->True],
+Cell[69128, 1763, 478, 16, 70, "Input",ExpressionUUID->"5f518cfc-dc4b-4a7d-a82c-753368d55b92",
+ InitializationCell->True],
+Cell[69609, 1781, 261, 8, 70, "Input",ExpressionUUID->"54896197-47b0-4c19-a9d0-27700de4931a",
+ InitializationCell->True],
+Cell[69873, 1791, 264, 8, 70, "Input",ExpressionUUID->"15d722fd-bc91-4df2-97eb-0d3ff6495739",
+ InitializationCell->True],
+Cell[70140, 1801, 195, 5, 70, "Input",ExpressionUUID->"a9b2fa63-b8b0-4e8e-aaec-716659553179",
+ InitializationCell->True],
+Cell[70338, 1808, 2052, 62, 70, "Input",ExpressionUUID->"a8ea9099-9727-4b74-a91d-e4217824bce1",
+ InitializationCell->True],
+Cell[72393, 1872, 428, 13, 70, "Input",ExpressionUUID->"83864066-10a3-487e-b83c-a7316f6db3dc",
+ InitializationCell->True],
+Cell[72824, 1887, 231, 6, 70, "Input",ExpressionUUID->"a811a9cd-79b4-493b-a95e-a06057010c62",
+ InitializationCell->True],
+Cell[73058, 1895, 569, 15, 70, "Input",ExpressionUUID->"ee8301dc-304e-4129-b8dd-8a666517cceb",
+ InitializationCell->True],
+Cell[73630, 1912, 244, 6, 70, "Input",ExpressionUUID->"95c93145-82c6-4900-b46a-d646cc09c5f9",
+ InitializationCell->True],
+Cell[73877, 1920, 424, 11, 70, "Input",ExpressionUUID->"6c9b0fca-3076-4752-98b4-7e4ba4d5e9e3",
+ InitializationCell->True],
+Cell[74304, 1933, 575, 17, 70, "Input",ExpressionUUID->"0a40c315-781c-475a-9f68-46553e14df3a",
+ InitializationCell->True],
+Cell[74882, 1952, 453, 13, 70, "Input",ExpressionUUID->"cfacb1b9-6ba2-4838-a8a8-416426924d94",
+ InitializationCell->True],
+Cell[75338, 1967, 454, 14, 70, "Input",ExpressionUUID->"2feb11b0-3461-4f21-8813-2a0fb99309fa",
+ InitializationCell->True],
+Cell[75795, 1983, 449, 13, 70, "Input",ExpressionUUID->"2f3f5247-2d55-4edb-8ad8-efe32ffe3e31",
+ InitializationCell->True],
+Cell[76247, 1998, 229, 6, 70, "Input",ExpressionUUID->"1d5bf1f6-8aa0-421f-ba2b-0d9b9c4c812e",
+ InitializationCell->True],
+Cell[76479, 2006, 923, 27, 70, "Input",ExpressionUUID->"5d4bd5ca-af36-4354-8133-2ed573efff4f",
+ InitializationCell->True],
+Cell[77405, 2035, 209, 6, 70, "Input",ExpressionUUID->"edc1ea15-50e5-47a2-a4a7-fbc502a9f1f3",
+ InitializationCell->True],
+Cell[77617, 2043, 1026, 30, 70, "Input",ExpressionUUID->"d1c3c399-e6fd-4e85-b5eb-13977cf3dad8",
+ InitializationCell->True],
+Cell[78646, 2075, 194, 5, 70, "Input",ExpressionUUID->"90641667-5af1-4f1c-b2ff-0cc28f9899e4",
+ InitializationCell->True],
+Cell[78843, 2082, 507, 15, 70, "Input",ExpressionUUID->"131a3710-4836-4640-9274-21a27e086a09",
+ InitializationCell->True],
+Cell[79353, 2099, 421, 13, 70, "Input",ExpressionUUID->"0dc41dbc-9027-4d5e-9a17-55cfd16a21f9",
+ InitializationCell->True],
+Cell[79777, 2114, 165, 4, 70, "Input",ExpressionUUID->"10150e51-2b9d-4a78-8c55-0dfe5dda14b7",
+ InitializationCell->True],
+Cell[79945, 2120, 309, 9, 70, "Input",ExpressionUUID->"c6762590-1418-43a3-91d8-2e4b422d1437",
+ InitializationCell->True],
+Cell[80257, 2131, 287, 8, 70, "Input",ExpressionUUID->"79cbe2b4-7f19-461f-aea7-5e0f10aa74a4",
+ InitializationCell->True],
+Cell[80547, 2141, 964, 29, 70, "Input",ExpressionUUID->"c17e4457-c6a0-4b03-9dd2-45a8503fd45a",
+ InitializationCell->True],
+Cell[81514, 2172, 2187, 62, 70, "Input",ExpressionUUID->"25bd89ec-172e-4bfa-937b-1eb30f4d6aaf",
+ InitializationCell->True],
+Cell[83704, 2236, 397, 12, 70, "Input",ExpressionUUID->"d06c6831-dcd4-405a-9e19-08e199ec8e18",
+ InitializationCell->True],
+Cell[84104, 2250, 530, 16, 70, "Input",ExpressionUUID->"9e9cfb7b-9c7f-4687-a719-2886bc0165ac",
+ InitializationCell->True],
+Cell[84637, 2268, 432, 12, 70, "Input",ExpressionUUID->"96d6742a-0457-4dd6-83ec-d0f482691875",
+ InitializationCell->True],
+Cell[85072, 2282, 250, 7, 70, "Input",ExpressionUUID->"da099e75-af04-480e-ac5e-db83dd63c49e",
+ InitializationCell->True],
+Cell[85325, 2291, 417, 13, 70, "Input",ExpressionUUID->"bc4d179f-8c26-4680-8b27-c96627fe61cd",
+ InitializationCell->True],
+Cell[85745, 2306, 730, 20, 70, "Input",ExpressionUUID->"d93b1bd3-4b71-468e-ac43-282a1fa3b1ad",
+ InitializationCell->True],
+Cell[86478, 2328, 533, 16, 70, "Input",ExpressionUUID->"ab2c0cbc-0bd9-48ec-91cf-7c152fdb5fc1",
+ InitializationCell->True],
+Cell[87014, 2346, 1035, 30, 70, "Input",ExpressionUUID->"3eaaf15c-26cb-43f1-8ccf-6afa8416ae32",
+ InitializationCell->True],
+Cell[88052, 2378, 905, 26, 70, "Input",ExpressionUUID->"5aaef41f-bfcf-4a07-affb-a16409ac4d47",
+ InitializationCell->True],
+Cell[88960, 2406, 452, 12, 70, "Input",ExpressionUUID->"5a386c47-08f8-40fa-8dfa-6145bcd99880",
+ InitializationCell->True],
+Cell[89415, 2420, 174, 4, 70, "Input",ExpressionUUID->"b205dcc1-1c50-4a3b-b3d5-0cd27e4da510",
+ InitializationCell->True],
+Cell[89592, 2426, 178, 4, 70, "Input",ExpressionUUID->"679152dd-289b-4f12-9d9b-8481b3fbca53",
+ InitializationCell->True],
+Cell[89773, 2432, 176, 4, 70, "Input",ExpressionUUID->"ca3fef1b-ee2a-4b2c-a1f6-775e8445672c",
+ InitializationCell->True],
+Cell[89952, 2438, 196, 5, 70, "Input",ExpressionUUID->"cb6d29da-282f-474f-bc23-d77b50f19203",
+ InitializationCell->True],
+Cell[90151, 2445, 431, 11, 70, "Input",ExpressionUUID->"4d1f1281-1b01-4031-8cf9-67ee97cc6b4d",
+ InitializationCell->True],
+Cell[90585, 2458, 324, 9, 70, "Input",ExpressionUUID->"4cd5b44b-313d-4238-b49a-0e8a9dcaafe1",
+ InitializationCell->True],
+Cell[90912, 2469, 372, 11, 70, "Input",ExpressionUUID->"a5703b89-4931-451c-8465-68c5d741e282",
+ InitializationCell->True],
+Cell[91287, 2482, 688, 21, 70, "Input",ExpressionUUID->"012b0dc3-5ae8-4f8d-b397-9a89603b2146",
+ InitializationCell->True],
+Cell[91978, 2505, 449, 13, 70, "Input",ExpressionUUID->"754785e1-4ad9-4f78-85a1-c70d19dcbe2c",
+ InitializationCell->True],
+Cell[92430, 2520, 361, 9, 70, "Input",ExpressionUUID->"6516026a-b859-416c-a3e6-668998174804",
+ InitializationCell->True],
+Cell[92794, 2531, 459, 15, 70, "Input",ExpressionUUID->"1c74a10c-f4b9-4d8b-8675-eb3d87cdb353",
+ InitializationCell->True],
+Cell[93256, 2548, 475, 13, 70, "Input",ExpressionUUID->"2cbf2042-64a2-44eb-a222-d4f6408c31df",
+ InitializationCell->True],
+Cell[93734, 2563, 2660, 71, 70, "Input",ExpressionUUID->"13eccdc7-d4fd-49f8-bda0-62509ff35e31",
+ InitializationCell->True],
+Cell[96397, 2636, 2342, 62, 70, "Input",ExpressionUUID->"3c904035-6c6a-4915-9cd6-67862948af6a",
+ InitializationCell->True],
+Cell[98742, 2700, 927, 26, 70, "Input",ExpressionUUID->"36a5c9c2-10f5-4778-ad4f-a709782a5168",
+ InitializationCell->True],
+Cell[99672, 2728, 377, 11, 70, "Input",ExpressionUUID->"b89267ab-d8e1-4cab-b844-8edb89ba3590",
+ InitializationCell->True],
+Cell[100052, 2741, 255, 7, 70, "Input",ExpressionUUID->"d6716b65-3dac-435c-86c3-a42db3160e8b",
+ InitializationCell->True],
+Cell[100310, 2750, 773, 23, 70, "Input",ExpressionUUID->"8c51e5c3-d327-48da-a8c9-4cad5d0c9d0c",
+ InitializationCell->True],
+Cell[101086, 2775, 1080, 35, 70, "Input",ExpressionUUID->"44f82a68-034d-48d9-ad40-6b5b0cfb6d17",
+ InitializationCell->True]
+}, Closed]]
+}
+]
+*)
+
+(* End of internal cache information *)

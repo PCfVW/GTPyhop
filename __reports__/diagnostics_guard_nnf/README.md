@@ -29,4 +29,5 @@ Soundness of gtpyhop-diagnostics' guard extraction, 0.1.0 → 0.1.1: which atoms
 - The fix is proved sound for every guard expression.
 - decision-required: confirm, on keeping commit 3948b54 (the De Morgan split). It refines atoms that were
   already sound, so it is separable from the fix.
-- Open: the control-flow source (nested ifs, alternative success branches) is not fixed.
+- The control-flow source (nested ifs, alternative success branches) is fixed in dc3f852 and proved in
+  [diagnostics_guard_cf](../diagnostics_guard_cf/).
