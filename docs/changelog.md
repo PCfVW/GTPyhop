@@ -1,5 +1,42 @@
 # GTPyhop Version History
 
+## `gtpyhop-diagnostics` 0.1.1 — no false blockers from a bail on a conjunction
+
+Versioned independently of the lockstep line above; `gtpyhop-core`, `gtpyhop-examples`
+and `gtpyhop` are unchanged.
+
+### A guard-and-bail on `A and B` named preconditions that were not (bug fix)
+
+`if A and B: return False` bails only when *both* hold, so the action requires
+`not (A and B)`. 0.1.0 split the test on `and` and negated each part, so it reported
+`not A` and `not B` as two separate preconditions. Neither is one: with A true, B false
+and some other guard failing, `explain_dead_end` named A as a blocker although it
+blocked nothing. A consumer found this measuring the package on 436 generated domains,
+as false atoms on actions that had in fact been applied.
+
+Each guard's requirement (`not T` for a bail, `T` for a wrapping guard) is now split
+only where it is a conjunction, which a bail on `A and B` is not, so that atom is kept
+whole. `if not (A and B): return False` still names A and B separately. Measured
+against 0.1.0: 11 of the 335 actions declared in the bundled examples lose an unsound
+atom, and 408 of 5,885 in the consumer's corpus (865 atoms); recognition is unchanged
+in both.
+
+### A bail on `A or B` names each side (improvement)
+
+By the same rule, `if A or B: return False` requires `not A and not B`, so it now
+yields both atoms instead of one, and a report on `temperature < 4 or temperature > 95`
+says which bound failed. A disjunction *in the requirement* is still never split. 17
+bundled actions and 1,072 in the consumer's corpus gain atoms.
+
+### The check that was missing
+
+`tools/diagnostics_guard_check.py`, wired into `checks.yml`. Its first case is the
+general invariant: for 400 generated guards in every guard form, the conjunction of
+the extracted atoms must be equivalent to the requirement by truth table, so every
+atom is a real precondition and none is lost. Then the documented idioms, the reported
+reproduction end to end through `find_plan`, and a bundled action the fix changed.
+With 0.1.0's extractor, 6 of its 8 cases fail.
+
 ## 2.0.2 — session persistence round-trips again (Latest, Recommended)
 
 A single bug fix, plus the checks whose absence let it ship twice.

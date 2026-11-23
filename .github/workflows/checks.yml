@@ -71,6 +71,15 @@ jobs:
         # round trip, so it shipped twice.
         run: python tools/session_persistence_check.py
 
+      - name: Diagnostics guard extraction
+        # Every atom explain_dead_end may name as a blocker must be a real
+        # precondition. 0.1.0 split a guard-and-bail `if A and B: return False`
+        # into `not A` and `not B`, neither of which the action requires, and
+        # nothing noticed until a consumer found false blockers. The first case
+        # is a truth-table check over generated guards, so it covers the class,
+        # not just the reported shape.
+        run: python tools/diagnostics_guard_check.py
+
       - name: Doctests
         # Imports each module by its real dotted name rather than by filename,
         # so a module that is only importable through its package is tested

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "gtpyhop-diagnostics"
-version = "0.1.0"
+version = "0.1.1"
 description = "Failure attribution for GTPyhop plans: name the precondition that blocked the search"
 readme = "README.md"
 authors = [
